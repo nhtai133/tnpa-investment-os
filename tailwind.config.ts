@@ -6,6 +6,39 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  safelist: [
+    // Dark surface backgrounds
+    'bg-[#0C0C0E]',
+    'bg-[#131316]',
+    'bg-[#1C1C21]',
+    'bg-[#222228]',
+    // Hover surfaces
+    'hover:bg-[#1C1C21]',
+    'hover:bg-[#222228]',
+    // Border colors
+    'border-[#26262B]',
+    'border-[#303037]',
+    'border-[#1C1C21]',
+    // Conditional text colors (gain/loss, alerts)
+    'text-emerald-400',
+    'text-emerald-500',
+    'text-red-400',
+    'text-red-500',
+    'text-amber-400',
+    'text-amber-500',
+    'text-indigo-400',
+    'text-indigo-300',
+    // Conditional backgrounds
+    'bg-indigo-600',
+    'hover:bg-indigo-500',
+    'bg-red-950',
+    'hover:bg-red-950',
+    'border-red-900',
+    // Table-cell responsive visibility
+    'hidden',
+    'md:table-cell',
+    'lg:table-cell',
+  ],
   theme: {
     extend: {
       fontFamily: {

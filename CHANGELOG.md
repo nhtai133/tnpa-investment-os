@@ -2,6 +2,16 @@
 
 All meaningful changes to TNPA Investment OS should be recorded here.
 
+## 2026-06-05
+
+- Built Phase 4: Holdings Registry (13 new files, 1 modified).
+- Routes: /holdings, /holdings/new, /holdings/[id], /holdings/[id]/edit.
+- Components: HoldingsStats, FilterTabs, HoldingsTable, PositionSummaryCard, AssetForm, DeleteAssetForm.
+- Navigation: TopNav + NavLinks added to root layout (Dashboard | Holdings).
+- Server Actions: createAsset, updateAsset, deleteAsset with revalidation and redirect.
+- Filter tabs use URL searchParams with server-side filtering — no client state.
+- Reuse AllocationChart and PurposeAllocation on /holdings for full portfolio views.
+
 ## 2026-06-04
 
 - Phase 3 review: PASS. Tagged v0.3-net-worth-command-center.
