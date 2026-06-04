@@ -4,6 +4,8 @@ All meaningful changes to TNPA Investment OS should be recorded here.
 
 ## 2026-06-04
 
+- Phase 3 review: PASS. Tagged v0.3-net-worth-command-center.
+- Roadmap updated to reflect actual phase progression. Phase 4 (Holdings + Transactions) set as next.
 - Built Phase 1 MVP: Net Worth Command Center dashboard (Next.js 14, TypeScript, Tailwind, SQLite/Drizzle).
 - Created all dashboard sections: Net Worth cards, Investable Assets Ratio, Asset Allocation donut, Asset Purpose allocation, Top Holdings, Recent Decisions, Watchlist, Rebalance Alerts.
 - Corrected asset classes to exactly six: Stock, Crypto, Cash, Funds, Private Loan, Other.

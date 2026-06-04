@@ -1,88 +1,82 @@
 # Roadmap
 
-This roadmap keeps the project grounded in investment operations before implementation details. Dates should be added when work enters active planning.
-
 ## Phase 0: Foundation
 
 Status: complete
 
-- Define product scope, operating principles, and non-goals.
-- Establish architecture baseline and decision record process.
-- Document the initial investment domain model.
-- Define core workflows for research, decisions, portfolio monitoring, and reviews.
-- Set security, audit, and data governance expectations.
+- Product scope, operating principles, and non-goals.
+- Architecture baseline and ADR process.
+- Domain model, workflows, security baseline, and operating model.
 
 ## Phase 1: Product Slice Definition
 
-Status: in progress
+Status: complete
 
-Selected first slice: Net Worth Command Center.
-
-The first visible surface is a personal net worth and portfolio dashboard that consolidates all asset classes into one command center view. Research, thesis, and decision workflows remain core domain objects but surface as supporting data within the dashboard rather than as the primary entry screen.
-
-Asset classes in scope (exactly six):
-
-- Stock
-- Crypto
-- Cash
-- Funds
-- Private Loan
-- Other
-
-Dashboard components to support:
-
-- Total Net Worth card — aggregate market value across all accounts and asset classes.
-- Asset Allocation donut chart — breakdown by asset class as percentage of total net worth.
-- Asset class summary cards — per-class totals, holding count, and change indicators.
-- Top Holdings table — largest positions by value with asset class, gain/loss, and portfolio weight.
-- Recent Investment Decisions — latest decision records with action, asset, and date.
-- Watchlist — monitored assets with last note and alert flags.
-- Rebalance Alert section — positions or asset classes outside target allocation bands.
-
-Phase 1 deliverables:
-
-- Define target users and permission levels for the dashboard.
-- Define acceptance criteria for each dashboard component.
-- Choose the application stack and record the decision in an ADR.
-- Convert the domain model into implementation-ready schemas covering all seven asset classes.
-- Define seed data and fixture strategy for local development and dashboard testing.
+- Selected Net Worth Command Center as first slice.
+- Defined six asset classes, Asset Purpose Framework, and two-metric net worth model.
+- Chose application stack: Next.js 14, TypeScript, Tailwind, SQLite, Drizzle ORM.
+- Recorded stack decision in ADR 0004.
 
 ## Phase 2: Application Foundation
 
+Status: complete
+
+- Scaffolded Next.js 14 App Router workspace.
+- Implemented Drizzle ORM schema with all seven tables.
+- Configured SQLite via @libsql/client (no native compilation required).
+- Added seed data covering 12 assets, 5 decisions, 4 watchlist items, 2 rebalance alerts.
+- Linting, type checking, and production build verified.
+
+## Phase 3: Net Worth Command Center
+
+Status: complete — v0.3-net-worth-command-center
+
+- Investment Net Worth card
+- Total Net Worth card
+- Investable Assets Ratio card
+- Asset Allocation donut chart (by asset class, % of Investment Net Worth)
+- Asset Purpose Allocation (by purpose, % of Total Net Worth)
+- Top Holdings table with unrealized gain/loss
+- Recent Investment Decisions feed
+- Watchlist Summary with alert flags
+- Rebalance Alerts with band visualisation
+
+## Phase 4: Holdings + Transactions
+
+Status: next
+
+Scope to be defined. Candidate deliverables:
+
+- Holdings detail view per asset (cost basis, quantity, entry date, current price).
+- Transaction log (buy, sell, add, trim, transfer) with date, price, quantity, and fees.
+- Running cost basis and unrealized P&L per holding.
+- Transaction entry form (manual input, no broker integration).
+- Holdings history chart (value over time per asset or class).
+
+## Phase 5: Research + Decision Workflows
+
 Status: planned
 
-- Scaffold the application workspace.
-- Add authentication and role-based access boundaries.
-- Implement database migrations and schema validation.
-- Add local development, linting, formatting, and test commands.
-- Create CI checks for type safety, tests, and documentation drift.
+- Research thesis creation and versioning.
+- Decision log with approval state and rationale.
+- Thesis linked to holdings and decision records.
+- Postmortem workflow for closed positions.
 
-## Phase 3: Core Workflows
+## Phase 6: Integrations and Automation
 
 Status: planned
 
-- Research notes and thesis versioning.
-- Decision records with approvals and rationale.
-- Portfolio positions, target weights, and exposure rollups.
-- Review cycles, exceptions, and postmortems.
+- Market data ingestion (price updates for stocks, crypto, funds).
+- Watchlist alerts and catalyst tracking.
+- Scheduled rebalance alert generation.
 - Report export primitives.
 
-## Phase 4: Integrations and Automation
+## Phase 7: Hardening
 
 Status: planned
 
-- Market data ingestion.
-- Document ingestion and source tracking.
-- Alerting for watchlist events, allocation drift, and thesis review dates.
-- Scheduled reporting.
-- Admin audit views.
-
-## Phase 5: Hardening
-
-Status: planned
-
-- Permission review and security testing.
-- Backup, restore, and retention procedures.
-- Observability and operational runbooks.
-- Performance testing for portfolio and research queries.
-- Release process and production readiness checklist.
+- Authentication and role-based access.
+- Audit trail for material changes.
+- Backup, restore, and data retention.
+- Performance testing for portfolio queries.
+- Production readiness checklist.
