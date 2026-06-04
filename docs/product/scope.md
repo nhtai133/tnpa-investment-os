@@ -2,8 +2,14 @@
 
 TNPA Investment OS is an internal operating system for disciplined investment work. It should help a team capture research, make decisions, monitor portfolios, and learn from outcomes.
 
+## Primary Surface
+
+The first user-facing surface is the **Net Worth Command Center** — a personal portfolio dashboard that consolidates all asset classes into one view. Research, thesis, and decision workflows are core to the product but enter through the dashboard rather than as standalone entry screens.
+
 ## In Scope
 
+- Net worth tracking across all asset classes: Stocks, Crypto, Cash, Mutual Funds, Private Loan, Opportunity Fund, and Other Assets.
+- Asset allocation views, target weights, and rebalance alerts.
 - Company, fund, asset, and instrument records.
 - Research notes, source references, thesis snapshots, and open questions.
 - Watchlists, catalysts, risks, and review dates.

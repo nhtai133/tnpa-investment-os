@@ -14,20 +14,38 @@ Status: complete
 
 ## Phase 1: Product Slice Definition
 
-Status: next
+Status: in progress
 
-- Select the first user-facing workflow to implement.
-- Define target users, permissions, acceptance criteria, and reporting needs.
-- Choose the application stack.
-- Convert the domain model into implementation-ready schemas.
-- Define seed data and fixture strategy for local development.
+Selected first slice: Net Worth Command Center.
 
-Candidate first slices:
+The first visible surface is a personal net worth and portfolio dashboard that consolidates all asset classes into one command center view. Research, thesis, and decision workflows remain core domain objects but surface as supporting data within the dashboard rather than as the primary entry screen.
 
-- Research thesis registry with decision log.
-- Portfolio holdings dashboard with exposure views.
-- Investment committee memo workflow.
-- Watchlist and catalyst tracking.
+Asset classes in scope (exactly six):
+
+- Stock
+- Crypto
+- Cash
+- Funds
+- Private Loan
+- Other
+
+Dashboard components to support:
+
+- Total Net Worth card — aggregate market value across all accounts and asset classes.
+- Asset Allocation donut chart — breakdown by asset class as percentage of total net worth.
+- Asset class summary cards — per-class totals, holding count, and change indicators.
+- Top Holdings table — largest positions by value with asset class, gain/loss, and portfolio weight.
+- Recent Investment Decisions — latest decision records with action, asset, and date.
+- Watchlist — monitored assets with last note and alert flags.
+- Rebalance Alert section — positions or asset classes outside target allocation bands.
+
+Phase 1 deliverables:
+
+- Define target users and permission levels for the dashboard.
+- Define acceptance criteria for each dashboard component.
+- Choose the application stack and record the decision in an ADR.
+- Convert the domain model into implementation-ready schemas covering all seven asset classes.
+- Define seed data and fixture strategy for local development and dashboard testing.
 
 ## Phase 2: Application Foundation
 

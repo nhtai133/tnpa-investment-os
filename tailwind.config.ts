@@ -1,0 +1,47 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        surface: {
+          DEFAULT: '#0C0C0E',
+          card: '#131316',
+          elevated: '#1C1C21',
+          hover: '#222228',
+        },
+        'app-border': {
+          DEFAULT: '#26262B',
+          light: '#303037',
+        },
+        asset: {
+          stock: '#818CF8',
+          crypto: '#A78BFA',
+          cash: '#34D399',
+          funds: '#60A5FA',
+          loan: '#FBBF24',
+          other: '#9CA3AF',
+        },
+        purpose: {
+          compounder: '#818CF8',
+          income: '#34D399',
+          liquidity: '#60A5FA',
+          opportunity: '#F472B6',
+          store: '#FBBF24',
+          strategic: '#F87171',
+        },
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

@@ -16,7 +16,7 @@ logs/
 tmp/
 temp/
 
-# Dependency and build output for future app stacks
+# Dependency and build output
 node_modules/
 dist/
 build/
@@ -29,3 +29,11 @@ __pycache__/
 .ruff_cache/
 .venv/
 venv/
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# Drizzle generated output
+drizzle/
