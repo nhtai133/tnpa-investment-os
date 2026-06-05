@@ -107,6 +107,33 @@ export const decisionLogs = sqliteTable('decision_logs', {
   created_at: text('created_at').notNull(),
 });
 
+export const assetIntelligence = sqliteTable('asset_intelligence', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  asset_id: integer('asset_id').notNull().unique().references(() => assets.id),
+  // Core Thesis
+  investment_thesis: text('investment_thesis'),
+  risk_notes: text('risk_notes'),
+  // Strategy Zones
+  buy_zone: text('buy_zone'),
+  sell_zone: text('sell_zone'),
+  accumulation_plan: text('accumulation_plan'),
+  exit_plan: text('exit_plan'),
+  // Review System
+  review_cadence: text('review_cadence'),
+  next_review_date: text('next_review_date'),
+  // Asset-Class Specific
+  dividend_notes: text('dividend_notes'),
+  valuation_notes: text('valuation_notes'),
+  cycle_thesis: text('cycle_thesis'),
+  dca_plan: text('dca_plan'),
+  legal_status: text('legal_status'),
+  yield_notes: text('yield_notes'),
+  loan_terms: text('loan_terms'),
+  counterparty_notes: text('counterparty_notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export type Asset = typeof assets.$inferSelect;
 export type TargetAllocation = typeof targetAllocations.$inferSelect;
 export type WatchlistItem = typeof watchlistItems.$inferSelect;
@@ -114,3 +141,4 @@ export type RebalanceAlert = typeof rebalanceAlerts.$inferSelect;
 export type NetWorthSnapshot = typeof netWorthSnapshots.$inferSelect;
 export type ResearchThesis = typeof researchTheses.$inferSelect;
 export type DecisionLog = typeof decisionLogs.$inferSelect;
+export type AssetIntelligence = typeof assetIntelligence.$inferSelect;
