@@ -17,6 +17,7 @@ import { TopHoldings } from '@/components/dashboard/TopHoldings';
 import { RecentDecisions } from '@/components/dashboard/RecentDecisions';
 import { WatchlistSummary } from '@/components/dashboard/WatchlistSummary';
 import { RebalanceAlerts } from '@/components/dashboard/RebalanceAlerts';
+import { QuickNav } from '@/components/dashboard/QuickNav';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,22 +79,25 @@ export default async function DashboardPage() {
           investableRatio={investableRatio}
         />
 
-        {/* Row 2: Charts */}
+        {/* Row 2: Quick Navigation */}
+        <QuickNav />
+
+        {/* Row 3: Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AllocationChart data={assetClassBreakdown} />
           <PurposeAllocation data={purposeBreakdown} />
         </div>
 
-        {/* Row 3: Top Holdings */}
+        {/* Row 4: Top Holdings */}
         <TopHoldings holdings={topHoldings} />
 
-        {/* Row 4: Decisions + Watchlist */}
+        {/* Row 5: Decisions + Watchlist */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <RecentDecisions decisions={decisions} />
           <WatchlistSummary items={watchlist} />
         </div>
 
-        {/* Row 5: Rebalance Alerts */}
+        {/* Row 6: Rebalance Alerts */}
         <RebalanceAlerts alerts={alerts} />
 
         {/* Footer */}

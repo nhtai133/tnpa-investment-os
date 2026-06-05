@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 
-export const ASSET_CLASSES = ['stock', 'crypto', 'cash', 'funds', 'private_loan', 'other'] as const;
+export const ASSET_CLASSES = ['stock', 'crypto', 'real_estate', 'gold', 'cash', 'funds', 'private_loan', 'other'] as const;
 export const ASSET_PURPOSES = [
   'wealth_compounder',
   'income_generator',

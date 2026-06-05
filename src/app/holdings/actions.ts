@@ -11,7 +11,7 @@ function parseAssetFormData(formData: FormData) {
   return {
     name: (formData.get('name') as string).trim(),
     symbol: ((formData.get('symbol') as string) || '').trim() || null,
-    asset_class: asset_class as 'stock' | 'crypto' | 'cash' | 'funds' | 'private_loan' | 'other',
+    asset_class: asset_class as 'stock' | 'crypto' | 'real_estate' | 'gold' | 'cash' | 'funds' | 'private_loan' | 'other',
     purpose: formData.get('purpose') as
       | 'wealth_compounder'
       | 'income_generator'

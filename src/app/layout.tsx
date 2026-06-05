@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { TopNav } from '@/components/nav/TopNav';
+import { Sidebar } from '@/components/nav/Sidebar';
 import './globals.css';
 
 const inter = Inter({
@@ -17,9 +17,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-[#0C0C0E] text-zinc-100 font-sans">
-        <TopNav />
-        {children}
+      <body className="bg-[#0C0C0E] text-zinc-100 font-sans">
+        <div className="flex h-screen">
+          <Sidebar />
+          <div className="flex-1 overflow-y-auto">
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );

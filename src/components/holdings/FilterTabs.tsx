@@ -6,6 +6,8 @@ const TABS: { label: string; value: AssetClass | '' }[] = [
   { label: 'All', value: '' },
   { label: ASSET_CLASS_LABELS.stock, value: 'stock' },
   { label: ASSET_CLASS_LABELS.crypto, value: 'crypto' },
+  { label: ASSET_CLASS_LABELS.real_estate, value: 'real_estate' },
+  { label: ASSET_CLASS_LABELS.gold, value: 'gold' },
   { label: ASSET_CLASS_LABELS.cash, value: 'cash' },
   { label: ASSET_CLASS_LABELS.funds, value: 'funds' },
   { label: ASSET_CLASS_LABELS.private_loan, value: 'private_loan' },

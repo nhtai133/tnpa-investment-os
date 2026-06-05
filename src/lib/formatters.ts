@@ -34,6 +34,8 @@ export function formatDate(dateStr: string): string {
 export const ASSET_CLASS_LABELS: Record<AssetClass, string> = {
   stock: 'Stock',
   crypto: 'Crypto',
+  real_estate: 'Real Estate',
+  gold: 'Gold',
   cash: 'Cash',
   funds: 'Funds',
   private_loan: 'Private Loan',
@@ -43,6 +45,8 @@ export const ASSET_CLASS_LABELS: Record<AssetClass, string> = {
 export const ASSET_CLASS_COLORS: Record<AssetClass, string> = {
   stock: '#818CF8',
   crypto: '#A78BFA',
+  real_estate: '#F97316',
+  gold: '#EAB308',
   cash: '#34D399',
   funds: '#60A5FA',
   private_loan: '#FBBF24',

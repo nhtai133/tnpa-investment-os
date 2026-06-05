@@ -180,11 +180,11 @@ async function seed() {
         created_at: now,
         updated_at: now,
       },
-      // Other — include_in_investment_net_worth: false
+      // Real Estate — include_in_investment_net_worth: false
       {
         name: 'Residential Apartment',
         symbol: null,
-        asset_class: 'other',
+        asset_class: 'real_estate',
         purpose: 'store_of_value',
         current_value: 185000,
         currency: 'USD',
@@ -196,10 +196,11 @@ async function seed() {
         created_at: now,
         updated_at: now,
       },
+      // Gold — include_in_investment_net_worth: false
       {
         name: 'Physical Gold (50g)',
         symbol: 'XAU',
-        asset_class: 'other',
+        asset_class: 'gold',
         purpose: 'store_of_value',
         current_value: 14500,
         currency: 'USD',
@@ -215,7 +216,7 @@ async function seed() {
     .returning();
 
   // ── Net Worth calculation ──────────────────────────────────────────────────
-  // Investment NW: all except Other
+  // Investment NW: all except Real Estate + Gold (include_in_investment_net_worth: false)
   // Stock: 18500 + 14200 + 12800 = 45500
   // Crypto: 28500 + 8000 = 36500
   // Cash: 42000 + 18000 = 60000
@@ -223,7 +224,7 @@ async function seed() {
   // Private Loan: 22000
   // Total investable: 214500
   //
-  // Other: 185000 + 14500 = 199500
+  // Real Estate: 185000, Gold: 14500 — in TNW only
   // Total NW: 414000
 
   const investmentNW = 214500;
@@ -236,7 +237,8 @@ async function seed() {
     cash: { value: 60000, weight: (60000 / investmentNW) * 100, count: 2 },
     funds: { value: 50500, weight: (50500 / investmentNW) * 100, count: 2 },
     private_loan: { value: 22000, weight: (22000 / investmentNW) * 100, count: 1 },
-    other: { value: 199500, weight: (199500 / totalNW) * 100, count: 2 },
+    real_estate: { value: 185000, weight: (185000 / totalNW) * 100, count: 1 },
+    gold: { value: 14500, weight: (14500 / totalNW) * 100, count: 1 },
   };
 
   await db.insert(netWorthSnapshots).values({
