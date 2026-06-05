@@ -10,8 +10,13 @@ export const ASSET_PURPOSES = [
   'strategic_asset',
 ] as const;
 
+export const OPPORTUNITY_SOURCES = ['manual', 'telegram', 'ai', 'other'] as const;
+export const OPPORTUNITY_STATUSES = ['new', 'reviewing', 'promoted', 'rejected'] as const;
+
 export type AssetClass = (typeof ASSET_CLASSES)[number];
 export type AssetPurpose = (typeof ASSET_PURPOSES)[number];
+export type OpportunitySource = (typeof OPPORTUNITY_SOURCES)[number];
+export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
 
 export const assets = sqliteTable('assets', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -43,6 +48,22 @@ export const targetAllocations = sqliteTable('target_allocations', {
   updated_at: text('updated_at').notNull(),
 });
 
+// opportunities must be defined before watchlist_items (FK dependency)
+export const opportunities = sqliteTable('opportunities', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  symbol: text('symbol'),
+  asset_class: text('asset_class', { enum: ASSET_CLASSES }),
+  source: text('source', { enum: OPPORTUNITY_SOURCES }).notNull().default('manual'),
+  raw_note: text('raw_note'),
+  parsed_thesis: text('parsed_thesis'),
+  status: text('status', { enum: OPPORTUNITY_STATUSES }).notNull().default('new'),
+  // Plain integer — no .references() to avoid circular dependency with watchlist_items
+  watchlist_id: integer('watchlist_id'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export const watchlistItems = sqliteTable('watchlist_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -51,9 +72,19 @@ export const watchlistItems = sqliteTable('watchlist_items', {
   note: text('note'),
   alert_flag: integer('alert_flag', { mode: 'boolean' }).notNull().default(false),
   review_date: text('review_date'),
-  status: text('status', { enum: ['active', 'archived'] }).notNull().default('active'),
+  status: text('status', {
+    enum: ['active', 'archived', 'promoted', 'rejected'],
+  }).notNull().default('active'),
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),
+  // v0.7 additions — all nullable, additive only
+  opportunity_id: integer('opportunity_id').references(() => opportunities.id),
+  asset_id: integer('asset_id').references(() => assets.id),
+  conviction_score: integer('conviction_score'),
+  conviction_rationale: text('conviction_rationale'),
+  target_entry: text('target_entry'),
+  thesis: text('thesis'),
+  next_action: text('next_action'),
 });
 
 export const rebalanceAlerts = sqliteTable('rebalance_alerts', {
@@ -110,18 +141,14 @@ export const decisionLogs = sqliteTable('decision_logs', {
 export const assetIntelligence = sqliteTable('asset_intelligence', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   asset_id: integer('asset_id').notNull().unique().references(() => assets.id),
-  // Core Thesis
   investment_thesis: text('investment_thesis'),
   risk_notes: text('risk_notes'),
-  // Strategy Zones
   buy_zone: text('buy_zone'),
   sell_zone: text('sell_zone'),
   accumulation_plan: text('accumulation_plan'),
   exit_plan: text('exit_plan'),
-  // Review System
   review_cadence: text('review_cadence'),
   next_review_date: text('next_review_date'),
-  // Asset-Class Specific
   dividend_notes: text('dividend_notes'),
   valuation_notes: text('valuation_notes'),
   cycle_thesis: text('cycle_thesis'),
@@ -136,6 +163,7 @@ export const assetIntelligence = sqliteTable('asset_intelligence', {
 
 export type Asset = typeof assets.$inferSelect;
 export type TargetAllocation = typeof targetAllocations.$inferSelect;
+export type Opportunity = typeof opportunities.$inferSelect;
 export type WatchlistItem = typeof watchlistItems.$inferSelect;
 export type RebalanceAlert = typeof rebalanceAlerts.$inferSelect;
 export type NetWorthSnapshot = typeof netWorthSnapshots.$inferSelect;

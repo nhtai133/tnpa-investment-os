@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import {
   formatDate,
@@ -19,7 +20,11 @@ export function WatchlistSummary({ items }: WatchlistSummaryProps) {
     <Card className="flex flex-col">
       <CardHeader
         label="Watchlist"
-        action={flagged.length > 0 ? `${flagged.length} flagged` : `${items.length} items`}
+        action={
+          <Link href="/watchlist" className="hover:text-zinc-300 transition-colors">
+            {flagged.length > 0 ? `${flagged.length} flagged · View all →` : `${items.length} items · View all →`}
+          </Link>
+        }
       />
       <div className="divide-y divide-[#1C1C21]">
         {sorted.map((item) => (

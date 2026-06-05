@@ -18,6 +18,20 @@ const CARDS: NavCard[] = [
     color: '#818CF8',
   },
   {
+    title: 'Pipeline',
+    description: 'Opportunity intake and research pipeline.',
+    cta: 'Open Pipeline',
+    href: '/pipeline',
+    color: '#A78BFA',
+  },
+  {
+    title: 'Watchlist',
+    description: 'Assets under active monitoring.',
+    cta: 'Open Watchlist',
+    href: '/watchlist',
+    color: '#F472B6',
+  },
+  {
     title: 'Stocks',
     description: 'Equities and individual stock positions.',
     cta: 'Open Stocks',

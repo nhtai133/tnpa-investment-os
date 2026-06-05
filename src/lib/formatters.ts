@@ -71,6 +71,41 @@ export const PURPOSE_COLORS: Record<AssetPurpose, string> = {
   strategic_asset: '#F87171',
 };
 
+export const OPPORTUNITY_SOURCE_LABELS: Record<string, string> = {
+  manual: 'Manual',
+  telegram: 'Telegram',
+  ai: 'AI',
+  other: 'Other',
+};
+
+export const OPPORTUNITY_SOURCE_COLORS: Record<string, string> = {
+  manual: '#9CA3AF',
+  telegram: '#60A5FA',
+  ai: '#A78BFA',
+  other: '#6B7280',
+};
+
+export const OPPORTUNITY_STATUS_LABELS: Record<string, string> = {
+  new: 'New',
+  reviewing: 'Reviewing',
+  promoted: 'Promoted',
+  rejected: 'Rejected',
+};
+
+export const OPPORTUNITY_STATUS_COLORS: Record<string, string> = {
+  new: '#818CF8',
+  reviewing: '#FBBF24',
+  promoted: '#34D399',
+  rejected: '#F87171',
+};
+
+export const WATCHLIST_STATUS_LABELS: Record<string, string> = {
+  active: 'Active',
+  archived: 'Archived',
+  promoted: 'Promoted',
+  rejected: 'Rejected',
+};
+
 export const DECISION_TYPE_LABELS: Record<string, string> = {
   buy: 'Buy',
   sell: 'Sell',

@@ -8,6 +8,11 @@ const PRIMARY_LINKS = [
   { label: 'Holdings', href: '/holdings' },
 ];
 
+const RESEARCH_LINKS = [
+  { label: 'Pipeline', href: '/pipeline' },
+  { label: 'Watchlist', href: '/watchlist' },
+];
+
 const MARKET_LINKS = [
   { label: 'Stocks', href: '/stocks' },
   { label: 'Crypto', href: '/crypto' },
@@ -50,6 +55,28 @@ export function Sidebar() {
 
         <div className="pt-5 pb-1 px-3">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
+            Research
+          </p>
+        </div>
+
+        <div className="space-y-0.5">
+          {RESEARCH_LINKS.map(({ label, href }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+                isActive(href)
+                  ? 'bg-[#1C1C21] text-zinc-100'
+                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="pt-5 pb-1 px-3">
+          <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
             Markets
           </p>
         </div>
@@ -72,7 +99,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v0.5 · Personal Family Office</p>
+        <p className="text-[10px] text-zinc-700">v0.7 · Personal Family Office</p>
       </div>
     </aside>
   );
