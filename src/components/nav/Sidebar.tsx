@@ -9,6 +9,7 @@ const PRIMARY_LINKS = [
 ];
 
 const RESEARCH_LINKS = [
+  { label: 'Intake', href: '/intake' },
   { label: 'Pipeline', href: '/pipeline' },
   { label: 'Watchlist', href: '/watchlist' },
   { label: 'Journal', href: '/journal' },
@@ -100,7 +101,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v0.8 · Personal Family Office</p>
+        <p className="text-[10px] text-zinc-700">v0.9 · Personal Family Office</p>
       </div>
     </aside>
   );

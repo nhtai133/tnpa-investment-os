@@ -18,6 +18,13 @@ const CARDS: NavCard[] = [
     color: '#818CF8',
   },
   {
+    title: 'Intake',
+    description: 'Paste raw signals to create opportunities.',
+    cta: 'Open Intake',
+    href: '/intake',
+    color: '#34D399',
+  },
+  {
     title: 'Pipeline',
     description: 'Opportunity intake and research pipeline.',
     cta: 'Open Pipeline',
