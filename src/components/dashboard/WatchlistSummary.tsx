@@ -21,11 +21,22 @@ export function WatchlistSummary({ items }: WatchlistSummaryProps) {
       <CardHeader
         label="Watchlist"
         action={
-          <Link href="/watchlist" className="hover:text-zinc-300 transition-colors">
-            {flagged.length > 0 ? `${flagged.length} flagged · View all →` : `${items.length} items · View all →`}
+          <Link href="/watchlist" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
+            {flagged.length > 0 ? `${flagged.length} flagged · All →` : `All →`}
           </Link>
         }
       />
+      {items.length === 0 ? (
+        <div className="px-5 py-8 text-center">
+          <p className="text-sm text-zinc-700 mb-3">Watchlist is empty.</p>
+          <Link
+            href="/watchlist/new"
+            className="inline-flex items-center px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors"
+          >
+            + Add to Watchlist
+          </Link>
+        </div>
+      ) : (
       <div className="divide-y divide-[#1C1C21]">
         {sorted.map((item) => (
           <div key={item.id} className="px-5 py-4 hover:bg-[#1C1C21] transition-colors">
@@ -75,6 +86,7 @@ export function WatchlistSummary({ items }: WatchlistSummaryProps) {
           </div>
         ))}
       </div>
+      )}
     </Card>
   );
 }

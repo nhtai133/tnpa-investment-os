@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const PRIMARY_LINKS = [
-  { label: 'Dashboard', href: '/' },
+const PORTFOLIO_LINKS = [
   { label: 'Holdings', href: '/holdings' },
 ];
 
@@ -24,6 +23,37 @@ const MARKET_LINKS = [
   { label: 'Private Loans', href: '/private-loans' },
 ];
 
+function NavGroup({ label, links, isActive }: {
+  label: string;
+  links: { label: string; href: string }[];
+  isActive: (href: string) => boolean;
+}) {
+  return (
+    <>
+      <div className="pt-5 pb-1 px-3">
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
+          {label}
+        </p>
+      </div>
+      <div className="space-y-0.5">
+        {links.map(({ label: lbl, href }) => (
+          <Link
+            key={href}
+            href={href}
+            className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+              isActive(href)
+                ? 'bg-[#1C1C21] text-zinc-100'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
+            }`}
+          >
+            {lbl}
+          </Link>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function Sidebar() {
   const pathname = usePathname();
 
@@ -39,69 +69,27 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 py-3 overflow-y-auto">
+        {/* Command Center */}
         <div className="space-y-0.5">
-          {PRIMARY_LINKS.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive(href)
-                  ? 'bg-[#1C1C21] text-zinc-100'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
+          <Link
+            href="/"
+            className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+              isActive('/')
+                ? 'bg-[#1C1C21] text-zinc-100'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
+            }`}
+          >
+            Dashboard
+          </Link>
         </div>
 
-        <div className="pt-5 pb-1 px-3">
-          <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
-            Research
-          </p>
-        </div>
-
-        <div className="space-y-0.5">
-          {RESEARCH_LINKS.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive(href)
-                  ? 'bg-[#1C1C21] text-zinc-100'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="pt-5 pb-1 px-3">
-          <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
-            Markets
-          </p>
-        </div>
-
-        <div className="space-y-0.5">
-          {MARKET_LINKS.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive(href)
-                  ? 'bg-[#1C1C21] text-zinc-100'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
+        <NavGroup label="Portfolio" links={PORTFOLIO_LINKS} isActive={isActive} />
+        <NavGroup label="Research" links={RESEARCH_LINKS} isActive={isActive} />
+        <NavGroup label="Markets" links={MARKET_LINKS} isActive={isActive} />
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v0.9 · Personal Family Office</p>
+        <p className="text-[10px] text-zinc-700">v1.0 · Personal Family Office</p>
       </div>
     </aside>
   );

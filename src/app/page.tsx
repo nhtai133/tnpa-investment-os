@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { assets, decisionLogs, watchlistItems, rebalanceAlerts } from '@/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { assets, decisionLogs, watchlistItems, rebalanceAlerts, opportunities, researchNotes } from '@/db/schema';
+import { desc, eq, or } from 'drizzle-orm';
 
 import {
   computeInvestmentNetWorth,
@@ -11,23 +11,34 @@ import {
 } from '@/lib/calculations';
 
 import { NetWorthCards } from '@/components/dashboard/NetWorthCards';
+import { StatCounters } from '@/components/dashboard/StatCounters';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
 import { PurposeAllocation } from '@/components/dashboard/PurposeAllocation';
 import { TopHoldings } from '@/components/dashboard/TopHoldings';
 import { RecentDecisions } from '@/components/dashboard/RecentDecisions';
 import { WatchlistSummary } from '@/components/dashboard/WatchlistSummary';
 import { RebalanceAlerts } from '@/components/dashboard/RebalanceAlerts';
+import { RecentOpportunities } from '@/components/dashboard/RecentOpportunities';
+import { RecentNotes } from '@/components/dashboard/RecentNotes';
+import { NextActions } from '@/components/dashboard/NextActions';
 import { QuickNav } from '@/components/dashboard/QuickNav';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const [allAssets, decisions, watchlist, alerts] = await Promise.all([
-    db.select().from(assets),
-    db.select().from(decisionLogs).orderBy(desc(decisionLogs.decision_date)).limit(5),
-    db.select().from(watchlistItems).where(eq(watchlistItems.status, 'active')),
-    db.select().from(rebalanceAlerts).where(eq(rebalanceAlerts.status, 'open')),
-  ]);
+  const [allAssets, decisions, watchlist, alerts, recentOpps, recentNotes, activeOpps] =
+    await Promise.all([
+      db.select().from(assets),
+      db.select().from(decisionLogs).orderBy(desc(decisionLogs.decision_date)).limit(5),
+      db.select().from(watchlistItems).where(eq(watchlistItems.status, 'active')),
+      db.select().from(rebalanceAlerts).where(eq(rebalanceAlerts.status, 'open')),
+      db.select().from(opportunities).orderBy(desc(opportunities.created_at)).limit(4),
+      db.select().from(researchNotes).orderBy(desc(researchNotes.created_at)).limit(4),
+      db
+        .select({ id: opportunities.id })
+        .from(opportunities)
+        .where(or(eq(opportunities.status, 'new'), eq(opportunities.status, 'reviewing'))),
+    ]);
 
   const investmentNetWorth = computeInvestmentNetWorth(allAssets);
   const totalNetWorth = computeTotalNetWorth(allAssets);
@@ -36,7 +47,13 @@ export default async function DashboardPage() {
   const purposeBreakdown = computePurposeBreakdown(allAssets, totalNetWorth);
   const topHoldings = computeTopHoldings(allAssets, totalNetWorth);
 
-  const today = new Date().toLocaleDateString('en-US', {
+  const activeOpportunities = activeOpps.length;
+  const today = new Date().toISOString().split('T')[0];
+  const pendingReviews = watchlist.filter(
+    (w) => w.review_date && w.review_date <= today,
+  ).length;
+
+  const todayLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'long',
     day: 'numeric',
@@ -59,13 +76,13 @@ export default async function DashboardPage() {
             </div>
             <div className="w-px h-8 bg-[#26262B]" />
             <div>
-              <p className="text-sm text-zinc-300">Net Worth Command Center</p>
-              <p className="text-[11px] text-zinc-600">Personal Family Office</p>
+              <p className="text-sm text-zinc-300">Command Center</p>
+              <p className="text-[11px] text-zinc-600">v1.0 · Personal Family Office</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs text-zinc-500">{today}</p>
-            <p className="text-[11px] text-zinc-700 mt-0.5">Seed data · No live prices</p>
+            <p className="text-xs text-zinc-500">{todayLabel}</p>
+            <p className="text-[11px] text-zinc-700 mt-0.5">Manual data · No live prices</p>
           </div>
         </div>
       </header>
@@ -79,8 +96,15 @@ export default async function DashboardPage() {
           investableRatio={investableRatio}
         />
 
-        {/* Row 2: Quick Navigation */}
-        <QuickNav />
+        {/* Row 2: Stat Counters */}
+        <StatCounters
+          holdings={allAssets.length}
+          activeOpportunities={activeOpportunities}
+          watchlistItems={watchlist.length}
+          totalNotes={recentNotes.length}
+          recentDecisions={decisions.length}
+          pendingReviews={pendingReviews}
+        />
 
         {/* Row 3: Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,22 +112,32 @@ export default async function DashboardPage() {
           <PurposeAllocation data={purposeBreakdown} />
         </div>
 
-        {/* Row 4: Top Holdings */}
+        {/* Row 4: Command Center — Signals, Notes, Next Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <RecentOpportunities opportunities={recentOpps} />
+          <RecentNotes notes={recentNotes} />
+          <NextActions items={watchlist} />
+        </div>
+
+        {/* Row 5: Top Holdings */}
         <TopHoldings holdings={topHoldings} />
 
-        {/* Row 5: Decisions + Watchlist */}
+        {/* Row 6: Decisions + Watchlist */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <RecentDecisions decisions={decisions} />
           <WatchlistSummary items={watchlist} />
         </div>
 
-        {/* Row 6: Rebalance Alerts */}
+        {/* Row 7: Rebalance Alerts */}
         <RebalanceAlerts alerts={alerts} />
+
+        {/* Row 8: Quick Navigation */}
+        <QuickNav />
 
         {/* Footer */}
         <div className="pt-2 pb-6 text-center">
           <p className="text-[11px] text-zinc-700">
-            TNPA Investment OS · Phase 1 MVP · {today}
+            TNPA Investment OS · v1.0 · {todayLabel}
           </p>
         </div>
       </main>
