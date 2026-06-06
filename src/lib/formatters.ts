@@ -112,8 +112,10 @@ export const DECISION_TYPE_LABELS: Record<string, string> = {
   hold: 'Hold',
   trim: 'Trim',
   add: 'Add',
+  reduce: 'Reduce',
   reject: 'Reject',
   monitor: 'Monitor',
+  review: 'Review',
 };
 
 export const DECISION_TYPE_COLORS: Record<string, string> = {
@@ -121,7 +123,27 @@ export const DECISION_TYPE_COLORS: Record<string, string> = {
   add: '#34D399',
   sell: '#F87171',
   trim: '#FBBF24',
+  reduce: '#FBBF24',
   hold: '#60A5FA',
   monitor: '#9CA3AF',
   reject: '#F87171',
+  review: '#818CF8',
+};
+
+export const RESEARCH_NOTE_TYPE_LABELS: Record<string, string> = {
+  research: 'Research',
+  observation: 'Observation',
+  earnings: 'Earnings',
+  news: 'News',
+  source: 'Source',
+  review: 'Review',
+};
+
+export const RESEARCH_NOTE_TYPE_COLORS: Record<string, string> = {
+  research: '#818CF8',
+  observation: '#60A5FA',
+  earnings: '#34D399',
+  news: '#F472B6',
+  source: '#9CA3AF',
+  review: '#FBBF24',
 };

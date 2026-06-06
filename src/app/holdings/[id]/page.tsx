@@ -1,13 +1,15 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
-import { assets, assetIntelligence } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { assets, assetIntelligence, researchNotes, decisionLogs } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import { computeTotalNetWorth } from '@/lib/calculations';
 import { ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
 import { Badge } from '@/components/ui/Card';
 import { PositionSummaryCard } from '@/components/holdings/PositionSummaryCard';
 import { IntelligenceCard } from '@/components/holdings/IntelligenceCard';
+import { NotesCard } from '@/components/journal/NotesCard';
+import { DecisionLogCard } from '@/components/journal/DecisionLogCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,10 +21,12 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
   const id = Number(params.id);
   if (isNaN(id)) notFound();
 
-  const [asset, allAssets, intel] = await Promise.all([
+  const [asset, allAssets, intel, notes, decisions] = await Promise.all([
     db.select().from(assets).where(eq(assets.id, id)).limit(1).then((r) => r[0]),
     db.select().from(assets),
     db.select().from(assetIntelligence).where(eq(assetIntelligence.asset_id, id)).limit(1).then((r) => r[0] ?? null),
+    db.select().from(researchNotes).where(eq(researchNotes.asset_id, id)).orderBy(desc(researchNotes.created_at)).limit(5),
+    db.select().from(decisionLogs).where(eq(decisionLogs.asset_id, id)).orderBy(desc(decisionLogs.decision_date)).limit(5),
   ]);
 
   if (!asset) notFound();
@@ -80,6 +84,21 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
             </Link>
           </div>
         )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <NotesCard
+            notes={notes}
+            addHref={`/holdings/${asset.id}/notes/new`}
+            allHref={`/holdings/${asset.id}/notes`}
+            title="Research Notes"
+          />
+          <DecisionLogCard
+            decisions={decisions}
+            addHref={`/decisions/new?asset_id=${asset.id}`}
+            allHref="/decisions"
+            title="Decision Log"
+          />
+        </div>
       </main>
     </div>
   );

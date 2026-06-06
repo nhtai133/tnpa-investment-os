@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
-import { opportunities } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { opportunities, researchNotes } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import { SourceBadge } from '@/components/opportunities/SourceBadge';
 import { OpportunityStatusBadge } from '@/components/opportunities/StatusBadge';
@@ -12,6 +12,7 @@ import {
   addOpportunityToWatchlist,
   promoteOpportunityToHolding,
 } from '@/app/opportunities/actions';
+import { NotesCard } from '@/components/journal/NotesCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,13 +24,10 @@ export default async function OpportunityDetailPage({ params }: Props) {
   const id = Number(params.id);
   if (isNaN(id)) notFound();
 
-  const opp = await db
-    .select()
-    .from(opportunities)
-    .where(eq(opportunities.id, id))
-    .limit(1)
-    .then((r) => r[0]);
-
+  const [opp, notes] = await Promise.all([
+    db.select().from(opportunities).where(eq(opportunities.id, id)).limit(1).then((r) => r[0]),
+    db.select().from(researchNotes).where(eq(researchNotes.opportunity_id, id)).orderBy(desc(researchNotes.created_at)).limit(5),
+  ]);
   if (!opp) notFound();
 
   const isActive = opp.status === 'new' || opp.status === 'reviewing';
@@ -195,6 +193,12 @@ export default async function OpportunityDetailPage({ params }: Props) {
             <p className="text-sm text-red-400">This opportunity was rejected.</p>
           </div>
         )}
+
+        <NotesCard
+          notes={notes}
+          addHref={`/opportunities/${id}/notes/new`}
+          title="Research Notes"
+        />
       </main>
     </div>
   );

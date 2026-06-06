@@ -12,6 +12,8 @@ export const ASSET_PURPOSES = [
 
 export const OPPORTUNITY_SOURCES = ['manual', 'telegram', 'ai', 'other'] as const;
 export const OPPORTUNITY_STATUSES = ['new', 'reviewing', 'promoted', 'rejected'] as const;
+export const RESEARCH_NOTE_TYPES = ['research', 'observation', 'earnings', 'news', 'source', 'review'] as const;
+export type ResearchNoteType = (typeof RESEARCH_NOTE_TYPES)[number];
 
 export type AssetClass = (typeof ASSET_CLASSES)[number];
 export type AssetPurpose = (typeof ASSET_PURPOSES)[number];
@@ -129,7 +131,7 @@ export const decisionLogs = sqliteTable('decision_logs', {
   asset_name: text('asset_name').notNull(),
   asset_class: text('asset_class', { enum: ASSET_CLASSES }),
   decision_type: text('decision_type', {
-    enum: ['buy', 'sell', 'hold', 'trim', 'add', 'reject', 'monitor'],
+    enum: ['buy', 'sell', 'hold', 'trim', 'add', 'reject', 'monitor', 'reduce', 'review'],
   }).notNull(),
   rationale: text('rationale').notNull(),
   amount: real('amount'),
@@ -161,6 +163,20 @@ export const assetIntelligence = sqliteTable('asset_intelligence', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const researchNotes = sqliteTable('research_notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  // Polymorphic — exactly one of these is set
+  asset_id: integer('asset_id').references(() => assets.id),
+  opportunity_id: integer('opportunity_id').references(() => opportunities.id),
+  note_type: text('note_type', { enum: RESEARCH_NOTE_TYPES }).notNull().default('research'),
+  body: text('body').notNull(),
+  source_url: text('source_url'),
+  source_label: text('source_label'),
+  attachment_path: text('attachment_path'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export type Asset = typeof assets.$inferSelect;
 export type TargetAllocation = typeof targetAllocations.$inferSelect;
 export type Opportunity = typeof opportunities.$inferSelect;
@@ -170,3 +186,4 @@ export type NetWorthSnapshot = typeof netWorthSnapshots.$inferSelect;
 export type ResearchThesis = typeof researchTheses.$inferSelect;
 export type DecisionLog = typeof decisionLogs.$inferSelect;
 export type AssetIntelligence = typeof assetIntelligence.$inferSelect;
+export type ResearchNote = typeof researchNotes.$inferSelect;

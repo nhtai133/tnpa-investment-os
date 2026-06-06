@@ -32,6 +32,13 @@ const CARDS: NavCard[] = [
     color: '#F472B6',
   },
   {
+    title: 'Journal',
+    description: 'Research notes and decision log.',
+    cta: 'Open Journal',
+    href: '/journal',
+    color: '#818CF8',
+  },
+  {
     title: 'Stocks',
     description: 'Equities and individual stock positions.',
     cta: 'Open Stocks',
