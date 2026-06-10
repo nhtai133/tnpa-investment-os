@@ -3,7 +3,7 @@ import type { AssetClass, AssetPurpose } from '@/db/schema';
 export interface WorkspaceFieldDef {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'select' | 'textarea';
+  type: 'text' | 'number' | 'select' | 'textarea' | 'date';
   required?: boolean;
   options?: { value: string; label: string }[];
   suggestions?: string[];
@@ -40,6 +40,242 @@ const PURPOSE_OPTIONS = [
   { value: 'store_of_value', label: 'Store of Value' },
   { value: 'strategic_asset', label: 'Strategic Asset' },
 ];
+
+export const GOLD_WORKSPACE_CONFIG: WorkspaceConfig = {
+  assetClass: 'gold',
+  route: '/gold',
+  pageTitle: 'Gold',
+  pageCategory: 'Markets',
+  addButtonLabel: '+ Add Gold',
+  defaultPurpose: 'store_of_value',
+  currency: 'VND',
+  fields: [
+    {
+      name: 'name',
+      label: 'Gold Name / Type',
+      type: 'text',
+      required: true,
+      placeholder: 'SJC Bullion',
+      suggestions: ['SJC', 'PNJ', 'Jewelry', 'Other'],
+      colSpan: 2,
+    },
+    {
+      name: 'symbol',
+      label: 'Symbol (optional)',
+      type: 'text',
+      placeholder: 'XAU',
+      suggestions: ['XAU', 'SJC', 'PNJ'],
+      uppercase: true,
+    },
+    {
+      name: 'storage_location',
+      label: 'Storage Location',
+      type: 'text',
+      placeholder: 'Home safe, bank vault…',
+    },
+    {
+      name: 'weight_amount',
+      label: 'Weight',
+      type: 'number',
+      placeholder: '1',
+    },
+    {
+      name: 'weight_unit',
+      label: 'Unit',
+      type: 'select',
+      defaultValue: 'lượng',
+      options: [
+        { value: 'lượng', label: 'Lượng' },
+        { value: 'chỉ', label: 'Chỉ' },
+        { value: 'gram', label: 'Gram' },
+      ],
+    },
+    {
+      name: 'current_value',
+      label: 'Current Value (VND)',
+      type: 'number',
+      required: true,
+      placeholder: '85000000',
+    },
+    {
+      name: 'cost_basis',
+      label: 'Cost Basis (VND)',
+      type: 'number',
+      placeholder: '78000000',
+    },
+    {
+      name: 'purpose',
+      label: 'Purpose',
+      type: 'select',
+      required: true,
+      options: PURPOSE_OPTIONS,
+      defaultValue: 'store_of_value',
+    },
+    {
+      name: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      placeholder: 'Purchase notes, purity details, review triggers…',
+      colSpan: 2,
+    },
+  ],
+  sections: [
+    { id: 'holdings', label: 'Gold Holdings', status: 'active' },
+  ],
+};
+
+export const REAL_ESTATE_WORKSPACE_CONFIG: WorkspaceConfig = {
+  assetClass: 'real_estate',
+  route: '/real-estate',
+  pageTitle: 'Real Estate',
+  pageCategory: 'Markets',
+  addButtonLabel: '+ Add Property',
+  defaultPurpose: 'store_of_value',
+  currency: 'VND',
+  fields: [
+    {
+      name: 'name',
+      label: 'Property Name',
+      type: 'text',
+      required: true,
+      placeholder: 'Căn hộ Quận 7',
+      colSpan: 2,
+    },
+    {
+      name: 'property_location',
+      label: 'Location',
+      type: 'text',
+      placeholder: 'District / City / Address',
+      colSpan: 2,
+    },
+    {
+      name: 'current_value',
+      label: 'Current Market Value (VND)',
+      type: 'number',
+      required: true,
+      placeholder: '3500000000',
+    },
+    {
+      name: 'cost_basis',
+      label: 'Purchase Price / Cost Basis (VND)',
+      type: 'number',
+      placeholder: '2800000000',
+    },
+    {
+      name: 'ownership_pct',
+      label: 'Ownership %',
+      type: 'number',
+      placeholder: '100',
+    },
+    {
+      name: 'rental_income',
+      label: 'Monthly Rental Income (VND)',
+      type: 'number',
+      placeholder: '0',
+    },
+    {
+      name: 'loan_balance',
+      label: 'Outstanding Loan Balance (VND)',
+      type: 'number',
+      placeholder: '0',
+    },
+    {
+      name: 'purpose',
+      label: 'Purpose',
+      type: 'select',
+      required: true,
+      options: PURPOSE_OPTIONS,
+      defaultValue: 'store_of_value',
+    },
+    {
+      name: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      placeholder: 'Legal status, renovation plans, exit thesis…',
+      colSpan: 2,
+    },
+  ],
+  sections: [
+    { id: 'holdings', label: 'Properties', status: 'active' },
+  ],
+};
+
+export const PRIVATE_LOAN_WORKSPACE_CONFIG: WorkspaceConfig = {
+  assetClass: 'private_loan',
+  route: '/private-loans',
+  pageTitle: 'Private Loans',
+  pageCategory: 'Markets',
+  addButtonLabel: '+ Add Loan',
+  defaultPurpose: 'income_generator',
+  currency: 'VND',
+  fields: [
+    {
+      name: 'name',
+      label: 'Borrower / Loan Name',
+      type: 'text',
+      required: true,
+      placeholder: 'Nguyen Van A — Personal Loan',
+      colSpan: 2,
+    },
+    {
+      name: 'current_value',
+      label: 'Outstanding Balance',
+      type: 'number',
+      required: true,
+      placeholder: '100000000',
+    },
+    {
+      name: 'cost_basis',
+      label: 'Principal (Original)',
+      type: 'number',
+      placeholder: '100000000',
+    },
+    {
+      name: 'interest_rate',
+      label: 'Interest Rate (% p.a.)',
+      type: 'number',
+      placeholder: '12',
+    },
+    {
+      name: 'start_date',
+      label: 'Start Date',
+      type: 'date',
+    },
+    {
+      name: 'due_date',
+      label: 'Due Date',
+      type: 'date',
+    },
+    {
+      name: 'currency',
+      label: 'Currency',
+      type: 'select',
+      defaultValue: 'VND',
+      options: [
+        { value: 'VND', label: 'VND' },
+        { value: 'USD', label: 'USD' },
+      ],
+    },
+    {
+      name: 'purpose',
+      label: 'Purpose',
+      type: 'select',
+      required: true,
+      options: PURPOSE_OPTIONS,
+      defaultValue: 'income_generator',
+    },
+    {
+      name: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      placeholder: 'Loan terms, collateral, counterparty notes…',
+      colSpan: 2,
+    },
+  ],
+  sections: [
+    { id: 'holdings', label: 'Loans', status: 'active' },
+  ],
+};
 
 export const CRYPTO_WORKSPACE_CONFIG: WorkspaceConfig = {
   assetClass: 'crypto',

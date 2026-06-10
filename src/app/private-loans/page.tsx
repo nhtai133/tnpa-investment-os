@@ -15,6 +15,8 @@ export default async function PrivateLoansPage() {
       <ModulePageHeader
         assetClass="private_loan"
         title="Private Loans"
+        addHref="/private-loans/new"
+        addLabel="+ Add Loan"
         totalValue={classValue}
         count={classAssets.length}
         investmentNW={investmentNW}

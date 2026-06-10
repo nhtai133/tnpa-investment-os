@@ -94,6 +94,20 @@ function renderField(field: WorkspaceFieldDef, defaultPurpose: string) {
     );
   }
 
+  if (field.type === 'date') {
+    return (
+      <FieldWrapper key={field.name} field={field}>
+        <input
+          type="date"
+          name={field.name}
+          defaultValue={field.defaultValue ?? ''}
+          required={field.required}
+          className={inputClass}
+        />
+      </FieldWrapper>
+    );
+  }
+
   // type === 'text' — optionally with datalist suggestions
   const listId = field.suggestions ? `${field.name}-suggestions` : undefined;
   return (

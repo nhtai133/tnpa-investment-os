@@ -43,6 +43,8 @@ export default async function CashFundsPage() {
       <ModulePageHeader
         assetClass="cash"
         title="Cash & Funds"
+        addHref="/cash-funds/new"
+        addLabel="+ Add Asset"
         totalValue={classValue}
         count={classAssets.length}
         investmentNW={investmentNW}

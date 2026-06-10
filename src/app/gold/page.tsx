@@ -14,6 +14,8 @@ export default async function GoldPage() {
     <div className="min-h-screen bg-[#0C0C0E]">
       <ModulePageHeader
         assetClass="gold"
+        addHref="/gold/new"
+        addLabel="+ Add Gold"
         totalValue={classValue}
         count={classAssets.length}
         investmentNW={investmentNW}

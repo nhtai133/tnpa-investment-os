@@ -14,6 +14,8 @@ export default async function RealEstatePage() {
     <div className="min-h-screen bg-[#0C0C0E]">
       <ModulePageHeader
         assetClass="real_estate"
+        addHref="/real-estate/new"
+        addLabel="+ Add Property"
         totalValue={classValue}
         count={classAssets.length}
         investmentNW={investmentNW}

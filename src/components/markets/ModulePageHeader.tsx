@@ -17,6 +17,8 @@ interface ModulePageHeaderProps {
   totalNW: number;
   isMixedCurrency?: boolean;
   classValueUsd?: number;
+  addHref?: string;
+  addLabel?: string;
 }
 
 export function ModulePageHeader({
@@ -28,6 +30,8 @@ export function ModulePageHeader({
   totalNW,
   isMixedCurrency = false,
   classValueUsd,
+  addHref = '/holdings/new',
+  addLabel = '+ Add Asset',
 }: ModulePageHeaderProps) {
   const allocValue = classValueUsd ?? totalValue;
   const inwPct = investmentNW > 0 ? (allocValue / investmentNW) * 100 : 0;
@@ -55,10 +59,10 @@ export function ModulePageHeader({
             </div>
           </div>
           <Link
-            href="/holdings/new"
+            href={addHref}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Asset
+            {addLabel}
           </Link>
         </div>
       </header>
