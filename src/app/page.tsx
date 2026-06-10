@@ -8,6 +8,7 @@ import {
   computeAssetClassBreakdown,
   computePurposeBreakdown,
   computeTopHoldings,
+  hasMultipleCurrencies,
 } from '@/lib/calculations';
 
 import { NetWorthCards } from '@/components/dashboard/NetWorthCards';
@@ -46,6 +47,7 @@ export default async function DashboardPage() {
   const assetClassBreakdown = computeAssetClassBreakdown(allAssets, investmentNetWorth);
   const purposeBreakdown = computePurposeBreakdown(allAssets, totalNetWorth);
   const topHoldings = computeTopHoldings(allAssets, totalNetWorth);
+  const isMixedCurrency = hasMultipleCurrencies(allAssets);
 
   const activeOpportunities = activeOpps.length;
   const today = new Date().toISOString().split('T')[0];
@@ -94,6 +96,7 @@ export default async function DashboardPage() {
           investmentNetWorth={investmentNetWorth}
           totalNetWorth={totalNetWorth}
           investableRatio={investableRatio}
+          isMixedCurrency={isMixedCurrency}
         />
 
         {/* Row 2: Stat Counters */}
@@ -108,8 +111,8 @@ export default async function DashboardPage() {
 
         {/* Row 3: Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AllocationChart data={assetClassBreakdown} />
-          <PurposeAllocation data={purposeBreakdown} />
+          <AllocationChart data={assetClassBreakdown} isMixedCurrency={isMixedCurrency} />
+          <PurposeAllocation data={purposeBreakdown} isMixedCurrency={isMixedCurrency} />
         </div>
 
         {/* Row 4: Command Center — Signals, Notes, Next Actions */}

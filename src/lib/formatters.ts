@@ -15,6 +15,17 @@ export function formatCurrency(value: number, compact = false): string {
   }).format(value);
 }
 
+export function formatValue(value: number, currency = 'USD'): string {
+  if (currency === 'VND') {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0,
+    }).format(value);
+  }
+  return formatCurrency(value);
+}
+
 export function formatPercent(value: number, decimals = 1): string {
   return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
 }

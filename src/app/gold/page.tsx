@@ -1,11 +1,13 @@
 import { getModuleData } from '@/lib/moduleData';
+import { hasMultipleCurrencies } from '@/lib/calculations';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function GoldPage() {
-  const { classAssets, investmentNW, totalNW, classValue } = await getModuleData('gold');
+  const { classAssets, allAssets, investmentNW, totalNW, classValue } = await getModuleData('gold');
+  const isMixedCurrency = hasMultipleCurrencies(allAssets);
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -15,6 +17,7 @@ export default async function GoldPage() {
         count={classAssets.length}
         investmentNW={investmentNW}
         totalNW={totalNW}
+        isMixedCurrency={isMixedCurrency}
       />
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <HoldingsTable assets={classAssets} totalNetWorth={totalNW} />

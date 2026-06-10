@@ -14,6 +14,7 @@ interface ChartDataItem {
 
 interface AllocationChartProps {
   data: ChartDataItem[];
+  isMixedCurrency?: boolean;
 }
 
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartDataItem }> }) {
@@ -56,38 +57,49 @@ function CustomLegend({ data }: { data: ChartDataItem[] }) {
   );
 }
 
-export function AllocationChart({ data }: AllocationChartProps) {
+export function AllocationChart({ data, isMixedCurrency = false }: AllocationChartProps) {
   const sorted = [...data].sort((a, b) => b.value - a.value);
 
   return (
     <Card className="flex flex-col">
       <CardHeader label="Asset Allocation" />
       <div className="p-5 flex flex-col gap-5 flex-1">
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={sorted}
-                cx="50%"
-                cy="50%"
-                innerRadius={55}
-                outerRadius={88}
-                paddingAngle={2}
-                dataKey="value"
-                strokeWidth={0}
-              >
-                {sorted.map((entry) => (
-                  <Cell
-                    key={entry.asset_class}
-                    fill={ASSET_CLASS_COLORS[entry.asset_class]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <CustomLegend data={sorted} />
+        {isMixedCurrency ? (
+          <div className="h-48 flex flex-col items-center justify-center gap-2">
+            <p className="text-sm text-zinc-600">Allocation weights unavailable</p>
+            <p className="text-[10px] text-amber-500/80 text-center px-6">
+              Multi-currency normalization pending
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={sorted}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={88}
+                    paddingAngle={2}
+                    dataKey="value"
+                    strokeWidth={0}
+                  >
+                    {sorted.map((entry) => (
+                      <Cell
+                        key={entry.asset_class}
+                        fill={ASSET_CLASS_COLORS[entry.asset_class]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <CustomLegend data={sorted} />
+          </>
+        )}
       </div>
     </Card>
   );

@@ -1,7 +1,7 @@
 import { db } from '@/db';
 import { assets } from '@/db/schema';
 import { asc } from 'drizzle-orm';
-import { computeInvestmentNetWorth, computeTotalNetWorth } from '@/lib/calculations';
+import { computeInvestmentNetWorth, computeTotalNetWorth, hasMultipleCurrencies } from '@/lib/calculations';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 
@@ -15,6 +15,7 @@ export default async function CashFundsPage() {
   const investmentNW = computeInvestmentNetWorth(allAssets);
   const totalNW = computeTotalNetWorth(allAssets);
   const classValue = classAssets.reduce((s, a) => s + a.current_value, 0);
+  const isMixedCurrency = hasMultipleCurrencies(allAssets);
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -25,6 +26,7 @@ export default async function CashFundsPage() {
         count={classAssets.length}
         investmentNW={investmentNW}
         totalNW={totalNW}
+        isMixedCurrency={isMixedCurrency}
       />
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <HoldingsTable assets={classAssets} totalNetWorth={totalNW} />

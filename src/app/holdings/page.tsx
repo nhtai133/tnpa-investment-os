@@ -9,6 +9,7 @@ import {
   computeTotalNetWorth,
   computeAssetClassBreakdown,
   computePurposeBreakdown,
+  hasMultipleCurrencies,
 } from '@/lib/calculations';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
 import { PurposeAllocation } from '@/components/dashboard/PurposeAllocation';
@@ -38,6 +39,7 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
   const totalNW = computeTotalNetWorth(allAssets);
   const assetClassBreakdown = computeAssetClassBreakdown(allAssets, investmentNW);
   const purposeBreakdown = computePurposeBreakdown(allAssets, totalNW);
+  const isMixedCurrency = hasMultipleCurrencies(allAssets);
   const filteredValue = filteredAssets.reduce((s, a) => s + a.current_value, 0);
 
   const classCount = new Set(allAssets.map((a) => a.asset_class)).size;
@@ -81,12 +83,13 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
           filteredValue={filteredValue}
           investmentNetWorth={investmentNW}
           totalNetWorth={totalNW}
+          isMixedCurrency={isMixedCurrency}
         />
 
         {/* Allocation charts — always full portfolio */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AllocationChart data={assetClassBreakdown} />
-          <PurposeAllocation data={purposeBreakdown} />
+          <AllocationChart data={assetClassBreakdown} isMixedCurrency={isMixedCurrency} />
+          <PurposeAllocation data={purposeBreakdown} isMixedCurrency={isMixedCurrency} />
         </div>
 
         {/* Filter + Table */}

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import {
-  formatCurrency,
+  formatValue,
   formatWeight,
   formatPercent,
   ASSET_CLASS_LABELS,
@@ -117,7 +117,7 @@ export function HoldingsTable({ assets, totalNetWorth }: HoldingsTableProps) {
 
                   <td className="px-4 py-3.5 text-right">
                     <span className="text-sm font-medium text-zinc-100 tabular-nums">
-                      {formatCurrency(asset.current_value)}
+                      {formatValue(asset.current_value, asset.currency)}
                     </span>
                   </td>
 
@@ -130,7 +130,7 @@ export function HoldingsTable({ assets, totalNetWorth }: HoldingsTableProps) {
                   <td className="px-4 py-3.5 text-right hidden md:table-cell">
                     {asset.cost_basis != null ? (
                       <span className="text-xs text-zinc-400 tabular-nums">
-                        {formatCurrency(asset.cost_basis)}
+                        {formatValue(asset.cost_basis, asset.currency)}
                       </span>
                     ) : (
                       <span className="text-xs text-zinc-700">—</span>
@@ -146,7 +146,7 @@ export function HoldingsTable({ assets, totalNetWorth }: HoldingsTableProps) {
                           }`}
                         >
                           {gain >= 0 ? '+' : ''}
-                          {formatCurrency(gain)}
+                          {formatValue(gain, asset.currency)}
                         </p>
                         <p
                           className={`text-xs tabular-nums ${

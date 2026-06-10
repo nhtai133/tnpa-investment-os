@@ -73,6 +73,11 @@ export function computePurposeBreakdown(
     .sort((a, b) => b.value - a.value);
 }
 
+export function hasMultipleCurrencies(assets: Asset[]): boolean {
+  const currencies = new Set(assets.map((a) => a.currency));
+  return currencies.size > 1;
+}
+
 export function computeTopHoldings(assets: Asset[], totalNetWorth: number) {
   return [...assets]
     .filter((a) => a.include_in_total_net_worth)
