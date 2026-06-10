@@ -16,7 +16,7 @@ const RESEARCH_LINKS = [
 
 const MARKET_LINKS = [
   { label: 'Stocks', href: '/stocks' },
-  { label: 'Crypto', href: '/crypto' },
+  { label: 'Crypto Portfolio', href: '/crypto' },
   { label: 'Real Estate', href: '/real-estate' },
   { label: 'Gold', href: '/gold' },
   { label: 'Cash & Funds', href: '/cash-funds' },
