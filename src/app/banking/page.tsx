@@ -6,16 +6,17 @@ import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 
 export const dynamic = 'force-dynamic';
 
-export default async function GoldPage() {
+export default async function BankingPage() {
   const { classAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate } =
-    await getModuleData('gold');
+    await getModuleData('cash');
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <ModulePageHeader
-        assetClass="gold"
-        addHref="/gold/new"
-        addLabel="+ Add Gold"
+        assetClass="cash"
+        title="Banking"
+        addHref="/banking/new"
+        addLabel="+ Add Bank Asset"
         currency="VND"
         totalValue={classValue}
         count={classAssets.length}
@@ -28,9 +29,9 @@ export default async function GoldPage() {
         <WorkspaceAllocationChart
           assets={classAssets}
           usdVndRate={usdVndRate}
-          label="Gold Allocation"
+          label="Banking Allocation"
         />
-        <ArchivedSection assets={archivedClassAssets} label="Archived Gold" usdVndRate={usdVndRate} />
+        <ArchivedSection assets={archivedClassAssets} label="Archived Bank Accounts" usdVndRate={usdVndRate} />
       </main>
     </div>
   );

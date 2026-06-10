@@ -17,6 +17,7 @@ export default async function PrivateLoansPage() {
         title="Private Loans"
         addHref="/private-loans/new"
         addLabel="+ Add Loan"
+        currency="VND"
         totalValue={classValue}
         count={classAssets.length}
         investmentNW={investmentNW}

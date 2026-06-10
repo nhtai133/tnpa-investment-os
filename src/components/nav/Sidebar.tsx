@@ -19,7 +19,8 @@ const MARKET_LINKS = [
   { label: 'Crypto Portfolio', href: '/crypto' },
   { label: 'Real Estate', href: '/real-estate' },
   { label: 'Gold', href: '/gold' },
-  { label: 'Cash & Funds', href: '/cash-funds' },
+  { label: 'Banking', href: '/banking' },
+  { label: 'Funds & ETFs', href: '/funds' },
   { label: 'Private Loans', href: '/private-loans' },
 ];
 

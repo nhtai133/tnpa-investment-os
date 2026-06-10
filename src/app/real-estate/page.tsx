@@ -16,6 +16,7 @@ export default async function RealEstatePage() {
         assetClass="real_estate"
         addHref="/real-estate/new"
         addLabel="+ Add Property"
+        currency="VND"
         totalValue={classValue}
         count={classAssets.length}
         investmentNW={investmentNW}

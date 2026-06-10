@@ -41,6 +41,178 @@ const PURPOSE_OPTIONS = [
   { value: 'strategic_asset', label: 'Strategic Asset' },
 ];
 
+export const BANKING_WORKSPACE_CONFIG: WorkspaceConfig = {
+  assetClass: 'cash',
+  route: '/banking',
+  pageTitle: 'Banking',
+  pageCategory: 'Markets',
+  addButtonLabel: '+ Add Bank Asset',
+  defaultPurpose: 'liquidity_reserve',
+  currency: 'VND',
+  fields: [
+    {
+      name: 'name',
+      label: 'Account Name',
+      type: 'text',
+      required: true,
+      placeholder: 'Emergency Fund, Main Savings…',
+      colSpan: 2,
+    },
+    {
+      name: 'institution',
+      label: 'Bank / Institution',
+      type: 'text',
+      placeholder: 'Vietcombank, Techcombank…',
+    },
+    {
+      name: 'account_type',
+      label: 'Account Type',
+      type: 'select',
+      defaultValue: 'Cash',
+      options: [
+        { value: 'Cash', label: 'Cash' },
+        { value: 'Savings', label: 'Savings' },
+        { value: 'Term Deposit', label: 'Term Deposit' },
+      ],
+    },
+    {
+      name: 'current_value',
+      label: 'Balance / Current Value',
+      type: 'number',
+      required: true,
+      placeholder: '50000000',
+    },
+    {
+      name: 'interest_rate',
+      label: 'Interest Rate (% p.a.)',
+      type: 'number',
+      placeholder: '5.5',
+    },
+    {
+      name: 'maturity_date',
+      label: 'Maturity Date',
+      type: 'date',
+    },
+    {
+      name: 'currency',
+      label: 'Currency',
+      type: 'select',
+      defaultValue: 'VND',
+      options: [
+        { value: 'VND', label: 'VND' },
+        { value: 'USD', label: 'USD' },
+      ],
+    },
+    {
+      name: 'purpose',
+      label: 'Purpose',
+      type: 'select',
+      required: true,
+      options: PURPOSE_OPTIONS,
+    },
+    {
+      name: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      placeholder: 'Account details, renewal strategy, withdrawal conditions…',
+      colSpan: 2,
+    },
+  ],
+  sections: [
+    { id: 'holdings', label: 'Bank Accounts', status: 'active' },
+  ],
+};
+
+export const FUNDS_WORKSPACE_CONFIG: WorkspaceConfig = {
+  assetClass: 'funds',
+  route: '/funds',
+  pageTitle: 'Funds & ETFs',
+  pageCategory: 'Markets',
+  addButtonLabel: '+ Add Fund',
+  defaultPurpose: 'wealth_compounder',
+  currency: 'VND',
+  fields: [
+    {
+      name: 'name',
+      label: 'Fund Name',
+      type: 'text',
+      required: true,
+      placeholder: 'VFMVF4, DCDS, VinaCapital…',
+      colSpan: 2,
+    },
+    {
+      name: 'symbol',
+      label: 'Ticker / Code',
+      type: 'text',
+      placeholder: 'VFMVF4',
+      uppercase: true,
+    },
+    {
+      name: 'fund_type',
+      label: 'Type',
+      type: 'select',
+      defaultValue: 'ETF',
+      options: [
+        { value: 'ETF', label: 'ETF' },
+        { value: 'Mutual Fund', label: 'Mutual Fund' },
+        { value: 'Certificate', label: 'Certificate' },
+      ],
+    },
+    {
+      name: 'institution',
+      label: 'Broker / Platform',
+      type: 'text',
+      placeholder: 'VCBS, SSI, Mirae Asset…',
+    },
+    {
+      name: 'quantity',
+      label: 'Units / Certificates',
+      type: 'number',
+      placeholder: '1000',
+    },
+    {
+      name: 'avg_cost',
+      label: 'Average Cost Per Unit',
+      type: 'number',
+      placeholder: '12500',
+    },
+    {
+      name: 'current_value',
+      label: 'Current NAV / Value',
+      type: 'number',
+      required: true,
+      placeholder: '13000000',
+    },
+    {
+      name: 'currency',
+      label: 'Currency',
+      type: 'select',
+      defaultValue: 'VND',
+      options: [
+        { value: 'VND', label: 'VND' },
+        { value: 'USD', label: 'USD' },
+      ],
+    },
+    {
+      name: 'purpose',
+      label: 'Purpose',
+      type: 'select',
+      required: true,
+      options: PURPOSE_OPTIONS,
+    },
+    {
+      name: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      placeholder: 'Fund strategy, distribution policy, exit thesis…',
+      colSpan: 2,
+    },
+  ],
+  sections: [
+    { id: 'holdings', label: 'Funds & ETFs', status: 'active' },
+  ],
+};
+
 export const GOLD_WORKSPACE_CONFIG: WorkspaceConfig = {
   assetClass: 'gold',
   route: '/gold',

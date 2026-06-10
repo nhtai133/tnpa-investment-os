@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Card, Badge } from '@/components/ui/Card';
 import {
-  formatCurrency,
+  formatValue,
   formatWeight,
   ASSET_CLASS_LABELS,
   ASSET_CLASS_COLORS,
@@ -19,6 +19,7 @@ interface ModulePageHeaderProps {
   classValueUsd?: number;
   addHref?: string;
   addLabel?: string;
+  currency?: string;
 }
 
 export function ModulePageHeader({
@@ -32,6 +33,7 @@ export function ModulePageHeader({
   classValueUsd,
   addHref = '/holdings/new',
   addLabel = '+ Add Asset',
+  currency = 'USD',
 }: ModulePageHeaderProps) {
   const allocValue = classValueUsd ?? totalValue;
   const inwPct = investmentNW > 0 ? (allocValue / investmentNW) * 100 : 0;
@@ -74,7 +76,7 @@ export function ModulePageHeader({
               Total Value
             </p>
             <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">
-              {formatCurrency(totalValue)}
+              {formatValue(totalValue, currency)}
             </p>
           </Card>
 
