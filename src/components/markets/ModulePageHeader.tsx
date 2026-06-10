@@ -16,6 +16,7 @@ interface ModulePageHeaderProps {
   investmentNW: number;
   totalNW: number;
   isMixedCurrency?: boolean;
+  classValueUsd?: number;
 }
 
 export function ModulePageHeader({
@@ -26,9 +27,12 @@ export function ModulePageHeader({
   investmentNW,
   totalNW,
   isMixedCurrency = false,
+  classValueUsd,
 }: ModulePageHeaderProps) {
-  const inwPct = investmentNW > 0 ? (totalValue / investmentNW) * 100 : 0;
-  const tnwPct = totalNW > 0 ? (totalValue / totalNW) * 100 : 0;
+  const allocValue = classValueUsd ?? totalValue;
+  const inwPct = investmentNW > 0 ? (allocValue / investmentNW) * 100 : 0;
+  const tnwPct = totalNW > 0 ? (allocValue / totalNW) * 100 : 0;
+  const showAllocation = classValueUsd != null || !isMixedCurrency;
 
   return (
     <>
@@ -86,14 +90,7 @@ export function ModulePageHeader({
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">
               Allocation
             </p>
-            {isMixedCurrency ? (
-              <>
-                <p className="text-3xl font-light text-zinc-600 tracking-tight">—</p>
-                <p className="mt-1.5 text-[10px] text-amber-500/80 leading-relaxed">
-                  Multi-currency normalization pending
-                </p>
-              </>
-            ) : (
+            {showAllocation ? (
               <>
                 <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">
                   {formatWeight(inwPct)}
@@ -101,6 +98,13 @@ export function ModulePageHeader({
                 <p className="mt-1.5 text-xs text-zinc-600">of Investment Net Worth</p>
                 <p className="mt-0.5 text-xs text-zinc-700 tabular-nums">
                   {formatWeight(tnwPct)} of Total Net Worth
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl font-light text-zinc-600 tracking-tight">—</p>
+                <p className="mt-1.5 text-[10px] text-amber-500/80 leading-relaxed">
+                  Multi-currency normalization pending
                 </p>
               </>
             )}

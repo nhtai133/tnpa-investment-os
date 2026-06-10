@@ -37,6 +37,7 @@ export const assets = sqliteTable('assets', {
   quantity: real('quantity'),
   cost_basis: real('cost_basis'),
   notes: text('notes'),
+  is_archived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),
 });
@@ -177,7 +178,15 @@ export const researchNotes = sqliteTable('research_notes', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const appSettings = sqliteTable('app_settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export type Asset = typeof assets.$inferSelect;
+export type AppSetting = typeof appSettings.$inferSelect;
 export type TargetAllocation = typeof targetAllocations.$inferSelect;
 export type Opportunity = typeof opportunities.$inferSelect;
 export type WatchlistItem = typeof watchlistItems.$inferSelect;

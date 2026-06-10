@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/db';
 import { assets } from '@/db/schema';
-import { asc } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import type { AssetClass } from '@/db/schema';
 import { ASSET_CLASSES } from '@/db/schema';
 import {
@@ -9,13 +9,16 @@ import {
   computeTotalNetWorth,
   computeAssetClassBreakdown,
   computePurposeBreakdown,
-  hasMultipleCurrencies,
 } from '@/lib/calculations';
+import { normalizeToUsd } from '@/lib/fx';
+import { getUsdVndRate } from '@/lib/settings';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
 import { PurposeAllocation } from '@/components/dashboard/PurposeAllocation';
 import { HoldingsStats } from '@/components/holdings/HoldingsStats';
 import { FilterTabs } from '@/components/holdings/FilterTabs';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
+import { ArchivedSection } from '@/components/holdings/ArchivedSection';
+import { ASSET_CLASS_LABELS } from '@/lib/formatters';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,24 +32,29 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
     ? (rawClass as AssetClass)
     : undefined;
 
-  const allAssets = await db.select().from(assets).orderBy(asc(assets.name));
+  const [activeAssets, archivedAssets, usdVndRate] = await Promise.all([
+    db.select().from(assets).where(eq(assets.is_archived, false)).orderBy(asc(assets.name)),
+    db.select().from(assets).where(eq(assets.is_archived, true)).orderBy(asc(assets.name)),
+    getUsdVndRate(),
+  ]);
 
   const filteredAssets = activeClass
-    ? allAssets.filter((a) => a.asset_class === activeClass)
-    : allAssets;
+    ? activeAssets.filter((a) => a.asset_class === activeClass)
+    : activeAssets;
 
-  const investmentNW = computeInvestmentNetWorth(allAssets);
-  const totalNW = computeTotalNetWorth(allAssets);
-  const assetClassBreakdown = computeAssetClassBreakdown(allAssets, investmentNW);
-  const purposeBreakdown = computePurposeBreakdown(allAssets, totalNW);
-  const isMixedCurrency = hasMultipleCurrencies(allAssets);
-  const filteredValue = filteredAssets.reduce((s, a) => s + a.current_value, 0);
+  const investmentNW = computeInvestmentNetWorth(activeAssets, usdVndRate);
+  const totalNW = computeTotalNetWorth(activeAssets, usdVndRate);
+  const assetClassBreakdown = computeAssetClassBreakdown(activeAssets, investmentNW, usdVndRate);
+  const purposeBreakdown = computePurposeBreakdown(activeAssets, totalNW, usdVndRate);
+  const filteredValueUsd = filteredAssets.reduce(
+    (s, a) => s + normalizeToUsd(a.current_value, a.currency, usdVndRate),
+    0,
+  );
 
-  const classCount = new Set(allAssets.map((a) => a.asset_class)).size;
+  const classCount = new Set(activeAssets.map((a) => a.asset_class)).size;
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
-      {/* Page header — mirrors the dashboard header style */}
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -62,7 +70,8 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
             <div>
               <p className="text-sm text-zinc-300">Asset Registry</p>
               <p className="text-[11px] text-zinc-600">
-                {allAssets.length} assets · {classCount} classes
+                {activeAssets.length} active · {classCount} classes
+                {archivedAssets.length > 0 && ` · ${archivedAssets.length} archived`}
               </p>
             </div>
           </div>
@@ -76,27 +85,33 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-5">
-        {/* Stats */}
         <HoldingsStats
-          totalCount={allAssets.length}
+          totalCount={activeAssets.length}
           filteredCount={filteredAssets.length}
-          filteredValue={filteredValue}
+          filteredValue={filteredValueUsd}
           investmentNetWorth={investmentNW}
           totalNetWorth={totalNW}
-          isMixedCurrency={isMixedCurrency}
         />
 
-        {/* Allocation charts — always full portfolio */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AllocationChart data={assetClassBreakdown} isMixedCurrency={isMixedCurrency} />
-          <PurposeAllocation data={purposeBreakdown} isMixedCurrency={isMixedCurrency} />
+          <AllocationChart data={assetClassBreakdown} />
+          <PurposeAllocation data={purposeBreakdown} />
         </div>
 
-        {/* Filter + Table */}
         <div className="space-y-3">
           <FilterTabs activeClass={activeClass} />
-          <HoldingsTable assets={filteredAssets} totalNetWorth={totalNW} />
+          <HoldingsTable assets={filteredAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
         </div>
+
+        {(() => {
+          const filteredArchived = activeClass
+            ? archivedAssets.filter((a) => a.asset_class === activeClass)
+            : archivedAssets;
+          const archivedLabel = activeClass
+            ? `Archived ${ASSET_CLASS_LABELS[activeClass]}`
+            : 'Archived Assets';
+          return <ArchivedSection assets={filteredArchived} label={archivedLabel} usdVndRate={usdVndRate} />;
+        })()}
       </main>
     </div>
   );

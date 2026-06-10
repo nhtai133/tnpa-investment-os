@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import { getModuleData } from '@/lib/moduleData';
-import { hasMultipleCurrencies } from '@/lib/calculations';
 import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
 import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
+import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StocksPage() {
-  const { classAssets, allAssets, investmentNW, totalNW, classValue } = await getModuleData('stock');
-  const isMixedCurrency = hasMultipleCurrencies(allAssets);
+  const { classAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate } =
+    await getModuleData('stock');
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -39,15 +39,17 @@ export default async function StocksPage() {
           investmentNetWorth={investmentNW}
           totalNetWorth={totalNW}
           currency="VND"
-          isMixedCurrency={isMixedCurrency}
+          classValueUsd={classValueUsd}
         />
 
         <section>
           <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
             Stock Holdings
           </p>
-          <HoldingsTable assets={classAssets} totalNetWorth={totalNW} />
+          <HoldingsTable assets={classAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
         </section>
+
+        <ArchivedSection assets={archivedClassAssets} label="Archived Stocks" usdVndRate={usdVndRate} />
 
         <SectionPlaceholder
           label="Watchlist"

@@ -9,14 +9,16 @@ import {
   PURPOSE_LABELS,
   PURPOSE_COLORS,
 } from '@/lib/formatters';
+import { normalizeToUsd, DEFAULT_USD_VND_RATE } from '@/lib/fx';
 import type { Asset } from '@/db/schema';
 
 interface HoldingsTableProps {
   assets: Asset[];
   totalNetWorth: number;
+  usdVndRate?: number;
 }
 
-export function HoldingsTable({ assets, totalNetWorth }: HoldingsTableProps) {
+export function HoldingsTable({ assets, totalNetWorth, usdVndRate = DEFAULT_USD_VND_RATE }: HoldingsTableProps) {
   if (assets.length === 0) {
     return (
       <Card className="px-6 py-16 text-center">
@@ -67,7 +69,9 @@ export function HoldingsTable({ assets, totalNetWorth }: HoldingsTableProps) {
           <tbody>
             {assets.map((asset, idx) => {
               const weight =
-                totalNetWorth > 0 ? (asset.current_value / totalNetWorth) * 100 : 0;
+                totalNetWorth > 0
+                  ? (normalizeToUsd(asset.current_value, asset.currency, usdVndRate) / totalNetWorth) * 100
+                  : 0;
               const gain =
                 asset.cost_basis != null ? asset.current_value - asset.cost_basis : null;
               const gainPct =
@@ -119,6 +123,11 @@ export function HoldingsTable({ assets, totalNetWorth }: HoldingsTableProps) {
                     <span className="text-sm font-medium text-zinc-100 tabular-nums">
                       {formatValue(asset.current_value, asset.currency)}
                     </span>
+                    {asset.currency !== 'USD' && (
+                      <p className="text-[10px] text-zinc-600 mt-0.5 tabular-nums">
+                        ≈ {formatValue(normalizeToUsd(asset.current_value, asset.currency, usdVndRate), 'USD')}
+                      </p>
+                    )}
                   </td>
 
                   <td className="px-4 py-3.5 text-right hidden md:table-cell">

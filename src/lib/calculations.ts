@@ -1,4 +1,5 @@
 import type { Asset, AssetClass, AssetPurpose } from '@/db/schema';
+import { normalizeToUsd } from '@/lib/fx';
 
 export interface AssetClassBreakdown {
   asset_class: AssetClass;
@@ -14,21 +15,22 @@ export interface PurposeBreakdown {
   count: number;
 }
 
-export function computeInvestmentNetWorth(assets: Asset[]): number {
+export function computeInvestmentNetWorth(assets: Asset[], usdVndRate: number): number {
   return assets
     .filter((a) => a.include_in_investment_net_worth)
-    .reduce((sum, a) => sum + a.current_value, 0);
+    .reduce((sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate), 0);
 }
 
-export function computeTotalNetWorth(assets: Asset[]): number {
+export function computeTotalNetWorth(assets: Asset[], usdVndRate: number): number {
   return assets
     .filter((a) => a.include_in_total_net_worth)
-    .reduce((sum, a) => sum + a.current_value, 0);
+    .reduce((sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate), 0);
 }
 
 export function computeAssetClassBreakdown(
   assets: Asset[],
   investmentNetWorth: number,
+  usdVndRate: number,
 ): AssetClassBreakdown[] {
   const investableAssets = assets.filter((a) => a.include_in_investment_net_worth);
   const map = new Map<AssetClass, { value: number; count: number }>();
@@ -36,7 +38,7 @@ export function computeAssetClassBreakdown(
   for (const asset of investableAssets) {
     const existing = map.get(asset.asset_class) ?? { value: 0, count: 0 };
     map.set(asset.asset_class, {
-      value: existing.value + asset.current_value,
+      value: existing.value + normalizeToUsd(asset.current_value, asset.currency, usdVndRate),
       count: existing.count + 1,
     });
   }
@@ -52,13 +54,14 @@ export function computeAssetClassBreakdown(
 export function computePurposeBreakdown(
   assets: Asset[],
   totalNetWorth: number,
+  usdVndRate: number,
 ): PurposeBreakdown[] {
   const map = new Map<AssetPurpose, { value: number; count: number }>();
 
   for (const asset of assets.filter((a) => a.include_in_total_net_worth)) {
     const existing = map.get(asset.purpose) ?? { value: 0, count: 0 };
     map.set(asset.purpose, {
-      value: existing.value + asset.current_value,
+      value: existing.value + normalizeToUsd(asset.current_value, asset.currency, usdVndRate),
       count: existing.count + 1,
     });
   }
@@ -78,14 +81,21 @@ export function hasMultipleCurrencies(assets: Asset[]): boolean {
   return currencies.size > 1;
 }
 
-export function computeTopHoldings(assets: Asset[], totalNetWorth: number) {
+export function computeTopHoldings(assets: Asset[], totalNetWorth: number, usdVndRate: number) {
   return [...assets]
     .filter((a) => a.include_in_total_net_worth)
-    .sort((a, b) => b.current_value - a.current_value)
+    .sort(
+      (a, b) =>
+        normalizeToUsd(b.current_value, b.currency, usdVndRate) -
+        normalizeToUsd(a.current_value, a.currency, usdVndRate),
+    )
     .slice(0, 8)
     .map((asset) => ({
       ...asset,
-      weight: totalNetWorth > 0 ? (asset.current_value / totalNetWorth) * 100 : 0,
+      weight:
+        totalNetWorth > 0
+          ? (normalizeToUsd(asset.current_value, asset.currency, usdVndRate) / totalNetWorth) * 100
+          : 0,
       unrealized_gain:
         asset.cost_basis != null ? asset.current_value - asset.cost_basis : null,
       unrealized_gain_pct:

@@ -58,9 +58,17 @@ export async function updateAsset(id: number, formData: FormData) {
   redirect(`/holdings/${id}`);
 }
 
-export async function deleteAsset(id: number) {
-  await db.delete(assets).where(eq(assets.id, id));
+export async function archiveAsset(id: number) {
+  const now = new Date().toISOString();
+  await db
+    .update(assets)
+    .set({ is_archived: true, updated_at: now })
+    .where(eq(assets.id, id));
+
   revalidatePath('/holdings');
+  revalidatePath(`/holdings/${id}`);
+  revalidatePath('/crypto');
+  revalidatePath('/stocks');
   revalidatePath('/');
   redirect('/holdings');
 }

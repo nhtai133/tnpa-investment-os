@@ -86,6 +86,24 @@ export function Sidebar() {
         <NavGroup label="Portfolio" links={PORTFOLIO_LINKS} isActive={isActive} />
         <NavGroup label="Research" links={RESEARCH_LINKS} isActive={isActive} />
         <NavGroup label="Markets" links={MARKET_LINKS} isActive={isActive} />
+
+        <div className="pt-5 pb-1 px-3">
+          <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
+            System
+          </p>
+        </div>
+        <div className="space-y-0.5">
+          <Link
+            href="/settings"
+            className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+              isActive('/settings')
+                ? 'bg-[#1C1C21] text-zinc-100'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
+            }`}
+          >
+            Settings
+          </Link>
+        </div>
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">

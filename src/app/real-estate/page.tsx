@@ -1,13 +1,13 @@
 import { getModuleData } from '@/lib/moduleData';
-import { hasMultipleCurrencies } from '@/lib/calculations';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
+import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RealEstatePage() {
-  const { classAssets, allAssets, investmentNW, totalNW, classValue } = await getModuleData('real_estate');
-  const isMixedCurrency = hasMultipleCurrencies(allAssets);
+  const { classAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate } =
+    await getModuleData('real_estate');
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -17,10 +17,11 @@ export default async function RealEstatePage() {
         count={classAssets.length}
         investmentNW={investmentNW}
         totalNW={totalNW}
-        isMixedCurrency={isMixedCurrency}
+        classValueUsd={classValueUsd}
       />
-      <main className="max-w-screen-xl mx-auto px-6 py-6">
-        <HoldingsTable assets={classAssets} totalNetWorth={totalNW} />
+      <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
+        <HoldingsTable assets={classAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
+        <ArchivedSection assets={archivedClassAssets} label="Archived Real Estate" usdVndRate={usdVndRate} />
       </main>
     </div>
   );

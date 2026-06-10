@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation';
 import { db } from '@/db';
 import { assets } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { updateAsset, deleteAsset } from '@/app/holdings/actions';
+import { updateAsset, archiveAsset } from '@/app/holdings/actions';
 import { AssetForm } from '@/components/holdings/AssetForm';
-import { DeleteAssetForm } from '@/components/holdings/DeleteAssetForm';
+import { ArchiveAssetForm } from '@/components/holdings/ArchiveAssetForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +27,7 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
   if (!asset) notFound();
 
   const boundUpdate = updateAsset.bind(null, asset.id);
-  const boundDelete = deleteAsset.bind(null, asset.id);
+  const boundArchive = archiveAsset.bind(null, asset.id);
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -49,7 +49,19 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
         <div className="max-w-2xl">
           <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
             <AssetForm action={boundUpdate} defaultValues={asset} />
-            <DeleteAssetForm action={boundDelete} assetName={asset.name} />
+            {!asset.is_archived && (
+              <ArchiveAssetForm action={boundArchive} assetName={asset.name} />
+            )}
+            {asset.is_archived && (
+              <div className="mt-8 pt-6 border-t border-[#26262B]">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-2">
+                  Archive
+                </p>
+                <p className="text-xs text-amber-500/70">
+                  This asset is archived and excluded from portfolio totals.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </main>
