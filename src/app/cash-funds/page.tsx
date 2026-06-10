@@ -5,6 +5,7 @@ import { computeInvestmentNetWorth, computeTotalNetWorth } from '@/lib/calculati
 import { normalizeToUsd } from '@/lib/fx';
 import { getUsdVndRate } from '@/lib/settings';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
+import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 
@@ -50,6 +51,11 @@ export default async function CashFundsPage() {
       />
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
         <HoldingsTable assets={classAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
+        <WorkspaceAllocationChart
+          assets={classAssets}
+          usdVndRate={usdVndRate}
+          label="Cash & Funds Allocation"
+        />
         <ArchivedSection assets={archivedClassAssets} label="Archived Cash & Funds" usdVndRate={usdVndRate} />
       </main>
     </div>

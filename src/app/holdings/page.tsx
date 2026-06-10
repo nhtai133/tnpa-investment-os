@@ -13,12 +13,15 @@ import {
 import { normalizeToUsd } from '@/lib/fx';
 import { getUsdVndRate } from '@/lib/settings';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
+import type { AllocationDataItem } from '@/components/dashboard/AllocationChart';
 import { PurposeAllocation } from '@/components/dashboard/PurposeAllocation';
 import { HoldingsStats } from '@/components/holdings/HoldingsStats';
 import { FilterTabs } from '@/components/holdings/FilterTabs';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
-import { ASSET_CLASS_LABELS } from '@/lib/formatters';
+import { ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
+
+const HOLDING_COLORS = ['#818CF8', '#34D399', '#F472B6', '#FB923C', '#A78BFA', '#38BDF8', '#FBBF24', '#F87171', '#4ADE80', '#22D3EE'];
 
 export const dynamic = 'force-dynamic';
 
@@ -44,12 +47,48 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
 
   const investmentNW = computeInvestmentNetWorth(activeAssets, usdVndRate);
   const totalNW = computeTotalNetWorth(activeAssets, usdVndRate);
-  const assetClassBreakdown = computeAssetClassBreakdown(activeAssets, investmentNW, usdVndRate);
-  const purposeBreakdown = computePurposeBreakdown(activeAssets, totalNW, usdVndRate);
+
+  // Scope chart denominators to the filtered set so weights sum to 100% within the current tab
+  const chartInvestmentNW = activeClass
+    ? computeInvestmentNetWorth(filteredAssets, usdVndRate)
+    : investmentNW;
+  const chartTotalNW = activeClass
+    ? computeTotalNetWorth(filteredAssets, usdVndRate)
+    : totalNW;
+  const assetClassBreakdown = computeAssetClassBreakdown(filteredAssets, chartInvestmentNW, usdVndRate);
+  const purposeBreakdown = computePurposeBreakdown(filteredAssets, chartTotalNW, usdVndRate);
+
   const filteredValueUsd = filteredAssets.reduce(
     (s, a) => s + normalizeToUsd(a.current_value, a.currency, usdVndRate),
     0,
   );
+
+  const allocationData: AllocationDataItem[] = activeClass
+    ? (() => {
+        const investable = filteredAssets.filter((a) => a.include_in_investment_net_worth);
+        const sorted = [...investable].sort(
+          (a, b) =>
+            normalizeToUsd(b.current_value, b.currency, usdVndRate) -
+            normalizeToUsd(a.current_value, a.currency, usdVndRate),
+        );
+        return sorted.map((a, i) => {
+          const usdValue = normalizeToUsd(a.current_value, a.currency, usdVndRate);
+          return {
+            key: String(a.id),
+            label: a.symbol ?? a.name,
+            color: HOLDING_COLORS[i % HOLDING_COLORS.length],
+            value: usdValue,
+            weight: chartInvestmentNW > 0 ? (usdValue / chartInvestmentNW) * 100 : 0,
+          };
+        });
+      })()
+    : assetClassBreakdown.map((item) => ({
+        key: item.asset_class,
+        label: ASSET_CLASS_LABELS[item.asset_class],
+        color: ASSET_CLASS_COLORS[item.asset_class],
+        value: item.value,
+        weight: item.weight,
+      }));
 
   const classCount = new Set(activeAssets.map((a) => a.asset_class)).size;
 
@@ -94,8 +133,14 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AllocationChart data={assetClassBreakdown} />
-          <PurposeAllocation data={purposeBreakdown} />
+          <AllocationChart
+            data={allocationData}
+            label={activeClass ? `Asset Allocation · ${ASSET_CLASS_LABELS[activeClass]}` : undefined}
+          />
+          <PurposeAllocation
+            data={purposeBreakdown}
+            label={activeClass ? `Asset Purpose · ${ASSET_CLASS_LABELS[activeClass]}` : undefined}
+          />
         </div>
 
         <div className="space-y-3">

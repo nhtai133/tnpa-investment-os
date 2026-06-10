@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getModuleData } from '@/lib/moduleData';
 import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
 import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
+import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 import { CryptoPortfolioClient } from '@/components/crypto/CryptoPortfolioClient';
@@ -58,9 +59,10 @@ export default async function CryptoPage() {
           <CryptoPortfolioClient />
         </section>
 
-        <SectionPlaceholder
-          label="Allocation Breakdown"
-          note="Crypto allocation chart — coming in a future sprint."
+        <WorkspaceAllocationChart
+          assets={classAssets}
+          usdVndRate={usdVndRate}
+          label="Crypto Allocation"
         />
 
         <SectionPlaceholder

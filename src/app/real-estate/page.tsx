@@ -1,5 +1,6 @@
 import { getModuleData } from '@/lib/moduleData';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
+import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 
@@ -21,6 +22,11 @@ export default async function RealEstatePage() {
       />
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
         <HoldingsTable assets={classAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
+        <WorkspaceAllocationChart
+          assets={classAssets}
+          usdVndRate={usdVndRate}
+          label="Real Estate Allocation"
+        />
         <ArchivedSection assets={archivedClassAssets} label="Archived Real Estate" usdVndRate={usdVndRate} />
       </main>
     </div>

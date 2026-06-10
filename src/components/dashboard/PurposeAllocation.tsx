@@ -14,16 +14,17 @@ interface PurposeDataItem {
 interface PurposeAllocationProps {
   data: PurposeDataItem[];
   isMixedCurrency?: boolean;
+  label?: string;
 }
 
-export function PurposeAllocation({ data, isMixedCurrency = false }: PurposeAllocationProps) {
+export function PurposeAllocation({ data, isMixedCurrency = false, label }: PurposeAllocationProps) {
   const sorted = [...data].sort((a, b) => b.value - a.value);
   const maxWeight = Math.max(...sorted.map((d) => d.weight));
 
   if (isMixedCurrency) {
     return (
       <Card className="flex flex-col">
-        <CardHeader label="Asset Purpose" />
+        <CardHeader label={label ?? 'Asset Purpose'} />
         <div className="p-5 flex flex-col items-center justify-center flex-1 min-h-[160px] gap-2">
           <p className="text-sm text-zinc-600">Purpose weights unavailable</p>
           <p className="text-[10px] text-amber-500/80 text-center px-6">

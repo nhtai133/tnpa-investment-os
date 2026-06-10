@@ -10,6 +10,8 @@ import {
   computeTopHoldings,
 } from '@/lib/calculations';
 import { getUsdVndRate } from '@/lib/settings';
+import { ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
+import type { AllocationDataItem } from '@/components/dashboard/AllocationChart';
 
 import { NetWorthCards } from '@/components/dashboard/NetWorthCards';
 import { StatCounters } from '@/components/dashboard/StatCounters';
@@ -48,6 +50,14 @@ export default async function DashboardPage() {
   const assetClassBreakdown = computeAssetClassBreakdown(allAssets, investmentNetWorth, usdVndRate);
   const purposeBreakdown = computePurposeBreakdown(allAssets, totalNetWorth, usdVndRate);
   const topHoldings = computeTopHoldings(allAssets, totalNetWorth, usdVndRate);
+
+  const allocationData: AllocationDataItem[] = assetClassBreakdown.map((item) => ({
+    key: item.asset_class,
+    label: ASSET_CLASS_LABELS[item.asset_class],
+    color: ASSET_CLASS_COLORS[item.asset_class],
+    value: item.value,
+    weight: item.weight,
+  }));
 
   const activeOpportunities = activeOpps.length;
   const today = new Date().toISOString().split('T')[0];
@@ -115,7 +125,7 @@ export default async function DashboardPage() {
 
         {/* Row 3: Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AllocationChart data={assetClassBreakdown} />
+          <AllocationChart data={allocationData} />
           <PurposeAllocation data={purposeBreakdown} />
         </div>
 

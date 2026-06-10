@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getModuleData } from '@/lib/moduleData';
 import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
 import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
+import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 
@@ -48,6 +49,12 @@ export default async function StocksPage() {
           </p>
           <HoldingsTable assets={classAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
         </section>
+
+        <WorkspaceAllocationChart
+          assets={classAssets}
+          usdVndRate={usdVndRate}
+          label="Stock Allocation"
+        />
 
         <ArchivedSection assets={archivedClassAssets} label="Archived Stocks" usdVndRate={usdVndRate} />
 
