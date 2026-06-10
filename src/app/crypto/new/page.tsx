@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { createCryptoAsset } from '@/app/crypto/actions';
-import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
-import { CRYPTO_WORKSPACE_CONFIG } from '@/components/workspace/WorkspaceConfig';
+import { CryptoAssetForm } from '@/components/workspace/CryptoAssetForm';
 
 export default function NewCryptoAssetPage() {
   return (
@@ -30,7 +29,7 @@ export default function NewCryptoAssetPage() {
           </div>
 
           <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
-            <WorkspaceAssetForm action={createCryptoAsset} config={CRYPTO_WORKSPACE_CONFIG} />
+            <CryptoAssetForm action={createCryptoAsset} />
           </div>
         </div>
       </main>

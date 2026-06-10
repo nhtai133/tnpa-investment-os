@@ -11,24 +11,27 @@ export async function createCryptoAsset(formData: FormData) {
   const symbolRaw = ((formData.get('symbol') as string) || '').trim().toUpperCase();
   const symbol = symbolRaw || null;
   const quantityRaw = formData.get('quantity') as string;
-  const avgCostRaw = formData.get('avg_cost') as string;
-  const currentValueRaw = formData.get('current_value') as string;
+  const avgCostPerCoinRaw = formData.get('avg_cost_per_coin') as string;
+  const currentPricePerCoinRaw = formData.get('current_price_per_coin') as string;
   const purpose = ((formData.get('purpose') as string) || 'wealth_compounder') as AssetPurpose;
   const walletSource = ((formData.get('wallet_source') as string) || '').trim();
   const notesRaw = ((formData.get('notes') as string) || '').trim();
 
   const quantity = quantityRaw ? parseFloat(quantityRaw) : null;
-  const avgCost = avgCostRaw ? parseFloat(avgCostRaw) : null;
-  const currentValue = parseFloat(currentValueRaw) || 0;
+  const avgCostPerCoin = avgCostPerCoinRaw ? parseFloat(avgCostPerCoinRaw) : null;
+  const currentPricePerCoin = currentPricePerCoinRaw ? parseFloat(currentPricePerCoinRaw) : null;
 
   const costBasis =
-    avgCost !== null && quantity !== null
-      ? avgCost * quantity
-      : avgCost !== null
-        ? avgCost
-        : null;
+    quantity !== null && avgCostPerCoin !== null ? quantity * avgCostPerCoin : null;
+
+  const currentValue =
+    quantity !== null && currentPricePerCoin !== null
+      ? quantity * currentPricePerCoin
+      : costBasis ?? 0;
 
   const notesParts: string[] = [];
+  if (avgCostPerCoin !== null) notesParts.push(`Avg Cost/Coin: ${avgCostPerCoin}`);
+  if (currentPricePerCoin !== null) notesParts.push(`Current Price/Coin: ${currentPricePerCoin}`);
   if (walletSource) notesParts.push(`Source: ${walletSource}`);
   if (notesRaw) notesParts.push(notesRaw);
 
