@@ -101,6 +101,7 @@ export function CryptoAssetForm({ action }: CryptoAssetFormProps) {
           <label className={labelClass}>Quantity</label>
           <input
             type="number"
+            inputMode="decimal"
             name="quantity"
             placeholder="0.00000000"
             min="0"
@@ -115,6 +116,7 @@ export function CryptoAssetForm({ action }: CryptoAssetFormProps) {
           <label className={labelClass}>Average Cost Per Coin (USD)</label>
           <input
             type="number"
+            inputMode="decimal"
             name="avg_cost_per_coin"
             placeholder="89000"
             min="0"
@@ -129,6 +131,7 @@ export function CryptoAssetForm({ action }: CryptoAssetFormProps) {
           <label className={labelClass}>Current Price Per Coin (USD)</label>
           <input
             type="number"
+            inputMode="decimal"
             name="current_price_per_coin"
             placeholder="106000"
             min="0"

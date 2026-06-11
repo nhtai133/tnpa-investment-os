@@ -115,6 +115,7 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
           </label>
           <input
             type="number"
+            inputMode="decimal"
             name="current_value"
             required
             placeholder="50000000"
@@ -128,6 +129,7 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
           <label className={labelClass}>Cost Basis (optional)</label>
           <input
             type="number"
+            inputMode="decimal"
             name="cost_basis"
             placeholder="Initial deposit / NAV cost"
             min="0"
@@ -140,6 +142,7 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
           <label className={labelClass}>Interest / Return Rate (% p.a.)</label>
           <input
             type="number"
+            inputMode="decimal"
             name="interest_rate"
             placeholder="5.5"
             min="0"

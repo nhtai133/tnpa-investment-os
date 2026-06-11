@@ -39,3 +39,13 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #3a3a42;
 }
+
+/* Safe-area inset for bottom nav on notched devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent tap highlight on nav links */
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}

@@ -2,31 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const PORTFOLIO_LINKS = [
-  { label: 'Holdings', href: '/holdings' },
-  { label: 'Buckets', href: '/buckets' },
-  { label: 'Transactions', href: '/transactions' },
-  { label: 'Rebalancing', href: '/rebalancing' },
-];
-
-const RESEARCH_LINKS = [
-  { label: 'Research', href: '/research' },
-  { label: 'Opportunities', href: '/pipeline' },
-  { label: 'Watchlist', href: '/watchlist' },
-  { label: 'Decisions', href: '/decisions' },
-  { label: 'Journal', href: '/journal' },
-];
-
-const MARKET_LINKS = [
-  { label: 'Stocks', href: '/stocks' },
-  { label: 'Crypto Portfolio', href: '/crypto' },
-  { label: 'Real Estate', href: '/real-estate' },
-  { label: 'Gold', href: '/gold' },
-  { label: 'Banking', href: '/banking' },
-  { label: 'Funds & ETFs', href: '/funds' },
-  { label: 'Private Loans', href: '/private-loans' },
-];
+import { NAV_GROUPS, SYSTEM_LINKS } from '@/lib/nav';
 
 function NavGroup({ label, links, isActive }: {
   label: string;
@@ -74,7 +50,6 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 py-3 overflow-y-auto">
-        {/* Command Center */}
         <div className="space-y-0.5">
           <Link
             href="/"
@@ -88,9 +63,9 @@ export function Sidebar() {
           </Link>
         </div>
 
-        <NavGroup label="Portfolio" links={PORTFOLIO_LINKS} isActive={isActive} />
-        <NavGroup label="Research" links={RESEARCH_LINKS} isActive={isActive} />
-        <NavGroup label="Markets" links={MARKET_LINKS} isActive={isActive} />
+        {NAV_GROUPS.filter((g) => g.label !== 'System').map((group) => (
+          <NavGroup key={group.label} label={group.label} links={group.links} isActive={isActive} />
+        ))}
 
         <div className="pt-5 pb-1 px-3">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
@@ -98,10 +73,7 @@ export function Sidebar() {
           </p>
         </div>
         <div className="space-y-0.5">
-          {[
-            { label: 'Settings', href: '/settings' },
-            { label: 'Health', href: '/system/health' },
-          ].map(({ label, href }) => (
+          {SYSTEM_LINKS.map(({ label, href }) => (
             <Link
               key={href}
               href={href}
@@ -118,7 +90,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v1.6 · Personal Family Office</p>
+        <p className="text-[10px] text-zinc-700">v1.7 · Personal Family Office</p>
       </div>
     </aside>
   );

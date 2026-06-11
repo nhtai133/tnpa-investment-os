@@ -39,6 +39,7 @@ export function FxRateForm({ currentRate }: { currentRate: number }) {
               id="usd_vnd_rate"
               name="usd_vnd_rate"
               type="number"
+              inputMode="decimal"
               defaultValue={currentRate}
               step="1"
               min="1000"

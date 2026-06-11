@@ -209,6 +209,7 @@ export function DecisionForm({
         <Field label="Confidence (1–10, optional)">
           <input
             type="number"
+            inputMode="decimal"
             name="confidence"
             min={1}
             max={10}
@@ -221,6 +222,7 @@ export function DecisionForm({
         <Field label="Amount (optional)">
           <input
             type="number"
+            inputMode="decimal"
             name="amount"
             step="0.01"
             defaultValue={defaultValues?.amount ?? ''}

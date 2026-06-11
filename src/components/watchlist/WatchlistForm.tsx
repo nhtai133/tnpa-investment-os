@@ -148,6 +148,7 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
       <Field label="Conviction Score (1–10, optional)">
         <input
           type="number"
+          inputMode="decimal"
           name="conviction_score"
           min="1"
           max="10"

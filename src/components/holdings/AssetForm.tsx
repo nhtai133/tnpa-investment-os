@@ -108,6 +108,7 @@ export function AssetForm({ action, defaultValues }: AssetFormProps) {
               required
               min="0"
               step="0.01"
+              inputMode="decimal"
               defaultValue={defaultValues?.current_value ?? ''}
               placeholder="0.00"
               className={inputClass}
@@ -134,6 +135,7 @@ export function AssetForm({ action, defaultValues }: AssetFormProps) {
             name="quantity"
             min="0"
             step="any"
+            inputMode="decimal"
             defaultValue={defaultValues?.quantity ?? ''}
             placeholder="e.g. 100 shares"
             className={inputClass}
@@ -145,6 +147,7 @@ export function AssetForm({ action, defaultValues }: AssetFormProps) {
             name="cost_basis"
             min="0"
             step="0.01"
+            inputMode="decimal"
             defaultValue={defaultValues?.cost_basis ?? ''}
             placeholder="Total amount paid"
             className={inputClass}

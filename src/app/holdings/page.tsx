@@ -105,13 +105,15 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
                 Holdings Registry
               </h1>
             </div>
-            <div className="w-px h-8 bg-[#26262B]" />
-            <div>
-              <p className="text-sm text-zinc-300">Asset Registry</p>
-              <p className="text-[11px] text-zinc-600">
-                {activeAssets.length} active · {classCount} classes
-                {archivedAssets.length > 0 && ` · ${archivedAssets.length} archived`}
-              </p>
+            <div className="hidden md:flex items-center gap-4">
+              <div className="w-px h-8 bg-[#26262B]" />
+              <div>
+                <p className="text-sm text-zinc-300">Asset Registry</p>
+                <p className="text-[11px] text-zinc-600">
+                  {activeAssets.length} active · {classCount} classes
+                  {archivedAssets.length > 0 && ` · ${archivedAssets.length} archived`}
+                </p>
+              </div>
             </div>
           </div>
           <Link

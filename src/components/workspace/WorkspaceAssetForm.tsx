@@ -82,6 +82,7 @@ function renderField(field: WorkspaceFieldDef, defaultPurpose: string) {
       <FieldWrapper key={field.name} field={field}>
         <input
           type="number"
+          inputMode="decimal"
           name={field.name}
           placeholder={field.placeholder}
           defaultValue={field.defaultValue ?? ''}

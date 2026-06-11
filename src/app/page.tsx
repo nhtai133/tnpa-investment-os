@@ -242,8 +242,10 @@ export default async function CommandCenter() {
               <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
               <h1 className="text-base font-semibold text-zinc-100 leading-tight">Wealth Command Center</h1>
             </div>
-            <div className="w-px h-6 bg-[#26262B]" />
-            <p className="text-[11px] text-zinc-600">v1.6 · Personal Family Office</p>
+            <div className="hidden md:flex items-center gap-4">
+              <div className="w-px h-6 bg-[#26262B]" />
+              <p className="text-[11px] text-zinc-600">v1.7 · Personal Family Office</p>
+            </div>
           </div>
           <div className="text-right">
             <p className="text-xs text-zinc-500">{todayLabel}</p>
@@ -321,7 +323,7 @@ export default async function CommandCenter() {
         </div>
 
         <div className="pb-4 text-center">
-          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v1.6 · {todayLabel}</p>
+          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v1.7 · {todayLabel}</p>
         </div>
       </main>
     </div>

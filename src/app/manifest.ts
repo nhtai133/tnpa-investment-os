@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'TNPA Investment OS',
-    short_name: 'TNPA OS',
+    name: 'TNPA Wealth OS',
+    short_name: 'TNPA Wealth',
     description: 'Personal Family Office Operating System',
     start_url: '/',
     display: 'standalone',
@@ -11,14 +11,20 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#818CF8',
     icons: [
       {
-        src: '/icons/icon-192.svg',
+        src: '/icons/icon-192.png',
         sizes: '192x192',
-        type: 'image/svg+xml',
+        type: 'image/png',
       },
       {
-        src: '/icons/icon-512.svg',
+        src: '/icons/icon-512.png',
         sizes: '512x512',
-        type: 'image/svg+xml',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };

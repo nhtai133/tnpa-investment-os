@@ -103,6 +103,7 @@ export function TransactionForm({
         <Field label="Amount">
           <input
             type="number"
+            inputMode="decimal"
             name="amount"
             step="0.01"
             required
@@ -127,6 +128,7 @@ export function TransactionForm({
         <Field label="Quantity (optional)">
           <input
             type="number"
+            inputMode="decimal"
             name="quantity"
             step="any"
             placeholder="e.g. 0.05 BTC"
@@ -136,6 +138,7 @@ export function TransactionForm({
         <Field label="Price per unit (optional)">
           <input
             type="number"
+            inputMode="decimal"
             name="price"
             step="0.01"
             placeholder="e.g. 95000"
@@ -148,6 +151,7 @@ export function TransactionForm({
       <Field label="Fees (optional)">
         <input
           type="number"
+          inputMode="decimal"
           name="fees"
           step="0.01"
           placeholder="e.g. 2.50"
