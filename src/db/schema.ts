@@ -251,6 +251,82 @@ export const TRANSACTION_TYPES = [
 ] as const;
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
+export const BANK_ACCOUNT_STATUSES = ['active', 'inactive', 'closed'] as const;
+export const BANK_DEPOSIT_STATUSES = ['active', 'matured', 'closed'] as const;
+export const BANK_CREDIT_STATUSES = ['active', 'inactive', 'closed'] as const;
+export const BANK_FACILITY_TYPES = ['ShopCash', 'Overdraft', 'Credit Line', 'BNPL', 'Other'] as const;
+export type BankAccountStatus = (typeof BANK_ACCOUNT_STATUSES)[number];
+export type BankDepositStatus = (typeof BANK_DEPOSIT_STATUSES)[number];
+export type BankCreditStatus = (typeof BANK_CREDIT_STATUSES)[number];
+export type BankFacilityType = (typeof BANK_FACILITY_TYPES)[number];
+
+export const bankAccounts = sqliteTable('bank_accounts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  bank_name: text('bank_name').notNull(),
+  account_name: text('account_name').notNull(),
+  account_number: text('account_number'),
+  currency: text('currency').notNull().default('VND'),
+  balance: real('balance').notNull().default(0),
+  purpose: text('purpose', { enum: ASSET_PURPOSES }).notNull().default('liquidity_reserve'),
+  vip_tier: text('vip_tier'),
+  status: text('status', { enum: BANK_ACCOUNT_STATUSES }).notNull().default('active'),
+  notes: text('notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
+export const bankSavingsDeposits = sqliteTable('bank_savings_deposits', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  bank_account_id: integer('bank_account_id').references(() => bankAccounts.id),
+  bank_name: text('bank_name'),
+  deposit_name: text('deposit_name').notNull(),
+  principal: real('principal').notNull().default(0),
+  interest_rate: real('interest_rate').notNull().default(0),
+  term_months: integer('term_months').notNull().default(0),
+  start_date: text('start_date'),
+  maturity_date: text('maturity_date'),
+  interest_payout_type: text('interest_payout_type'),
+  auto_renew: integer('auto_renew', { mode: 'boolean' }).notNull().default(false),
+  status: text('status', { enum: BANK_DEPOSIT_STATUSES }).notNull().default('active'),
+  notes: text('notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
+export const bankCreditCards = sqliteTable('bank_credit_cards', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  bank_name: text('bank_name').notNull(),
+  card_name: text('card_name').notNull(),
+  card_network: text('card_network'),
+  credit_limit: real('credit_limit').notNull().default(0),
+  current_used: real('current_used').notNull().default(0),
+  available_limit: real('available_limit').notNull().default(0),
+  statement_date: text('statement_date'),
+  due_date: text('due_date'),
+  annual_fee: real('annual_fee'),
+  status: text('status', { enum: BANK_CREDIT_STATUSES }).notNull().default('active'),
+  notes: text('notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
+export const bankCreditFacilities = sqliteTable('bank_credit_facilities', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  bank_name: text('bank_name').notNull(),
+  facility_name: text('facility_name').notNull(),
+  facility_type: text('facility_type', { enum: BANK_FACILITY_TYPES }).notNull().default('Other'),
+  limit_amount: real('limit_amount').notNull().default(0),
+  current_used: real('current_used').notNull().default(0),
+  available_amount: real('available_amount').notNull().default(0),
+  interest_rate: real('interest_rate'),
+  fee_rule: text('fee_rule'),
+  due_rule: text('due_rule'),
+  status: text('status', { enum: BANK_CREDIT_STATUSES }).notNull().default('active'),
+  notes: text('notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export const transactions = sqliteTable('transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   asset_id: integer('asset_id').references(() => assets.id),
@@ -295,3 +371,7 @@ export type AssetIntelligence = typeof assetIntelligence.$inferSelect;
 export type ResearchNote = typeof researchNotes.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type WealthSnapshot = typeof wealthSnapshots.$inferSelect;
+export type BankAccount = typeof bankAccounts.$inferSelect;
+export type BankSavingsDeposit = typeof bankSavingsDeposits.$inferSelect;
+export type BankCreditCard = typeof bankCreditCards.$inferSelect;
+export type BankCreditFacility = typeof bankCreditFacilities.$inferSelect;

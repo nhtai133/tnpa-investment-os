@@ -21,10 +21,11 @@ export function computeInvestmentNetWorth(assets: Asset[], usdVndRate: number): 
     .reduce((sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate), 0);
 }
 
-export function computeTotalNetWorth(assets: Asset[], usdVndRate: number): number {
-  return assets
+export function computeTotalNetWorth(assets: Asset[], usdVndRate: number, liabilitiesUsd = 0): number {
+  const assetValue = assets
     .filter((a) => a.include_in_total_net_worth)
     .reduce((sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate), 0);
+  return assetValue - liabilitiesUsd;
 }
 
 export function computeAssetClassBreakdown(

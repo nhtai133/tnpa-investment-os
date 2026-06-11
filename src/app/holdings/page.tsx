@@ -20,6 +20,7 @@ import { FilterTabs } from '@/components/holdings/FilterTabs';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 import { ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
+import { getCreditLiabilityUsd } from '@/lib/banking';
 
 const HOLDING_COLORS = ['#818CF8', '#34D399', '#F472B6', '#FB923C', '#A78BFA', '#38BDF8', '#FBBF24', '#F87171', '#4ADE80', '#22D3EE'];
 
@@ -45,8 +46,9 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
     ? activeAssets.filter((a) => a.asset_class === activeClass)
     : activeAssets;
 
+  const creditLiabilityUsd = await getCreditLiabilityUsd(usdVndRate);
   const investmentNW = computeInvestmentNetWorth(activeAssets, usdVndRate);
-  const totalNW = computeTotalNetWorth(activeAssets, usdVndRate);
+  const totalNW = computeTotalNetWorth(activeAssets, usdVndRate, creditLiabilityUsd);
 
   // Scope chart denominators to the filtered set so weights sum to 100% within the current tab
   const chartInvestmentNW = activeClass

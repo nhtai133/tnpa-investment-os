@@ -12,6 +12,7 @@ import {
   computePurposeBreakdown,
 } from '@/lib/calculations';
 import { normalizeToUsd, getNormalizedCostBasisUsd } from '@/lib/fx';
+import { getCreditLiabilityUsd } from '@/lib/banking';
 
 function now() {
   return new Date().toISOString();
@@ -29,7 +30,8 @@ export async function createSnapshot(formData: FormData) {
   const storedRate = settingsMap.get('usd_vnd_rate');
   const usdVndRate = storedRate ? parseFloat(storedRate) : await getUsdVndRate();
 
-  const totalNW = computeTotalNetWorth(allAssets, usdVndRate);
+  const creditLiabilityUsd = await getCreditLiabilityUsd(usdVndRate);
+  const totalNW = computeTotalNetWorth(allAssets, usdVndRate, creditLiabilityUsd);
   const investableNW = computeInvestmentNetWorth(allAssets, usdVndRate);
 
   const assetsWithCostBasis = allAssets.filter((a) => a.cost_basis != null);

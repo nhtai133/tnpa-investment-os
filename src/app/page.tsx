@@ -29,6 +29,7 @@ import {
 import { REBALANCING_COLORS, REBALANCING_LABELS } from '@/lib/rebalancing';
 import { PURPOSE_COLORS, PURPOSE_LABELS } from '@/lib/formatters';
 import type { AssetPurpose } from '@/db/schema';
+import { getCreditLiabilityUsd } from '@/lib/banking';
 
 import { WealthSnapshot } from '@/components/dashboard/WealthSnapshot';
 import { PurposeHealth, type PurposeHealthRow } from '@/components/dashboard/PurposeHealth';
@@ -114,7 +115,8 @@ export default async function CommandCenter() {
   const purposeRebalancing = computePurposeRebalancing(allAssets, purposeTargets, usdVndRate);
 
   // ── Wealth snapshot ─────────────────────────────────────────────────────────
-  const totalNetWorth = computeTotalNetWorth(allAssets, usdVndRate);
+  const creditLiabilityUsd = await getCreditLiabilityUsd(usdVndRate);
+  const totalNetWorth = computeTotalNetWorth(allAssets, usdVndRate, creditLiabilityUsd);
   const investableNetWorth = computeInvestmentNetWorth(allAssets, usdVndRate);
 
   const assetsWithCostBasis = allAssets.filter((a) => a.cost_basis != null);

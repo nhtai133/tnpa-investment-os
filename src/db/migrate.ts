@@ -296,6 +296,81 @@ async function createCoreTables() {
       updated_at TEXT NOT NULL
     )
   `);
+
+  await exec('bank_accounts', `
+    CREATE TABLE IF NOT EXISTS bank_accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bank_name TEXT NOT NULL,
+      account_name TEXT NOT NULL,
+      account_number TEXT,
+      currency TEXT NOT NULL DEFAULT 'VND',
+      balance REAL NOT NULL DEFAULT 0,
+      purpose TEXT NOT NULL DEFAULT 'liquidity_reserve',
+      vip_tier TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+
+  await exec('bank_savings_deposits', `
+    CREATE TABLE IF NOT EXISTS bank_savings_deposits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bank_account_id INTEGER REFERENCES bank_accounts(id),
+      bank_name TEXT,
+      deposit_name TEXT NOT NULL,
+      principal REAL NOT NULL DEFAULT 0,
+      interest_rate REAL NOT NULL DEFAULT 0,
+      term_months INTEGER NOT NULL DEFAULT 0,
+      start_date TEXT,
+      maturity_date TEXT,
+      interest_payout_type TEXT,
+      auto_renew INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+
+  await exec('bank_credit_cards', `
+    CREATE TABLE IF NOT EXISTS bank_credit_cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bank_name TEXT NOT NULL,
+      card_name TEXT NOT NULL,
+      card_network TEXT,
+      credit_limit REAL NOT NULL DEFAULT 0,
+      current_used REAL NOT NULL DEFAULT 0,
+      available_limit REAL NOT NULL DEFAULT 0,
+      statement_date TEXT,
+      due_date TEXT,
+      annual_fee REAL,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+
+  await exec('bank_credit_facilities', `
+    CREATE TABLE IF NOT EXISTS bank_credit_facilities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bank_name TEXT NOT NULL,
+      facility_name TEXT NOT NULL,
+      facility_type TEXT NOT NULL DEFAULT 'Other',
+      limit_amount REAL NOT NULL DEFAULT 0,
+      current_used REAL NOT NULL DEFAULT 0,
+      available_amount REAL NOT NULL DEFAULT 0,
+      interest_rate REAL,
+      fee_rule TEXT,
+      due_rule TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
 }
 
 // ── Column backfills for existing databases ──────────────────────────────────
@@ -376,6 +451,23 @@ async function seedDefaults() {
     INSERT OR IGNORE INTO app_settings (key, value, updated_at)
     VALUES ('usd_vnd_rate', '25500', datetime('now'))
   `);
+
+  await exec('bank_credit_facilities: Techcombank ShopCash seed', `
+    INSERT INTO bank_credit_facilities (
+      bank_name, facility_name, facility_type, limit_amount, current_used,
+      available_amount, interest_rate, fee_rule, due_rule, status, notes,
+      created_at, updated_at
+    )
+    SELECT
+      'Techcombank', 'Techcombank ShopCash', 'ShopCash', 100000000, 0,
+      100000000, NULL, NULL, NULL, 'active',
+      'Seed facility for Banking v2.2. Limit is liquidity capacity, not an asset.',
+      datetime('now'), datetime('now')
+    WHERE NOT EXISTS (
+      SELECT 1 FROM bank_credit_facilities
+      WHERE bank_name = 'Techcombank' AND facility_name = 'Techcombank ShopCash'
+    )
+  `);
 }
 
 // ── Verification ─────────────────────────────────────────────────────────────
@@ -387,6 +479,7 @@ async function verify() {
     'watchlist_items', 'rebalance_alerts', 'net_worth_snapshots',
     'research_theses', 'decision_logs', 'decision_reviews',
     'asset_intelligence', 'research_notes', 'transactions', 'wealth_snapshots',
+    'bank_accounts', 'bank_savings_deposits', 'bank_credit_cards', 'bank_credit_facilities',
   ];
   for (const table of tables) {
     try {
