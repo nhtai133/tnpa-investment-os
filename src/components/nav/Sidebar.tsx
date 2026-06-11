@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const PORTFOLIO_LINKS = [
   { label: 'Holdings', href: '/holdings' },
+  { label: 'Rebalancing', href: '/rebalancing' },
 ];
 
 const RESEARCH_LINKS = [
