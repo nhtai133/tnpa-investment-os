@@ -1,8 +1,9 @@
 'use client';
 
 import { useFormStatus } from 'react-dom';
-import { ASSET_CLASSES, CONVICTION_LEVELS, type WatchlistItem } from '@/db/schema';
+import { ASSET_CLASSES, CONVICTION_LEVELS, REVIEW_CADENCES, type WatchlistItem } from '@/db/schema';
 import { ASSET_CLASS_LABELS } from '@/lib/formatters';
+import { REVIEW_CADENCE_LABELS } from '@/lib/calendar';
 
 const PRIORITY_LABELS: Record<string, string> = {
   low: 'Low',
@@ -202,18 +203,32 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
         </Field>
       </div>
 
-      {/* Note + Review Date */}
+      {/* Note */}
+      <Field label="Short Note (optional)">
+        <input
+          type="text"
+          name="note"
+          defaultValue={d?.note ?? ''}
+          placeholder="Quick label or flag note"
+          className={inputClass}
+        />
+      </Field>
+
+      {/* Review Cadence + Review Date */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Short Note (optional)">
-          <input
-            type="text"
-            name="note"
-            defaultValue={d?.note ?? ''}
-            placeholder="Quick label or flag note"
-            className={inputClass}
-          />
+        <Field label="Review Cadence (optional)">
+          <select
+            name="review_cadence"
+            defaultValue={d?.review_cadence ?? ''}
+            className={`${inputClass} appearance-none cursor-pointer`}
+          >
+            <option value="">No scheduled review</option>
+            {REVIEW_CADENCES.map((c) => (
+              <option key={c} value={c}>{REVIEW_CADENCE_LABELS[c]}</option>
+            ))}
+          </select>
         </Field>
-        <Field label="Review Date (optional)">
+        <Field label="Next Review Date (optional)">
           <input
             type="date"
             name="review_date"

@@ -244,7 +244,7 @@ export default async function CommandCenter() {
             </div>
             <div className="hidden md:flex items-center gap-4">
               <div className="w-px h-6 bg-[#26262B]" />
-              <p className="text-[11px] text-zinc-600">v1.7 · Personal Family Office</p>
+              <p className="text-[11px] text-zinc-600">v2.0 · Personal Family Office</p>
             </div>
           </div>
           <div className="text-right">
@@ -323,7 +323,7 @@ export default async function CommandCenter() {
         </div>
 
         <div className="pb-4 text-center">
-          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v1.7 · {todayLabel}</p>
+          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v2.0 · {todayLabel}</p>
         </div>
       </main>
     </div>

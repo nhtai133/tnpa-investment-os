@@ -100,6 +100,8 @@ export const watchlistItems = sqliteTable('watchlist_items', {
   fair_value: text('fair_value'),
   current_price: text('current_price'),
   currency: text('currency').default('USD'),
+  // v1.8 calendar
+  review_cadence: text('review_cadence'),
 });
 
 export const rebalanceAlerts = sqliteTable('rebalance_alerts', {
@@ -138,6 +140,9 @@ export const researchTheses = sqliteTable('research_theses', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const REVIEW_CADENCES = ['monthly', 'quarterly', 'semi_annual', 'annual'] as const;
+export type ReviewCadence = (typeof REVIEW_CADENCES)[number];
+
 export const DECISION_TYPES = [
   'buy', 'sell', 'hold', 'trim', 'add', 'reduce', 'rebalance', 'review', 'reject', 'monitor',
 ] as const;
@@ -168,6 +173,9 @@ export const decisionLogs = sqliteTable('decision_logs', {
   extended_notes: text('extended_notes'),
   transaction_id: integer('transaction_id'),
   is_reviewed: integer('is_reviewed', { mode: 'boolean' }).notNull().default(false),
+  // v1.8 calendar
+  next_review_date: text('next_review_date'),
+  review_cadence: text('review_cadence'),
 });
 
 export const decisionReviews = sqliteTable('decision_reviews', {
@@ -258,6 +266,21 @@ export const transactions = sqliteTable('transactions', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const wealthSnapshots = sqliteTable('wealth_snapshots', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  snapshot_date: text('snapshot_date').notNull(),
+  total_net_worth_usd: real('total_net_worth_usd').notNull(),
+  investable_net_worth_usd: real('investable_net_worth_usd').notNull(),
+  total_cost_basis_usd: real('total_cost_basis_usd'),
+  total_gain_loss_usd: real('total_gain_loss_usd'),
+  usd_vnd_rate: real('usd_vnd_rate').notNull(),
+  asset_allocation_json: text('asset_allocation_json').notNull(),
+  purpose_allocation_json: text('purpose_allocation_json').notNull(),
+  notes: text('notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export type Asset = typeof assets.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
 export type TargetAllocation = typeof targetAllocations.$inferSelect;
@@ -271,3 +294,4 @@ export type DecisionReview = typeof decisionReviews.$inferSelect;
 export type AssetIntelligence = typeof assetIntelligence.$inferSelect;
 export type ResearchNote = typeof researchNotes.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type WealthSnapshot = typeof wealthSnapshots.$inferSelect;

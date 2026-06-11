@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
-import { assets, researchNotes, transactions, decisionLogs } from '@/db/schema';
-import { ASSET_PURPOSES } from '@/db/schema';
+import { assets, researchNotes, transactions, decisionLogs, appSettings, ASSET_PURPOSES, REVIEW_CADENCES } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { setBucketReviewSchedule, markBucketReviewed } from './actions';
+import { REVIEW_CADENCE_LABELS } from '@/lib/calendar';
 import { Card } from '@/components/ui/Card';
 import { getUsdVndRate } from '@/lib/settings';
 import { normalizeToUsd, getNormalizedCostBasisUsd } from '@/lib/fx';
@@ -32,12 +33,22 @@ export default async function BucketDetailPage({
   const purpose = params.purpose as AssetPurpose;
   if (!ASSET_PURPOSES.includes(purpose)) notFound();
 
-  const [allAssets, usdVndRate, archivedAssets, bucketDecisions] = await Promise.all([
+  const [allAssets, usdVndRate, archivedAssets, bucketDecisions, allSettings] = await Promise.all([
     db.select().from(assets).where(eq(assets.is_archived, false)),
     getUsdVndRate(),
     db.select().from(assets).where(eq(assets.is_archived, true)),
     db.select().from(decisionLogs).where(eq(decisionLogs.purpose, purpose)).orderBy(desc(decisionLogs.decision_date)).limit(5),
+    db.select().from(appSettings),
   ]);
+
+  const settingsMap = new Map(allSettings.map((s) => [s.key, s.value]));
+  const bucketNextReview = settingsMap.get(`bucket_next_review_${purpose}`) ?? null;
+  const bucketCadence = settingsMap.get(`bucket_review_cadence_${purpose}`) ?? null;
+
+  const setScheduleAction = setBucketReviewSchedule.bind(null, purpose);
+  const markReviewedAction = markBucketReviewed.bind(null, purpose);
+  const today = new Date().toISOString().split('T')[0];
+  const isReviewOverdue = bucketNextReview && bucketNextReview < today;
 
   const bucket = allAssets.filter((a) => a.purpose === purpose);
   const archivedBucket = archivedAssets.filter((a) => a.purpose === purpose);
@@ -323,6 +334,72 @@ export default async function BucketDetailPage({
             </div>
           </Card>
         )}
+
+        {/* Review Schedule */}
+        <Card>
+          <div className="px-5 pt-5 pb-4 border-b border-[#26262B] flex items-center justify-between">
+            <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
+              Review Schedule
+            </span>
+            {bucketNextReview && (
+              <span className={`text-[11px] font-medium ${isReviewOverdue ? 'text-red-400' : 'text-zinc-500'}`}>
+                {isReviewOverdue ? 'Overdue · ' : 'Next · '}{formatDate(bucketNextReview)}
+                {bucketCadence && <span className="text-zinc-700 ml-1">· {REVIEW_CADENCE_LABELS[bucketCadence] ?? bucketCadence}</span>}
+              </span>
+            )}
+          </div>
+          <div className="px-5 py-4 space-y-4">
+            {bucketNextReview && (
+              <form action={markReviewedAction}>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Mark Reviewed
+                  {bucketCadence ? ` (advance ${REVIEW_CADENCE_LABELS[bucketCadence] ?? bucketCadence})` : ''}
+                </button>
+              </form>
+            )}
+            <form action={setScheduleAction} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">
+                    Next Review Date
+                  </label>
+                  <input
+                    type="date"
+                    name="nextDate"
+                    defaultValue={bucketNextReview ?? ''}
+                    className="w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">
+                    Cadence
+                  </label>
+                  <select
+                    name="cadence"
+                    defaultValue={bucketCadence ?? ''}
+                    className="w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2 text-sm text-zinc-100 appearance-none focus:outline-none focus:border-zinc-500 transition-colors"
+                  >
+                    <option value="">No cadence</option>
+                    {REVIEW_CADENCES.map((c) => (
+                      <option key={c} value={c}>{REVIEW_CADENCE_LABELS[c]}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Save Schedule
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </Card>
 
         {/* Archived assets */}
         {archivedBucket.length > 0 && (

@@ -3,7 +3,8 @@
 import { useFormStatus } from 'react-dom';
 import type { Asset } from '@/db/schema';
 import { DECISION_TYPE_LABELS, PURPOSE_LABELS } from '@/lib/formatters';
-import { ASSET_PURPOSES } from '@/db/schema';
+import { ASSET_PURPOSES, REVIEW_CADENCES } from '@/db/schema';
+import { REVIEW_CADENCE_LABELS } from '@/lib/calendar';
 
 const DECISION_TYPES = ['buy', 'add', 'hold', 'rebalance', 'review', 'trim', 'reduce', 'sell', 'reject', 'monitor'] as const;
 
@@ -47,6 +48,8 @@ interface DecisionFormProps {
     title?: string | null;
     decision_type?: string | null;
     decision_date?: string | null;
+    next_review_date?: string | null;
+    review_cadence?: string | null;
     rationale?: string | null;
     purpose?: string | null;
     expected_return?: string | null;
@@ -203,6 +206,30 @@ export function DecisionForm({
           className={`${inputClass} resize-none`}
         />
       </Field>
+
+      {/* Review Cadence + Next Review Date */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Review Cadence (optional)">
+          <select
+            name="review_cadence"
+            defaultValue={defaultValues?.review_cadence ?? ''}
+            className={`${inputClass} appearance-none cursor-pointer`}
+          >
+            <option value="">No scheduled review</option>
+            {REVIEW_CADENCES.map((c) => (
+              <option key={c} value={c}>{REVIEW_CADENCE_LABELS[c]}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Next Review Date (optional)">
+          <input
+            type="date"
+            name="next_review_date"
+            defaultValue={defaultValues?.next_review_date ?? ''}
+            className={inputClass}
+          />
+        </Field>
+      </div>
 
       {/* Confidence + Amount */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

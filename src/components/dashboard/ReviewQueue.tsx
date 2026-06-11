@@ -33,7 +33,14 @@ export function ReviewQueue({
   if (total === 0 && totalOpen === 0) {
     return (
       <Card>
-        <CardHeader label="Review Queue" />
+        <CardHeader
+          label="Review Queue"
+          action={
+            <Link href="/calendar" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+              View Calendar →
+            </Link>
+          }
+        />
         <div className="px-5 py-8 text-center">
           <p className="text-sm text-emerald-400 font-medium">All clear</p>
           <p className="text-xs text-zinc-600 mt-1">No items need immediate attention.</p>
@@ -47,9 +54,9 @@ export function ReviewQueue({
       <CardHeader
         label={`Review Queue · ${total} items`}
         action={
-          total === 0 ? (
-            <span className="text-xs text-emerald-500">All clear</span>
-          ) : undefined
+          <Link href="/calendar" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+            View Calendar →
+          </Link>
         }
       />
       <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#26262B]">

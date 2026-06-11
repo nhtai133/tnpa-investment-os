@@ -5,7 +5,8 @@ import { decisionLogs, decisionReviews, assets } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { DecisionType, DecisionOutcome } from '@/db/schema';
+import type { DecisionType, DecisionOutcome, ReviewCadence } from '@/db/schema';
+import { computeNextReviewDate } from '@/lib/calendar';
 
 function now() {
   return new Date().toISOString();
@@ -41,6 +42,8 @@ export async function createDecision(formData: FormData) {
   const amount = amountRaw ? parseFloat(amountRaw) : null;
   const confidenceRaw = str(formData, 'confidence');
   const confidence = confidenceRaw ? parseInt(confidenceRaw, 10) : null;
+  const reviewCadence = str(formData, 'review_cadence');
+  const nextReviewDate = str(formData, 'next_review_date');
 
   await db.insert(decisionLogs).values({
     title: title || null,
@@ -58,11 +61,14 @@ export async function createDecision(formData: FormData) {
     invalidation_conditions: str(formData, 'invalidation_conditions'),
     confidence: confidence != null && !isNaN(confidence) ? confidence : null,
     extended_notes: str(formData, 'extended_notes'),
+    review_cadence: reviewCadence,
+    next_review_date: nextReviewDate,
     is_reviewed: false,
     created_at: now(),
   });
 
   revalidatePath('/decisions');
+  revalidatePath('/calendar');
   revalidatePath('/');
   if (assetId) revalidatePath(`/holdings/${assetId}`);
   redirect(redirectTo);
@@ -88,6 +94,8 @@ export async function updateDecision(id: number, formData: FormData) {
   const amount = amountRaw ? parseFloat(amountRaw) : null;
   const confidenceRaw = str(formData, 'confidence');
   const confidence = confidenceRaw ? parseInt(confidenceRaw, 10) : null;
+  const reviewCadence = str(formData, 'review_cadence');
+  const nextReviewDate = str(formData, 'next_review_date');
 
   await db.update(decisionLogs).set({
     title: title || null,
@@ -105,10 +113,13 @@ export async function updateDecision(id: number, formData: FormData) {
     invalidation_conditions: str(formData, 'invalidation_conditions'),
     confidence: confidence != null && !isNaN(confidence) ? confidence : null,
     extended_notes: str(formData, 'extended_notes'),
+    review_cadence: reviewCadence,
+    next_review_date: nextReviewDate,
   }).where(eq(decisionLogs.id, id));
 
   revalidatePath('/decisions');
   revalidatePath(`/decisions/${id}`);
+  revalidatePath('/calendar');
   redirect(`/decisions/${id}`);
 }
 
@@ -127,10 +138,29 @@ export async function createDecisionReview(decisionId: number, formData: FormDat
     updated_at: ts,
   });
 
-  // Mark decision as reviewed
-  await db.update(decisionLogs).set({ is_reviewed: true }).where(eq(decisionLogs.id, decisionId));
+  // Fetch the decision's cadence to determine next review date
+  const decision = await db
+    .select({ review_cadence: decisionLogs.review_cadence })
+    .from(decisionLogs)
+    .where(eq(decisionLogs.id, decisionId))
+    .limit(1)
+    .then((r) => r[0]);
+
+  if (decision?.review_cadence) {
+    // Has a cadence → advance next_review_date and reset is_reviewed so it reappears
+    const nextDate = computeNextReviewDate(new Date(), decision.review_cadence as ReviewCadence);
+    await db.update(decisionLogs).set({
+      is_reviewed: false,
+      next_review_date: nextDate,
+    }).where(eq(decisionLogs.id, decisionId));
+  } else {
+    // One-time review → mark as done
+    await db.update(decisionLogs).set({ is_reviewed: true }).where(eq(decisionLogs.id, decisionId));
+  }
 
   revalidatePath('/decisions');
   revalidatePath(`/decisions/${decisionId}`);
+  revalidatePath('/calendar');
+  revalidatePath('/');
   redirect(`/decisions/${decisionId}`);
 }

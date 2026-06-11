@@ -55,6 +55,8 @@ export default async function EditDecisionPage({ params }: Props) {
                   title: decision.title,
                   decision_type: decision.decision_type,
                   decision_date: decision.decision_date,
+                  next_review_date: decision.next_review_date,
+                  review_cadence: decision.review_cadence,
                   rationale: decision.rationale,
                   purpose: decision.purpose,
                   expected_return: decision.expected_return,

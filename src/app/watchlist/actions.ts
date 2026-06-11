@@ -5,7 +5,8 @@ import { watchlistItems } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { AssetClass, ConvictionLevel } from '@/db/schema';
+import type { AssetClass, ConvictionLevel, ReviewCadence } from '@/db/schema';
+import { computeNextReviewDate } from '@/lib/calendar';
 
 function now() {
   return new Date().toISOString();
@@ -23,12 +24,14 @@ function parseWatchlistForm(formData: FormData) {
       : null;
   const raw_class = formData.get('asset_class') as string | null;
   const raw_priority = str('priority');
+  const raw_cadence = str('review_cadence');
   return {
     name: (formData.get('name') as string).trim(),
     symbol: str('symbol'),
     asset_class: (raw_class && raw_class !== '' ? raw_class : null) as AssetClass | null,
     note: str('note'),
     review_date: str('review_date'),
+    review_cadence: raw_cadence,
     alert_flag: formData.get('alert_flag') === 'on',
     conviction_score: isNaN(score as number) ? null : score,
     conviction_rationale: str('conviction_rationale'),
@@ -47,6 +50,7 @@ export async function createWatchlistItem(formData: FormData) {
   const ts = now();
   await db.insert(watchlistItems).values({ ...data, status: 'active', created_at: ts, updated_at: ts });
   revalidatePath('/watchlist');
+  revalidatePath('/calendar');
   redirect('/watchlist');
 }
 
@@ -59,7 +63,30 @@ export async function updateWatchlistItem(id: number, formData: FormData) {
     .set({ ...data, ...(status ? { status } : {}), updated_at: now() })
     .where(eq(watchlistItems.id, id));
   revalidatePath('/watchlist');
+  revalidatePath('/calendar');
   redirect('/watchlist');
+}
+
+export async function markWatchlistItemReviewed(id: number) {
+  const item = await db
+    .select({ review_cadence: watchlistItems.review_cadence })
+    .from(watchlistItems)
+    .where(eq(watchlistItems.id, id))
+    .limit(1)
+    .then((r) => r[0]);
+
+  const cadence = item?.review_cadence;
+  const nextDate = cadence
+    ? computeNextReviewDate(new Date(), cadence as ReviewCadence)
+    : null;
+
+  await db
+    .update(watchlistItems)
+    .set({ review_date: nextDate, updated_at: now() })
+    .where(eq(watchlistItems.id, id));
+
+  revalidatePath('/watchlist');
+  revalidatePath('/calendar');
 }
 
 export async function archiveWatchlistItem(id: number) {

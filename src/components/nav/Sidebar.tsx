@@ -90,7 +90,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v1.7 · Personal Family Office</p>
+        <p className="text-[10px] text-zinc-700">v2.0 · Personal Family Office</p>
       </div>
     </aside>
   );

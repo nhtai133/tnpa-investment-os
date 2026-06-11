@@ -86,12 +86,20 @@ export default async function SettingsPage() {
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
               App Info
             </p>
-            <Link
-              href="/system/health"
-              className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
-            >
-              Health →
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/system/production"
+                className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
+              >
+                Checklist →
+              </Link>
+              <Link
+                href="/system/health"
+                className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
+              >
+                Health →
+              </Link>
+            </div>
           </div>
           <Card className="p-5 space-y-2">
             <div className="flex items-center justify-between">
@@ -123,9 +131,17 @@ export default async function SettingsPage() {
               <span className="text-xs text-zinc-300">Personal Family Office</span>
             </div>
             {isLocalDb() && (
-              <p className="text-[11px] text-zinc-700 pt-2 border-t border-[#26262B]">
-                Running local SQLite. Export a JSON backup before migrating to Turso.
-              </p>
+              <div className="pt-2 border-t border-[#26262B] flex items-center justify-between">
+                <p className="text-[11px] text-zinc-700">
+                  Local SQLite mode. Export a backup before migrating to Turso.
+                </p>
+                <Link
+                  href="/system/production"
+                  className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors whitespace-nowrap ml-3"
+                >
+                  Deploy guide →
+                </Link>
+              </div>
             )}
           </Card>
         </section>

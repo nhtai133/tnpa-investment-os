@@ -3,12 +3,14 @@ import { db } from '@/db';
 import {
   assets,
   appSettings,
+  assetIntelligence,
   decisionLogs,
   decisionReviews,
   watchlistItems,
   opportunities,
   researchNotes,
   transactions,
+  wealthSnapshots,
 } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 
@@ -24,7 +26,8 @@ export async function POST(req: NextRequest) {
   if (backup.app !== 'TNPA Investment OS') {
     return NextResponse.json({ error: 'Invalid backup: wrong app identifier.' }, { status: 400 });
   }
-  if (backup.backup_version !== 1 && backup.backup_version !== 2) {
+  const version = backup.backup_version;
+  if (version !== 1 && version !== 2 && version !== 3 && version !== 4) {
     return NextResponse.json({ error: 'Invalid backup: unsupported version.' }, { status: 400 });
   }
   if (!Array.isArray(backup.assets)) {
@@ -32,12 +35,14 @@ export async function POST(req: NextRequest) {
   }
 
   // Delete in reverse FK dependency order
+  await db.delete(wealthSnapshots);
   await db.delete(transactions);
   await db.delete(researchNotes);
   await db.delete(decisionReviews);
   await db.delete(decisionLogs);
   await db.delete(watchlistItems);
   await db.delete(opportunities);
+  await db.delete(assetIntelligence);
   await db.delete(assets);
   await db.delete(appSettings);
 
@@ -48,6 +53,10 @@ export async function POST(req: NextRequest) {
 
   if (Array.isArray(backup.app_settings) && backup.app_settings.length > 0) {
     await db.insert(appSettings).values(backup.app_settings as typeof appSettings.$inferInsert[]);
+  }
+
+  if (Array.isArray(backup.asset_intelligence) && backup.asset_intelligence.length > 0) {
+    await db.insert(assetIntelligence).values(backup.asset_intelligence as typeof assetIntelligence.$inferInsert[]);
   }
 
   if (Array.isArray(backup.opportunities) && backup.opportunities.length > 0) {
@@ -72,6 +81,10 @@ export async function POST(req: NextRequest) {
 
   if (Array.isArray(backup.transactions) && backup.transactions.length > 0) {
     await db.insert(transactions).values(backup.transactions as typeof transactions.$inferInsert[]);
+  }
+
+  if (Array.isArray(backup.wealth_snapshots) && backup.wealth_snapshots.length > 0) {
+    await db.insert(wealthSnapshots).values(backup.wealth_snapshots as typeof wealthSnapshots.$inferInsert[]);
   }
 
   revalidatePath('/', 'layout');

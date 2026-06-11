@@ -43,7 +43,7 @@ libsql://tnpa-investment-os-<org>.turso.io
 turso db tokens create tnpa-investment-os
 ```
 
-Copy the token output (shown once, save it securely).
+Copy the token output (shown once — save it securely).
 
 ---
 
@@ -58,8 +58,6 @@ TURSO_DATABASE_URL=libsql://tnpa-investment-os-<org>.turso.io
 TURSO_AUTH_TOKEN=<your-token>
 ```
 
-Leave `DATABASE_URL=file:tnpa-investment.db` as the fallback.
-
 ### Vercel production
 
 In **Vercel → Project → Settings → Environment Variables**, add:
@@ -73,19 +71,22 @@ In **Vercel → Project → Settings → Environment Variables**, add:
 
 ---
 
-## 7. Push schema to Turso
+## 7. Run the migration runner
 
-With the env vars set, push your Drizzle schema:
-
-```bash
-TURSO_DATABASE_URL=libsql://... TURSO_AUTH_TOKEN=... npm run db:push
-```
-
-Or if `.env.local` is configured:
+With env vars set (locally or via `.env.local`), initialise the schema:
 
 ```bash
-npm run db:push
+npm run db:migrate
 ```
+
+This creates all tables and adds any missing columns. Safe to run multiple times.
+
+Output should end with:
+```
+[5/5] Done — all migrations applied.
+```
+
+> **Note:** `npm run db:push` is an alternative (uses Drizzle Kit to push the full schema). Use `db:migrate` for incremental/existing databases; `db:push` for a fresh Turso instance.
 
 ---
 
@@ -105,10 +106,11 @@ npm run db:push
 ## 9. Import data into Turso
 
 1. Set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` in `.env.local`
-2. Restart the dev server: `npm run dev`
-3. Go to **Settings → Data Management → Import JSON Backup**
-4. Select the backup file from step 8
-5. Verify data in `/holdings`, `/research`, `/watchlist`
+2. Run `npm run db:migrate` to initialise the cloud schema
+3. Restart the dev server: `npm run dev`
+4. Go to **Settings → Data Management → Import JSON Backup**
+5. Select the backup file from step 8
+6. Verify data in `/holdings`, `/research`, `/watchlist`
 
 ---
 
@@ -119,6 +121,8 @@ Visit `/system/health` and confirm:
 - **Mode**: `Turso Cloud`
 - **Auth Token**: `Configured`
 - **Deploy Readiness**: `Cloud-ready`
+
+Also visit `/system/production` for the full production checklist.
 
 ---
 
@@ -149,5 +153,5 @@ Restart the dev server. The app falls back to `file:tnpa-investment.db` automati
 
 - Never commit `.env.local` (it is gitignored)
 - Never put `TURSO_AUTH_TOKEN` in client-side code or logs
-- The health page shows `Configured` / `Not set` only — token value is never displayed
+- The health page shows `Configured` / `Not set` only — the token value is never displayed
 - Rotate tokens via `turso db tokens create <db-name>` if compromised
