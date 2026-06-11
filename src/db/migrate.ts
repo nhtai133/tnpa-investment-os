@@ -303,9 +303,11 @@ async function createCoreTables() {
       bank_name TEXT NOT NULL,
       account_name TEXT NOT NULL,
       account_number TEXT,
+      account_type TEXT NOT NULL DEFAULT 'Reserve',
       currency TEXT NOT NULL DEFAULT 'VND',
       balance REAL NOT NULL DEFAULT 0,
       purpose TEXT NOT NULL DEFAULT 'liquidity_reserve',
+      custom_purpose TEXT,
       vip_tier TEXT,
       status TEXT NOT NULL DEFAULT 'active',
       notes TEXT,
@@ -380,6 +382,33 @@ async function addMissingColumns() {
 
   // assets — is_archived (v1.x)
   await exec('assets.is_archived', `ALTER TABLE assets ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0`);
+
+  // bank_accounts — v2.0.5 metadata
+  await exec('bank_accounts.account_type', `ALTER TABLE bank_accounts ADD COLUMN account_type TEXT NOT NULL DEFAULT 'Reserve'`);
+  await exec('bank_accounts.custom_purpose', `ALTER TABLE bank_accounts ADD COLUMN custom_purpose TEXT`);
+  await exec('bank_accounts.account_type backfill', `
+    UPDATE bank_accounts
+    SET account_type = CASE
+      WHEN purpose = 'opportunity_capital' THEN 'Investment Cash'
+      WHEN purpose = 'income_generator' THEN 'Private Lending'
+      WHEN purpose = 'liquidity_reserve' THEN 'Reserve'
+      WHEN purpose = 'retirement' THEN 'Reserve'
+      WHEN purpose = 'wealth_compounder' THEN 'Investment Cash'
+      WHEN purpose = 'strategic_asset' THEN 'Business Cashflow'
+      WHEN purpose = 'store_of_value' THEN 'Reserve'
+      ELSE 'Other'
+    END
+    WHERE (account_type IS NULL OR account_type = '' OR account_type = 'Reserve')
+      AND (custom_purpose IS NULL OR custom_purpose = '')
+  `);
+  await exec('bank_accounts.custom_purpose backfill', `
+    UPDATE bank_accounts
+    SET custom_purpose = CASE
+      WHEN purpose IS NOT NULL AND purpose != '' THEN 'Legacy purpose: ' || purpose
+      ELSE custom_purpose
+    END
+    WHERE custom_purpose IS NULL OR custom_purpose = ''
+  `);
 
   // decision_logs — v1.5 structured fields
   const decisionV15 = [

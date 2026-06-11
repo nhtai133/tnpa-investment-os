@@ -15,6 +15,8 @@ import { formatDate, formatPercent, formatValue, PURPOSE_LABELS, PURPOSE_COLORS 
 import { getPortfolioSummary } from '@/lib/portfolio-aggregation';
 import { SourceContributionPanel } from '@/components/portfolio/SourceContributionPanel';
 import { BankingAllocationDrilldown, type BankingAllocationInput } from '@/components/banking/BankingAllocationDrilldown';
+import { getBankingMaturitySummary } from '@/lib/banking-events';
+import { BankingAlertsCard, UpcomingBankingEvents } from '@/components/banking/BankingEvents';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +44,8 @@ export default async function BankingPage() {
     { classAssets, totalNW, usdVndRate },
     bankingData,
     portfolio,
-  ] = await Promise.all([getModuleData('cash'), getBankingData(), getPortfolioSummary()]);
+    bankingEvents,
+  ] = await Promise.all([getModuleData('cash'), getBankingData(), getPortfolioSummary(), getBankingMaturitySummary()]);
 
   const summary = computeBankingSummary(bankingData);
   const bankingAggregationPositions = portfolio.positions.filter((position) =>
@@ -115,7 +118,7 @@ export default async function BankingPage() {
           <SummaryCard label="Total Banking Value" value={formatValue(summary.totalBankingValue, 'VND')} />
           <SummaryCard label="Checking Balance" value={formatValue(summary.checkingBalance, 'VND')} />
           <SummaryCard label="Savings Balance" value={formatValue(summary.savingsBalance, 'VND')} tone="green" />
-          <SummaryCard label="Upcoming Maturities" value={`${summary.upcomingMaturities}`} tone="amber" />
+          <SummaryCard label="Upcoming Maturities" value={`${bankingEvents.upcomingMaturities}`} tone="amber" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
@@ -129,6 +132,11 @@ export default async function BankingPage() {
 
         <SourceContributionPanel rows={portfolio.sourceContributions} />
 
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <BankingAlertsCard events={bankingEvents.events} />
+          <UpcomingBankingEvents events={bankingEvents.events} />
+        </div>
+
         <BankingAllocationDrilldown rows={bankingAllocationRows} />
 
         <Card className="overflow-hidden">
@@ -137,7 +145,7 @@ export default async function BankingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#26262B]">
-                  {['Bank', 'Account Name', 'Account Number', 'Balance', 'Purpose', 'VIP Tier', 'Status', 'Actions'].map((h) => (
+                  {['Bank', 'Account Name', 'Account Number', 'Type', 'Balance', 'Purpose', 'VIP Tier', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>
                   ))}
                 </tr>
@@ -150,8 +158,12 @@ export default async function BankingPage() {
                     </td>
                     <td className="px-4 py-3.5 text-zinc-300">{account.account_name}</td>
                     <td className="px-4 py-3.5 text-zinc-500">{maskAccountNumber(account.account_number)}</td>
+                    <td className="px-4 py-3.5 text-zinc-300">{account.account_type}</td>
                     <td className="px-4 py-3.5 text-zinc-100 tabular-nums">{formatValue(account.balance, account.currency)}</td>
-                    <td className="px-4 py-3.5"><span className="text-xs" style={{ color: PURPOSE_COLORS[account.purpose] }}>{PURPOSE_LABELS[account.purpose]}</span></td>
+                    <td className="px-4 py-3.5">
+                      <p className="text-xs text-zinc-300 max-w-xs truncate">{account.custom_purpose || '-'}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: PURPOSE_COLORS[account.purpose] }}>{PURPOSE_LABELS[account.purpose]}</p>
+                    </td>
                     <td className="px-4 py-3.5 text-zinc-400">{account.vip_tier || '-'}</td>
                     <td className="px-4 py-3.5"><Badge label={account.status} color={account.status === 'active' ? '#34D399' : '#9CA3AF'} /></td>
                     <td className="px-4 py-3.5">
@@ -160,7 +172,7 @@ export default async function BankingPage() {
                   </tr>
                 ))}
                 {bankingData.accounts.length === 0 && (
-                  <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-zinc-600">No bank accounts yet.</td></tr>
+                  <tr><td colSpan={9} className="px-4 py-8 text-center text-sm text-zinc-600">No bank accounts yet.</td></tr>
                 )}
               </tbody>
             </table>

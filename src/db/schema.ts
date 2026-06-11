@@ -255,19 +255,34 @@ export const BANK_ACCOUNT_STATUSES = ['active', 'inactive', 'closed'] as const;
 export const BANK_DEPOSIT_STATUSES = ['active', 'matured', 'closed'] as const;
 export const BANK_CREDIT_STATUSES = ['active', 'inactive', 'closed'] as const;
 export const BANK_FACILITY_TYPES = ['ShopCash', 'Overdraft', 'Credit Line', 'BNPL', 'Other'] as const;
+export const BANK_ACCOUNT_TYPES = [
+  'Daily Spending',
+  'Investment Cash',
+  'Trading Funding',
+  'Private Lending',
+  'Travel Fund',
+  'Business Cashflow',
+  'Reserve',
+  'Tax Fund',
+  'Family Fund',
+  'Other',
+] as const;
 export type BankAccountStatus = (typeof BANK_ACCOUNT_STATUSES)[number];
 export type BankDepositStatus = (typeof BANK_DEPOSIT_STATUSES)[number];
 export type BankCreditStatus = (typeof BANK_CREDIT_STATUSES)[number];
 export type BankFacilityType = (typeof BANK_FACILITY_TYPES)[number];
+export type BankAccountType = (typeof BANK_ACCOUNT_TYPES)[number];
 
 export const bankAccounts = sqliteTable('bank_accounts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   bank_name: text('bank_name').notNull(),
   account_name: text('account_name').notNull(),
   account_number: text('account_number'),
+  account_type: text('account_type', { enum: BANK_ACCOUNT_TYPES }).notNull().default('Reserve'),
   currency: text('currency').notNull().default('VND'),
   balance: real('balance').notNull().default(0),
   purpose: text('purpose', { enum: ASSET_PURPOSES }).notNull().default('liquidity_reserve'),
+  custom_purpose: text('custom_purpose'),
   vip_tier: text('vip_tier'),
   status: text('status', { enum: BANK_ACCOUNT_STATUSES }).notNull().default('active'),
   notes: text('notes'),

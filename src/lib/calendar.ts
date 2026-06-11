@@ -1,7 +1,8 @@
 import type { ReviewCadence } from '@/db/schema';
 
 export type CalendarBand = 'overdue' | 'this_week' | 'this_month' | 'upcoming';
-export type CalendarItemType = 'decision' | 'watchlist' | 'asset' | 'bucket';
+export type CalendarItemType = 'decision' | 'watchlist' | 'asset' | 'bucket' | 'banking';
+export type CalendarCategory = 'banking' | 'investments' | 'trading';
 
 export interface CalendarItem {
   key: string;
@@ -12,6 +13,7 @@ export interface CalendarItem {
   cadence?: string | null;
   subtext?: string | null;
   band: CalendarBand;
+  category?: CalendarCategory;
 }
 
 export const REVIEW_CADENCE_LABELS: Record<string, string> = {
@@ -26,6 +28,7 @@ export const CALENDAR_ITEM_COLORS: Record<CalendarItemType, string> = {
   watchlist: '#F472B6',
   asset: '#34D399',
   bucket: '#FBBF24',
+  banking: '#60A5FA',
 };
 
 export const CALENDAR_BAND_LABELS: Record<CalendarBand, string> = {

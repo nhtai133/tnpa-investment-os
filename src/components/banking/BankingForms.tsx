@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom';
 import {
   ASSET_PURPOSES,
   BANK_ACCOUNT_STATUSES,
+  BANK_ACCOUNT_TYPES,
   BANK_CREDIT_STATUSES,
   BANK_DEPOSIT_STATUSES,
   BANK_FACILITY_TYPES,
@@ -74,6 +75,11 @@ export function BankAccountForm({
         <Field label="Account Number">
           <input name="account_number" defaultValue={defaultValues?.account_number ?? ''} placeholder="1234567890" className={inputClass} />
         </Field>
+        <Field label="Account Type">
+          <select name="account_type" defaultValue={defaultValues?.account_type ?? 'Reserve'} className={`${inputClass} appearance-none`}>
+            {BANK_ACCOUNT_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+          </select>
+        </Field>
         <Field label="Balance">
           <CurrencyInput name="balance" currency={currency} required defaultValue={defaultValues?.balance ?? 0} className={inputClass} />
         </Field>
@@ -83,7 +89,7 @@ export function BankAccountForm({
             <option value="USD">USD</option>
           </select>
         </Field>
-        <Field label="Purpose">
+        <Field label="Portfolio Purpose">
           <select name="purpose" defaultValue={defaultValues?.purpose ?? 'liquidity_reserve'} className={`${inputClass} appearance-none`}>
             {ASSET_PURPOSES.map((purpose) => (
               <option key={purpose} value={purpose}>
@@ -101,6 +107,15 @@ export function BankAccountForm({
           </select>
         </Field>
       </div>
+      <Field label="Custom Purpose">
+        <textarea
+          name="custom_purpose"
+          rows={3}
+          defaultValue={defaultValues?.custom_purpose ?? ''}
+          placeholder="BIDV dùng để trữ tiền đầu tư chứng khoán và cho vay cá nhân"
+          className={`${inputClass} resize-none`}
+        />
+      </Field>
       <Field label="Notes">
         <textarea name="notes" rows={4} defaultValue={defaultValues?.notes ?? ''} className={`${inputClass} resize-none`} />
       </Field>

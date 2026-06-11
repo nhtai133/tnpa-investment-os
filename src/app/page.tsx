@@ -21,9 +21,10 @@ import {
   type RebalancingPurpose,
 } from '@/lib/rebalancing';
 import { REBALANCING_COLORS, REBALANCING_LABELS } from '@/lib/rebalancing';
-import { PURPOSE_COLORS, PURPOSE_LABELS } from '@/lib/formatters';
+import { PURPOSE_COLORS, PURPOSE_LABELS, formatValue } from '@/lib/formatters';
 import type { AssetPurpose } from '@/db/schema';
 import { getPortfolioSummary, positionToAsset } from '@/lib/portfolio-aggregation';
+import { getBankingMaturitySummary } from '@/lib/banking-events';
 
 import { WealthSnapshot } from '@/components/dashboard/WealthSnapshot';
 import { PurposeHealth, type PurposeHealthRow } from '@/components/dashboard/PurposeHealth';
@@ -33,6 +34,8 @@ import { ReviewQueue } from '@/components/dashboard/ReviewQueue';
 import { RebalancingSignals } from '@/components/dashboard/RebalancingSignals';
 import { PipelineSummary } from '@/components/dashboard/PipelineSummary';
 import { SourceContributionPanel } from '@/components/portfolio/SourceContributionPanel';
+import { BankingAlertsCard, UpcomingBankingEvents } from '@/components/banking/BankingEvents';
+import { Card } from '@/components/ui/Card';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +75,7 @@ export default async function CommandCenter() {
     allReviews,
     activeWatchlist,
     allOpps,
+    bankingEvents,
   ] = await Promise.all([
     getPortfolioSummary(),
     db.select().from(appSettings),
@@ -79,6 +83,7 @@ export default async function CommandCenter() {
     db.select().from(decisionReviews),
     db.select().from(watchlistItems).where(eq(watchlistItems.status, 'active')),
     db.select().from(opportunities),
+    getBankingMaturitySummary(),
   ]);
   const allAssets = portfolio.positions.map(positionToAsset);
   const usdVndRate = portfolio.usdVndRate;
@@ -262,6 +267,24 @@ export default async function CommandCenter() {
         />
 
         <SourceContributionPanel rows={portfolio.sourceContributions} />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="p-5">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">Upcoming Maturities</p>
+            <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">{bankingEvents.upcomingMaturities}</p>
+            <p className="mt-1.5 text-xs text-zinc-600">Deposits maturing within 30 days</p>
+          </Card>
+          <Card className="p-5">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">Maturing Capital</p>
+            <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">{formatValue(bankingEvents.maturingCapital, 'VND')}</p>
+            <p className="mt-1.5 text-xs text-zinc-600">Principal maturing within 30 days</p>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <BankingAlertsCard events={bankingEvents.events} />
+          <UpcomingBankingEvents events={bankingEvents.events} />
+        </div>
 
         {/* 2 + 7. Purpose Health ← 2/3 | Wealth Score + Decision Intel ← 1/3 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

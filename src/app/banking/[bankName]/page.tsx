@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import { computeBankingSummary, getBankingData, getLegacyAssetBank, bankNameFromSlug, maskAccountNumber, resolveDepositBankName } from '@/lib/banking';
 import { formatDate, formatValue, PURPOSE_LABELS, PURPOSE_COLORS } from '@/lib/formatters';
+import { formatDaysRemaining, getDaysRemaining, getMaturityStatus } from '@/lib/banking-events';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,18 @@ function Summary({ label, value }: { label: string; value: string }) {
 
 function dateLabel(value: string | null) {
   return value ? formatDate(value) : '-';
+}
+
+function maturityClasses(daysRemaining: number) {
+  if (daysRemaining < 0) return 'bg-red-950/20';
+  if (daysRemaining <= 30) return 'bg-amber-950/20';
+  return '';
+}
+
+function maturityColor(daysRemaining: number) {
+  if (daysRemaining < 0) return '#F87171';
+  if (daysRemaining <= 30) return '#FBBF24';
+  return '#34D399';
 }
 
 export default async function BankDetailPage({ params }: { params: { bankName: string } }) {
@@ -75,14 +88,18 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
           <CardHeader label="Accounts" action={`${accounts.length} accounts`} />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-[#26262B]">{['Account', 'Number', 'Balance', 'Purpose', 'VIP', 'Status'].map((h) => <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>)}</tr></thead>
+              <thead><tr className="border-b border-[#26262B]">{['Account', 'Number', 'Type', 'Balance', 'Purpose', 'VIP', 'Status'].map((h) => <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>)}</tr></thead>
               <tbody>
                 {accounts.map((account) => (
                   <tr key={account.id} className="border-b border-[#1C1C21]">
                     <td className="px-4 py-3.5 text-zinc-100">{account.account_name}</td>
                     <td className="px-4 py-3.5 text-zinc-500">{maskAccountNumber(account.account_number)}</td>
+                    <td className="px-4 py-3.5 text-zinc-300">{account.account_type}</td>
                     <td className="px-4 py-3.5 text-zinc-100">{formatValue(account.balance, account.currency)}</td>
-                    <td className="px-4 py-3.5"><span className="text-xs" style={{ color: PURPOSE_COLORS[account.purpose] }}>{PURPOSE_LABELS[account.purpose]}</span></td>
+                    <td className="px-4 py-3.5">
+                      <p className="text-xs text-zinc-300 max-w-sm">{account.custom_purpose || '-'}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: PURPOSE_COLORS[account.purpose] }}>{PURPOSE_LABELS[account.purpose]}</p>
+                    </td>
                     <td className="px-4 py-3.5 text-zinc-400">{account.vip_tier || '-'}</td>
                     <td className="px-4 py-3.5"><Badge label={account.status} color={account.status === 'active' ? '#34D399' : '#9CA3AF'} /></td>
                   </tr>
@@ -96,20 +113,24 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
           <CardHeader label="Savings Deposits" action={`${deposits.length} deposits`} />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-[#26262B]">{['Deposit', 'Principal', 'Rate', 'Term', 'Start', 'Maturity', 'Auto Renew', 'Status'].map((h) => <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>)}</tr></thead>
+              <thead><tr className="border-b border-[#26262B]">{['Deposit Name', 'Amount', 'Maturity Date', 'Days Remaining', 'Status', 'Rate', 'Term', 'Auto Renew'].map((h) => <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>)}</tr></thead>
               <tbody>
-                {deposits.map((deposit) => (
-                  <tr key={deposit.id} className="border-b border-[#1C1C21]">
-                    <td className="px-4 py-3.5 text-zinc-100">{deposit.deposit_name}</td>
-                    <td className="px-4 py-3.5 text-zinc-100">{formatValue(deposit.principal, 'VND')}</td>
-                    <td className="px-4 py-3.5 text-zinc-300">{deposit.interest_rate.toFixed(2)}%</td>
-                    <td className="px-4 py-3.5 text-zinc-400">{deposit.term_months} mo</td>
-                    <td className="px-4 py-3.5 text-zinc-500">{dateLabel(deposit.start_date)}</td>
-                    <td className="px-4 py-3.5 text-zinc-500">{dateLabel(deposit.maturity_date)}</td>
-                    <td className="px-4 py-3.5 text-zinc-400">{deposit.auto_renew ? 'Yes' : 'No'}</td>
-                    <td className="px-4 py-3.5"><Badge label={deposit.status} color={deposit.status === 'active' ? '#34D399' : '#9CA3AF'} /></td>
-                  </tr>
-                ))}
+                {deposits.map((deposit) => {
+                  const daysRemaining = deposit.maturity_date ? getDaysRemaining(deposit.maturity_date) : 9999;
+                  const maturityStatus = deposit.maturity_date ? getMaturityStatus(daysRemaining) : 'Future';
+                  return (
+                    <tr key={deposit.id} className={`border-b border-[#1C1C21] ${maturityClasses(daysRemaining)}`}>
+                      <td className="px-4 py-3.5 text-zinc-100">{deposit.deposit_name}</td>
+                      <td className="px-4 py-3.5 text-zinc-100">{formatValue(deposit.principal, 'VND')}</td>
+                      <td className="px-4 py-3.5 text-zinc-500">{dateLabel(deposit.maturity_date)}</td>
+                      <td className="px-4 py-3.5 text-zinc-300">{deposit.maturity_date ? formatDaysRemaining(daysRemaining) : '-'}</td>
+                      <td className="px-4 py-3.5"><Badge label={maturityStatus} color={maturityColor(daysRemaining)} /></td>
+                      <td className="px-4 py-3.5 text-zinc-300">{deposit.interest_rate.toFixed(2)}%</td>
+                      <td className="px-4 py-3.5 text-zinc-400">{deposit.term_months} mo</td>
+                      <td className="px-4 py-3.5 text-zinc-400">{deposit.auto_renew ? 'Yes' : 'No'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

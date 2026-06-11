@@ -10,7 +10,7 @@ import {
 } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { AssetPurpose, BankAccountStatus, BankCreditStatus, BankDepositStatus, BankFacilityType } from '@/db/schema';
+import type { AssetPurpose, BankAccountStatus, BankAccountType, BankCreditStatus, BankDepositStatus, BankFacilityType } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 function str(formData: FormData, key: string): string | null {
@@ -85,9 +85,11 @@ export async function createBankAccount(formData: FormData) {
     bank_name: bankName,
     account_name: accountName,
     account_number: str(formData, 'account_number'),
+    account_type: (str(formData, 'account_type') ?? 'Reserve') as BankAccountType,
     currency: str(formData, 'currency') ?? 'VND',
     balance: num(formData, 'balance'),
     purpose: (str(formData, 'purpose') ?? 'liquidity_reserve') as AssetPurpose,
+    custom_purpose: str(formData, 'custom_purpose'),
     vip_tier: str(formData, 'vip_tier'),
     status: (str(formData, 'status') ?? 'active') as BankAccountStatus,
     notes: str(formData, 'notes'),
@@ -110,9 +112,11 @@ export async function updateBankAccount(id: number, formData: FormData) {
       bank_name: bankName,
       account_name: accountName,
       account_number: str(formData, 'account_number'),
+      account_type: (str(formData, 'account_type') ?? 'Reserve') as BankAccountType,
       currency: str(formData, 'currency') ?? 'VND',
       balance: num(formData, 'balance'),
       purpose: (str(formData, 'purpose') ?? 'liquidity_reserve') as AssetPurpose,
+      custom_purpose: str(formData, 'custom_purpose'),
       vip_tier: str(formData, 'vip_tier'),
       status: (str(formData, 'status') ?? 'active') as BankAccountStatus,
       notes: str(formData, 'notes'),

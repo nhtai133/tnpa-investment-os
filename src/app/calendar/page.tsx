@@ -16,6 +16,7 @@ import {
   type CalendarItem,
   type CalendarBand,
 } from '@/lib/calendar';
+import { getBankingMaturitySummary } from '@/lib/banking-events';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,7 +66,7 @@ function BandSection({
           >
             <TypeBadge
               type={item.type}
-              label={item.type === 'decision' ? 'DEC' : item.type === 'watchlist' ? 'WL' : item.type === 'asset' ? 'AST' : 'BCK'}
+              label={item.type === 'decision' ? 'DEC' : item.type === 'watchlist' ? 'WL' : item.type === 'asset' ? 'AST' : item.type === 'banking' ? 'BNK' : 'BCK'}
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm text-zinc-300 group-hover:text-zinc-100 transition-colors truncate">
@@ -93,14 +94,25 @@ function BandSection({
   );
 }
 
-export default async function CalendarPage() {
+const FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'banking', label: 'Banking' },
+  { key: 'investments', label: 'Investments' },
+  { key: 'trading', label: 'Trading' },
+] as const;
+
+export default async function CalendarPage({ searchParams }: { searchParams: { filter?: string } }) {
   const { today, weekEnd, monthEnd } = getDateBounds();
+  const activeFilter = FILTERS.some((filter) => filter.key === searchParams.filter)
+    ? searchParams.filter
+    : 'all';
 
   const [
     pendingDecisions,
     activeWatchlist,
     intelligenceRows,
     allSettings,
+    bankingEvents,
   ] = await Promise.all([
     db.select().from(decisionLogs).where(
       and(eq(decisionLogs.is_reviewed, false), isNotNull(decisionLogs.next_review_date)),
@@ -119,6 +131,7 @@ export default async function CalendarPage() {
       .innerJoin(assets, eq(assetIntelligence.asset_id, assets.id))
       .where(and(isNotNull(assetIntelligence.next_review_date), eq(assets.is_archived, false))),
     db.select().from(appSettings),
+    getBankingMaturitySummary(),
   ]);
 
   const settingsMap = new Map(allSettings.map((s) => [s.key, s.value]));
@@ -137,6 +150,7 @@ export default async function CalendarPage() {
       href: `/decisions/${d.id}/review`,
       subtext: DECISION_TYPE_LABELS[d.decision_type] ?? d.decision_type,
       band: getBand(d.next_review_date, today, weekEnd, monthEnd),
+      category: 'investments',
     });
   }
 
@@ -152,6 +166,7 @@ export default async function CalendarPage() {
       cadence: w.review_cadence,
       subtext: w.symbol ?? null,
       band: getBand(w.review_date, today, weekEnd, monthEnd),
+      category: 'investments',
     });
   }
 
@@ -166,6 +181,7 @@ export default async function CalendarPage() {
       href: `/holdings/${ai.asset_id}`,
       cadence: ai.review_cadence,
       band: getBand(ai.next_review_date, today, weekEnd, monthEnd),
+      category: 'investments',
     });
   }
 
@@ -183,21 +199,38 @@ export default async function CalendarPage() {
       cadence: cadence ?? null,
       subtext: 'Purpose bucket review',
       band: getBand(nextReview, today, weekEnd, monthEnd),
+      category: 'investments',
+    });
+  }
+
+  for (const event of bankingEvents.events) {
+    items.push({
+      key: `banking-${event.key}`,
+      type: 'banking',
+      name: event.name,
+      dueDate: event.date,
+      href: event.href,
+      subtext: `${event.eventType} · ${event.bankName}`,
+      band: getBand(event.date, today, weekEnd, monthEnd),
+      category: 'banking',
     });
   }
 
   // Sort each band by date ascending
-  items.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  const filteredItems = activeFilter === 'all'
+    ? items
+    : items.filter((item) => item.category === activeFilter);
+  filteredItems.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
   const byBand = BAND_ORDER.reduce(
     (acc, band) => {
-      acc[band] = items.filter((i) => i.band === band);
+      acc[band] = filteredItems.filter((i) => i.band === band);
       return acc;
     },
     {} as Record<CalendarBand, CalendarItem[]>,
   );
 
-  const totalCount = items.length;
+  const totalCount = filteredItems.length;
   const overdueCount = byBand.overdue.length;
 
   // Bucket health summary (all 7 purposes)
@@ -234,6 +267,21 @@ export default async function CalendarPage() {
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
+        <div className="flex flex-wrap gap-2">
+          {FILTERS.map((filter) => (
+            <Link
+              key={filter.key}
+              href={filter.key === 'all' ? '/calendar' : `/calendar?filter=${filter.key}`}
+              className={`px-3 py-1.5 rounded-lg border text-xs transition-colors ${
+                activeFilter === filter.key
+                  ? 'border-indigo-500 bg-indigo-500/10 text-indigo-300'
+                  : 'border-[#26262B] text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {filter.label}
+            </Link>
+          ))}
+        </div>
 
         {/* Empty state */}
         {totalCount === 0 && (
@@ -321,7 +369,7 @@ export default async function CalendarPage() {
 
         {/* Type legend */}
         <div className="flex flex-wrap gap-4 pt-2 border-t border-[#26262B]">
-          {(['decision', 'watchlist', 'asset', 'bucket'] as const).map((type) => (
+          {(['decision', 'watchlist', 'asset', 'bucket', 'banking'] as const).map((type) => (
             <div key={type} className="flex items-center gap-1.5">
               <div
                 className="w-2 h-2 rounded-full flex-shrink-0"
