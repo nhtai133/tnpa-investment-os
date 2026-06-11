@@ -1,4 +1,4 @@
-import type { AssetClass, AssetPurpose } from '@/db/schema';
+import type { AssetClass, AssetPurpose, TransactionType } from '@/db/schema';
 
 export function formatCurrency(value: number, compact = false): string {
   if (compact && Math.abs(value) >= 1_000_000) {
@@ -157,4 +157,26 @@ export const RESEARCH_NOTE_TYPE_COLORS: Record<string, string> = {
   news: '#F472B6',
   source: '#9CA3AF',
   review: '#FBBF24',
+};
+
+export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
+  buy: 'Buy',
+  sell: 'Sell',
+  deposit: 'Deposit',
+  withdraw: 'Withdraw',
+  dividend: 'Dividend',
+  interest: 'Interest',
+  fee: 'Fee',
+  transfer: 'Transfer',
+};
+
+export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {
+  buy: '#34D399',
+  sell: '#F87171',
+  deposit: '#60A5FA',
+  withdraw: '#F97316',
+  dividend: '#A78BFA',
+  interest: '#FBBF24',
+  fee: '#6B7280',
+  transfer: '#E879F9',
 };

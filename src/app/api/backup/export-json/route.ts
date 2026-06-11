@@ -7,6 +7,7 @@ import {
   watchlistItems,
   opportunities,
   researchNotes,
+  transactions,
 } from '@/db/schema';
 
 export async function GET() {
@@ -17,6 +18,7 @@ export async function GET() {
     watchlistData,
     opportunitiesData,
     notesData,
+    transactionsData,
   ] = await Promise.all([
     db.select().from(assets),
     db.select().from(appSettings),
@@ -24,6 +26,7 @@ export async function GET() {
     db.select().from(watchlistItems),
     db.select().from(opportunities),
     db.select().from(researchNotes),
+    db.select().from(transactions),
   ]);
 
   const activeCount = assetsData.filter((a) => !a.is_archived).length;
@@ -41,6 +44,7 @@ export async function GET() {
     watchlist_items: watchlistData,
     opportunities: opportunitiesData,
     research_notes: notesData,
+    transactions: transactionsData,
   };
 
   const date = new Date().toISOString().split('T')[0];

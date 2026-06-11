@@ -185,6 +185,26 @@ export const appSettings = sqliteTable('app_settings', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const TRANSACTION_TYPES = [
+  'buy', 'sell', 'deposit', 'withdraw', 'dividend', 'interest', 'fee', 'transfer',
+] as const;
+export type TransactionType = (typeof TRANSACTION_TYPES)[number];
+
+export const transactions = sqliteTable('transactions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  asset_id: integer('asset_id').references(() => assets.id),
+  type: text('type', { enum: TRANSACTION_TYPES }).notNull(),
+  transaction_date: text('transaction_date').notNull(),
+  quantity: real('quantity'),
+  price: real('price'),
+  amount: real('amount').notNull(),
+  currency: text('currency').notNull().default('USD'),
+  fees: real('fees'),
+  notes: text('notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export type Asset = typeof assets.$inferSelect;
 export type AppSetting = typeof appSettings.$inferSelect;
 export type TargetAllocation = typeof targetAllocations.$inferSelect;
@@ -196,3 +216,4 @@ export type ResearchThesis = typeof researchTheses.$inferSelect;
 export type DecisionLog = typeof decisionLogs.$inferSelect;
 export type AssetIntelligence = typeof assetIntelligence.$inferSelect;
 export type ResearchNote = typeof researchNotes.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;

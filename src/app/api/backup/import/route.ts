@@ -7,6 +7,7 @@ import {
   watchlistItems,
   opportunities,
   researchNotes,
+  transactions,
 } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Delete in reverse FK dependency order
+  await db.delete(transactions);
   await db.delete(researchNotes);
   await db.delete(decisionLogs);
   await db.delete(watchlistItems);
@@ -60,6 +62,10 @@ export async function POST(req: NextRequest) {
 
   if (Array.isArray(backup.research_notes) && backup.research_notes.length > 0) {
     await db.insert(researchNotes).values(backup.research_notes as typeof researchNotes.$inferInsert[]);
+  }
+
+  if (Array.isArray(backup.transactions) && backup.transactions.length > 0) {
+    await db.insert(transactions).values(backup.transactions as typeof transactions.$inferInsert[]);
   }
 
   revalidatePath('/', 'layout');
