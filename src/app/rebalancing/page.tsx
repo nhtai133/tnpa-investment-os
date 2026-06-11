@@ -7,30 +7,56 @@ import {
   REBALANCING_SETTINGS_KEYS,
   DEFAULT_TARGETS,
   computeRebalancing,
+  PURPOSE_REBALANCING_PURPOSES,
+  PURPOSE_REBALANCING_SETTINGS_KEYS,
+  DEFAULT_PURPOSE_TARGETS,
+  computePurposeRebalancing,
   type RebalancingAssetClass,
+  type RebalancingPurpose,
 } from '@/lib/rebalancing';
 import { RebalancingClient } from '@/components/rebalancing/RebalancingClient';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RebalancingPage() {
-  const [activeAssets, usdVndRate] = await Promise.all([
+  const [allAssets, usdVndRate] = await Promise.all([
     db.select().from(assets).where(eq(assets.is_archived, false)),
     getUsdVndRate(),
   ]);
 
-  const targets: Record<RebalancingAssetClass, number> = { ...DEFAULT_TARGETS };
+  // Asset class targets
+  const classTargets: Record<RebalancingAssetClass, number> = { ...DEFAULT_TARGETS };
   await Promise.all(
     REBALANCING_CLASSES.map(async (cls) => {
       const val = await getAppSetting(REBALANCING_SETTINGS_KEYS[cls]);
       if (val) {
         const parsed = parseFloat(val);
-        if (Number.isFinite(parsed)) targets[cls] = parsed;
+        if (Number.isFinite(parsed)) classTargets[cls] = parsed;
       }
     }),
   );
 
-  const rebalancing = computeRebalancing(activeAssets, targets, usdVndRate);
+  // Purpose targets
+  const purposeTargets: Record<RebalancingPurpose, number> = { ...DEFAULT_PURPOSE_TARGETS };
+  await Promise.all(
+    PURPOSE_REBALANCING_PURPOSES.map(async (p) => {
+      const val = await getAppSetting(PURPOSE_REBALANCING_SETTINGS_KEYS[p]);
+      if (val) {
+        const parsed = parseFloat(val);
+        if (Number.isFinite(parsed)) purposeTargets[p] = parsed;
+      }
+    }),
+  );
 
-  return <RebalancingClient rebalancing={rebalancing} targets={targets} />;
+  const rebalancing = computeRebalancing(allAssets, classTargets, usdVndRate);
+  const purposeRebalancing = computePurposeRebalancing(allAssets, purposeTargets, usdVndRate);
+
+  return (
+    <RebalancingClient
+      rebalancing={rebalancing}
+      targets={classTargets}
+      purposeRebalancing={purposeRebalancing}
+      purposeTargets={purposeTargets}
+    />
+  );
 }

@@ -1,5 +1,7 @@
-import type { Asset } from '@/db/schema';
+import type { Asset, AssetPurpose } from '@/db/schema';
+import { ASSET_PURPOSES } from '@/db/schema';
 import { normalizeToUsd } from '@/lib/fx';
+import { PURPOSE_LABELS, PURPOSE_COLORS } from '@/lib/formatters';
 
 export type RebalancingAssetClass =
   | 'stock'
@@ -123,6 +125,123 @@ export function computeRebalancing(
       assetClass: cls,
       label: REBALANCING_LABELS[cls],
       color: REBALANCING_COLORS[cls],
+      currentValueUsd,
+      currentPct,
+      targetPct,
+      differencePct,
+      targetValueUsd,
+      differenceValueUsd,
+      action,
+    };
+  });
+
+  const driftScore = rows.reduce((sum, r) => sum + Math.abs(r.differencePct), 0);
+
+  const overweights = rows
+    .filter((r) => r.differencePct < -1)
+    .sort((a, b) => a.differencePct - b.differencePct);
+  const underweights = rows
+    .filter((r) => r.differencePct > 1)
+    .sort((a, b) => b.differencePct - a.differencePct);
+
+  return {
+    portfolioValue,
+    rows,
+    driftScore,
+    largestOverweight: overweights[0] ?? null,
+    largestUnderweight: underweights[0] ?? null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Purpose-based rebalancing
+// ---------------------------------------------------------------------------
+
+export type RebalancingPurpose = AssetPurpose;
+
+export const PURPOSE_REBALANCING_PURPOSES: RebalancingPurpose[] = [...ASSET_PURPOSES];
+
+export const PURPOSE_REBALANCING_SETTINGS_KEYS: Record<RebalancingPurpose, string> = {
+  wealth_compounder: 'target_purpose_wealth_compounder',
+  income_generator: 'target_purpose_income_generator',
+  liquidity_reserve: 'target_purpose_liquidity_reserve',
+  opportunity_capital: 'target_purpose_opportunity_capital',
+  store_of_value: 'target_purpose_store_of_value',
+  strategic_asset: 'target_purpose_strategic_asset',
+  retirement: 'target_purpose_retirement',
+};
+
+export const DEFAULT_PURPOSE_TARGETS: Record<RebalancingPurpose, number> = {
+  wealth_compounder: 40,
+  liquidity_reserve: 20,
+  retirement: 10,
+  opportunity_capital: 10,
+  store_of_value: 10,
+  income_generator: 5,
+  strategic_asset: 5,
+};
+
+export interface PurposeAllocationRow {
+  purpose: RebalancingPurpose;
+  label: string;
+  color: string;
+  currentValueUsd: number;
+  currentPct: number;
+  targetPct: number;
+  // positive = underweight (ADD CAPITAL), negative = overweight (REDUCE)
+  differencePct: number;
+  targetValueUsd: number;
+  differenceValueUsd: number;
+  action: 'ADD CAPITAL' | 'REDUCE' | 'ON TARGET';
+}
+
+export interface PurposeRebalancingResult {
+  portfolioValue: number;
+  rows: PurposeAllocationRow[];
+  driftScore: number;
+  largestOverweight: PurposeAllocationRow | null;
+  largestUnderweight: PurposeAllocationRow | null;
+}
+
+export function computePurposeRebalancing(
+  assets: Asset[],
+  targets: Record<RebalancingPurpose, number>,
+  usdVndRate: number,
+): PurposeRebalancingResult {
+  const active = assets.filter((a) => !a.is_archived);
+
+  const portfolioValue = active.reduce(
+    (sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate),
+    0,
+  );
+
+  const valueByPurpose = new Map<RebalancingPurpose, number>();
+  for (const p of PURPOSE_REBALANCING_PURPOSES) valueByPurpose.set(p, 0);
+
+  for (const asset of active) {
+    const p = asset.purpose as RebalancingPurpose;
+    valueByPurpose.set(p, (valueByPurpose.get(p) ?? 0) + normalizeToUsd(asset.current_value, asset.currency, usdVndRate));
+  }
+
+  const rows: PurposeAllocationRow[] = PURPOSE_REBALANCING_PURPOSES.map((p) => {
+    const currentValueUsd = valueByPurpose.get(p) ?? 0;
+    const currentPct = portfolioValue > 0 ? (currentValueUsd / portfolioValue) * 100 : 0;
+    const targetPct = targets[p];
+    const differencePct = targetPct - currentPct;
+    const targetValueUsd = portfolioValue * (targetPct / 100);
+    const differenceValueUsd = targetValueUsd - currentValueUsd;
+
+    let action: 'ADD CAPITAL' | 'REDUCE' | 'ON TARGET';
+    if (Math.abs(differencePct) <= 1) {
+      action = 'ON TARGET';
+    } else {
+      action = differenceValueUsd > 0 ? 'ADD CAPITAL' : 'REDUCE';
+    }
+
+    return {
+      purpose: p,
+      label: PURPOSE_LABELS[p],
+      color: PURPOSE_COLORS[p],
       currentValueUsd,
       currentPct,
       targetPct,
