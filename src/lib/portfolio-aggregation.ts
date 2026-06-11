@@ -35,6 +35,7 @@ export interface PortfolioPosition {
   includeInInvestmentNetWorth: boolean;
   includeInTotalNetWorth: boolean;
   source: PortfolioSource;
+  bankName?: string;
   legacyAsset?: Asset;
 }
 
@@ -160,6 +161,7 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
   const activeDeposits = deposits.filter((deposit) => deposit.status === 'active');
   const activeCreditCards = creditCards.filter((card) => card.status === 'active' && card.current_used > 0);
   const activeCreditFacilities = creditFacilities.filter((facility) => facility.status === 'active' && facility.current_used > 0);
+  const accountBankById = new Map(accounts.map((account) => [account.id, account.bank_name]));
 
   const bankAssetKeys = new Set<string>();
   for (const account of activeAccounts) bankAssetKeys.add(`${account.account_name.trim().toLowerCase()}|${Math.round(account.balance)}`);
@@ -187,6 +189,7 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
       includeInInvestmentNetWorth: true,
       includeInTotalNetWorth: true,
       source: 'banking_accounts' as PortfolioSource,
+      bankName: account.bank_name,
     })),
     ...activeDeposits.map((deposit) => ({
       id: `savings-deposit:${deposit.id}`,
@@ -203,6 +206,7 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
       includeInInvestmentNetWorth: true,
       includeInTotalNetWorth: true,
       source: 'savings_deposits' as PortfolioSource,
+      bankName: deposit.bank_name ?? (deposit.bank_account_id ? accountBankById.get(deposit.bank_account_id) : undefined) ?? 'Unassigned',
     })),
     ...activeCreditCards.map((card) => ({
       id: `credit-card:${card.id}`,
@@ -219,6 +223,7 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
       includeInInvestmentNetWorth: true,
       includeInTotalNetWorth: true,
       source: 'credit_cards' as PortfolioSource,
+      bankName: card.bank_name,
     })),
     ...activeCreditFacilities.map((facility) => ({
       id: `credit-facility:${facility.id}`,
@@ -235,6 +240,7 @@ export async function getPortfolioSummary(): Promise<PortfolioSummary> {
       includeInInvestmentNetWorth: true,
       includeInTotalNetWorth: true,
       source: 'credit_facilities' as PortfolioSource,
+      bankName: facility.bank_name,
     })),
   ];
 

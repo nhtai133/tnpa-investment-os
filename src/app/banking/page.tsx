@@ -11,10 +11,10 @@ import {
   resolveDepositBankName,
   slugBankName,
 } from '@/lib/banking';
-import { normalizeToUsd } from '@/lib/fx';
-import { formatDate, formatPercent, formatValue, formatWeight, PURPOSE_LABELS, PURPOSE_COLORS } from '@/lib/formatters';
+import { formatDate, formatPercent, formatValue, PURPOSE_LABELS, PURPOSE_COLORS } from '@/lib/formatters';
 import { getPortfolioSummary } from '@/lib/portfolio-aggregation';
 import { SourceContributionPanel } from '@/components/portfolio/SourceContributionPanel';
+import { BankingAllocationDrilldown, type BankingAllocationInput } from '@/components/banking/BankingAllocationDrilldown';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,29 +37,6 @@ function toVnd(value: number, currency: string, usdVndRate: number) {
   return currency === 'USD' ? value * usdVndRate : value;
 }
 
-function AllocationRow({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
-  const weight = total > 0 ? (Math.abs(value) / total) * 100 : 0;
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-          <span className="text-xs text-zinc-400 truncate">{label}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className={value < 0 ? 'text-xs text-red-300 tabular-nums' : 'text-xs text-zinc-300 tabular-nums'}>
-            {value < 0 ? '-' : ''}{formatValue(Math.abs(value), 'VND')}
-          </span>
-          <span className="text-xs text-zinc-600 tabular-nums w-12 text-right">{formatWeight(weight)}</span>
-        </div>
-      </div>
-      <div className="h-1.5 rounded-full bg-[#1C1C21] overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${Math.min(weight, 100)}%`, backgroundColor: color }} />
-      </div>
-    </div>
-  );
-}
-
 export default async function BankingPage() {
   const [
     { classAssets, totalNW, usdVndRate },
@@ -68,31 +45,37 @@ export default async function BankingPage() {
   ] = await Promise.all([getModuleData('cash'), getBankingData(), getPortfolioSummary()]);
 
   const summary = computeBankingSummary(bankingData);
-  const activeAccounts = bankingData.accounts.filter((account) => account.status === 'active');
-  const activeDeposits = bankingData.deposits.filter((deposit) => deposit.status === 'active');
-  const activeCards = bankingData.creditCards.filter((card) => card.status === 'active');
-  const activeFacilities = bankingData.creditFacilities.filter((facility) => facility.status === 'active');
-
-  const checkingVnd = activeAccounts.reduce((sum, account) => sum + toVnd(account.balance, account.currency, usdVndRate), 0);
-  const checkingUsd = activeAccounts.reduce((sum, account) => sum + normalizeToUsd(account.balance, account.currency, usdVndRate), 0);
-  const savingsVnd = activeDeposits.reduce((sum, deposit) => sum + deposit.principal, 0);
-  const savingsUsd = normalizeToUsd(savingsVnd, 'VND', usdVndRate);
-  const legacyVnd = bankingData.legacyAssets.reduce((sum, asset) => sum + toVnd(asset.current_value, asset.currency, usdVndRate), 0);
-  const legacyUsd = bankingData.legacyAssets.reduce((sum, asset) => sum + normalizeToUsd(asset.current_value, asset.currency, usdVndRate), 0);
-  const creditCardsUsedVnd = activeCards.reduce((sum, card) => sum + card.current_used, 0);
-  const creditFacilitiesUsedVnd = activeFacilities.reduce((sum, facility) => sum + facility.current_used, 0);
-  const creditCardsUsedUsd = normalizeToUsd(creditCardsUsedVnd, 'VND', usdVndRate);
-  const creditFacilitiesUsedUsd = normalizeToUsd(creditFacilitiesUsedVnd, 'VND', usdVndRate);
-  const bankingMarketValue = checkingVnd + savingsVnd + legacyVnd - creditCardsUsedVnd - creditFacilitiesUsedVnd;
-  const bankingMarketValueUsd = checkingUsd + savingsUsd + legacyUsd - creditCardsUsedUsd - creditFacilitiesUsedUsd;
-  const allocationRows = [
-    { label: 'Bank Accounts / Checking', value: checkingVnd, color: '#60A5FA' },
-    { label: 'Savings Deposits', value: savingsVnd, color: '#34D399' },
-    { label: 'Legacy Bank Assets', value: legacyVnd, color: '#A78BFA' },
-    ...(creditCardsUsedVnd > 0 ? [{ label: 'Credit Cards Used', value: -creditCardsUsedVnd, color: '#F87171' }] : []),
-    ...(creditFacilitiesUsedVnd > 0 ? [{ label: 'Credit Facilities Used', value: -creditFacilitiesUsedVnd, color: '#FB7185' }] : []),
-  ].filter((row) => Math.abs(row.value) > 0);
-  const allocationTotal = allocationRows.reduce((sum, row) => sum + Math.abs(row.value), 0);
+  const bankingAggregationPositions = portfolio.positions.filter((position) =>
+    ['banking_accounts', 'savings_deposits', 'credit_cards', 'credit_facilities'].includes(position.source),
+  );
+  const checkingVnd = bankingAggregationPositions
+    .filter((position) => position.source === 'banking_accounts')
+    .reduce((sum, position) => sum + toVnd(position.value, position.currency, usdVndRate), 0);
+  const savingsVnd = bankingAggregationPositions
+    .filter((position) => position.source === 'savings_deposits')
+    .reduce((sum, position) => sum + toVnd(position.value, position.currency, usdVndRate), 0);
+  const creditUsedVnd = Math.abs(
+    bankingAggregationPositions
+      .filter((position) => position.source === 'credit_cards' || position.source === 'credit_facilities')
+      .reduce((sum, position) => sum + toVnd(position.value, position.currency, usdVndRate), 0),
+  );
+  const bankingMarketValue = checkingVnd + savingsVnd - creditUsedVnd;
+  const bankingMarketValueUsd = bankingAggregationPositions.reduce((sum, position) => sum + position.valueUsd, 0);
+  const bankingAllocationRows: BankingAllocationInput[] = bankingAggregationPositions.map((position) => {
+    const kind =
+      position.source === 'banking_accounts'
+        ? 'checking'
+        : position.source === 'savings_deposits'
+          ? 'savings'
+          : 'credit';
+    const bankName = position.bankName ?? position.name.split(' · ')[0] ?? 'Unassigned';
+    return {
+      kind,
+      bankName,
+      amountVnd: toVnd(position.value, position.currency, usdVndRate),
+      href: `/banking/${slugBankName(bankName)}`,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -146,26 +129,7 @@ export default async function BankingPage() {
 
         <SourceContributionPanel rows={portfolio.sourceContributions} />
 
-        <Card className="px-5 py-5">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">Banking Allocation</p>
-              <p className="mt-1 text-xs text-zinc-700">Assets count toward banking value; used credit is shown as liability.</p>
-            </div>
-            <p className="text-sm text-zinc-300 tabular-nums">{formatValue(bankingMarketValue, 'VND')}</p>
-          </div>
-          {allocationRows.length > 0 ? (
-            <div className="space-y-4">
-              {allocationRows.map((row) => (
-                <AllocationRow key={row.label} label={row.label} value={row.value} total={allocationTotal} color={row.color} />
-              ))}
-            </div>
-          ) : (
-            <div className="h-24 flex items-center justify-center">
-              <p className="text-sm text-zinc-600">No banking allocation data yet.</p>
-            </div>
-          )}
-        </Card>
+        <BankingAllocationDrilldown rows={bankingAllocationRows} />
 
         <Card className="overflow-hidden">
           <CardHeader label="Bank Accounts" action={`${bankingData.accounts.length} accounts`} />
