@@ -1,4 +1,4 @@
-export const APP_VERSION = 'v1.5';
+export const APP_VERSION = 'v1.6';
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'TNPA Investment OS';
 export const APP_ENV = process.env.APP_ENV ?? process.env.NODE_ENV ?? 'local';
 

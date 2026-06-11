@@ -1,70 +1,230 @@
 import { db } from '@/db';
-import { assets, decisionLogs, watchlistItems, rebalanceAlerts, opportunities, researchNotes } from '@/db/schema';
-import { desc, eq, or } from 'drizzle-orm';
-
+import {
+  assets,
+  appSettings,
+  decisionLogs,
+  decisionReviews,
+  watchlistItems,
+  opportunities,
+} from '@/db/schema';
+import { desc, eq } from 'drizzle-orm';
+import { getUsdVndRate } from '@/lib/settings';
 import {
   computeInvestmentNetWorth,
   computeTotalNetWorth,
-  computeAssetClassBreakdown,
-  computePurposeBreakdown,
-  computeTopHoldings,
 } from '@/lib/calculations';
-import { getUsdVndRate } from '@/lib/settings';
-import { ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
-import type { AllocationDataItem } from '@/components/dashboard/AllocationChart';
+import { normalizeToUsd, getNormalizedCostBasisUsd } from '@/lib/fx';
+import {
+  REBALANCING_CLASSES,
+  REBALANCING_SETTINGS_KEYS,
+  DEFAULT_TARGETS,
+  computeRebalancing,
+  PURPOSE_REBALANCING_PURPOSES,
+  PURPOSE_REBALANCING_SETTINGS_KEYS,
+  DEFAULT_PURPOSE_TARGETS,
+  computePurposeRebalancing,
+  type RebalancingAssetClass,
+  type RebalancingPurpose,
+} from '@/lib/rebalancing';
+import { REBALANCING_COLORS, REBALANCING_LABELS } from '@/lib/rebalancing';
+import { PURPOSE_COLORS, PURPOSE_LABELS } from '@/lib/formatters';
+import type { AssetPurpose } from '@/db/schema';
 
-import { NetWorthCards } from '@/components/dashboard/NetWorthCards';
-import { StatCounters } from '@/components/dashboard/StatCounters';
-import { AllocationChart } from '@/components/dashboard/AllocationChart';
-import { PurposeAllocation } from '@/components/dashboard/PurposeAllocation';
-import { TopHoldings } from '@/components/dashboard/TopHoldings';
-import { RecentDecisions } from '@/components/dashboard/RecentDecisions';
-import { WatchlistSummary } from '@/components/dashboard/WatchlistSummary';
-import { RebalanceAlerts } from '@/components/dashboard/RebalanceAlerts';
-import { RecentOpportunities } from '@/components/dashboard/RecentOpportunities';
-import { RecentNotes } from '@/components/dashboard/RecentNotes';
-import { NextActions } from '@/components/dashboard/NextActions';
-import { QuickNav } from '@/components/dashboard/QuickNav';
+import { WealthSnapshot } from '@/components/dashboard/WealthSnapshot';
+import { PurposeHealth, type PurposeHealthRow } from '@/components/dashboard/PurposeHealth';
+import { DecisionIntelligence } from '@/components/dashboard/DecisionIntelligence';
+import { WealthScore } from '@/components/dashboard/WealthScore';
+import { ReviewQueue } from '@/components/dashboard/ReviewQueue';
+import { RebalancingSignals } from '@/components/dashboard/RebalancingSignals';
+import { PipelineSummary } from '@/components/dashboard/PipelineSummary';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
-  const [allAssets, decisions, watchlist, alerts, recentOpps, recentNotes, activeOpps, usdVndRate] =
-    await Promise.all([
-      db.select().from(assets).where(eq(assets.is_archived, false)),
-      db.select().from(decisionLogs).orderBy(desc(decisionLogs.decision_date)).limit(5),
-      db.select().from(watchlistItems).where(eq(watchlistItems.status, 'active')),
-      db.select().from(rebalanceAlerts).where(eq(rebalanceAlerts.status, 'open')),
-      db.select().from(opportunities).orderBy(desc(opportunities.created_at)).limit(4),
-      db.select().from(researchNotes).orderBy(desc(researchNotes.created_at)).limit(4),
-      db
-        .select({ id: opportunities.id })
-        .from(opportunities)
-        .where(or(eq(opportunities.status, 'new'), eq(opportunities.status, 'reviewing'))),
-      getUsdVndRate(),
-    ]);
+// ── Score helpers ────────────────────────────────────────────────────────────
 
-  const investmentNetWorth = computeInvestmentNetWorth(allAssets, usdVndRate);
+function computeAllocationScore(classDrift: number, purposeDrift: number): number {
+  const worst = Math.max(classDrift, purposeDrift);
+  if (worst < 10) return 25;
+  if (worst < 20) return 18;
+  if (worst < 35) return 10;
+  return 4;
+}
+
+function computeDecisionScore(total: number, open: number): number {
+  if (total === 0) return 5;
+  const openRatio = open / total;
+  if (openRatio < 0.2) return 25;
+  if (openRatio < 0.5) return 18;
+  if (openRatio < 0.8) return 12;
+  return 6;
+}
+
+function computeReviewScore(total: number, reviewed: number, overdueWatchlist: number): number {
+  if (total === 0) return 0;
+  const rate = reviewed / total;
+  const base = rate >= 0.7 ? 22 : rate >= 0.4 ? 15 : rate >= 0.1 ? 8 : 2;
+  return Math.min(25, base + (overdueWatchlist === 0 ? 3 : 0));
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
+export default async function CommandCenter() {
+  const [
+    allAssets,
+    allSettings,
+    allDecisions,
+    allReviews,
+    activeWatchlist,
+    allOpps,
+    usdVndRate,
+  ] = await Promise.all([
+    db.select().from(assets).where(eq(assets.is_archived, false)),
+    db.select().from(appSettings),
+    db.select().from(decisionLogs).orderBy(desc(decisionLogs.decision_date)),
+    db.select().from(decisionReviews),
+    db.select().from(watchlistItems).where(eq(watchlistItems.status, 'active')),
+    db.select().from(opportunities),
+    getUsdVndRate(),
+  ]);
+
+  // ── Settings map ────────────────────────────────────────────────────────────
+  const settingsMap = new Map(allSettings.map((s) => [s.key, s.value]));
+
+  // ── Targets ─────────────────────────────────────────────────────────────────
+  const classTargets = { ...DEFAULT_TARGETS };
+  for (const cls of REBALANCING_CLASSES) {
+    const val = settingsMap.get(REBALANCING_SETTINGS_KEYS[cls]);
+    if (val) {
+      const n = parseFloat(val);
+      if (Number.isFinite(n)) classTargets[cls] = n;
+    }
+  }
+
+  const purposeTargets = { ...DEFAULT_PURPOSE_TARGETS };
+  for (const p of PURPOSE_REBALANCING_PURPOSES) {
+    const val = settingsMap.get(PURPOSE_REBALANCING_SETTINGS_KEYS[p]);
+    if (val) {
+      const n = parseFloat(val);
+      if (Number.isFinite(n)) purposeTargets[p] = n;
+    }
+  }
+
+  // ── Rebalancing ─────────────────────────────────────────────────────────────
+  const rebalancing = computeRebalancing(allAssets, classTargets, usdVndRate);
+  const purposeRebalancing = computePurposeRebalancing(allAssets, purposeTargets, usdVndRate);
+
+  // ── Wealth snapshot ─────────────────────────────────────────────────────────
   const totalNetWorth = computeTotalNetWorth(allAssets, usdVndRate);
-  const investableRatio = totalNetWorth > 0 ? investmentNetWorth / totalNetWorth : 0;
-  const assetClassBreakdown = computeAssetClassBreakdown(allAssets, investmentNetWorth, usdVndRate);
-  const purposeBreakdown = computePurposeBreakdown(allAssets, totalNetWorth, usdVndRate);
-  const topHoldings = computeTopHoldings(allAssets, totalNetWorth, usdVndRate);
+  const investableNetWorth = computeInvestmentNetWorth(allAssets, usdVndRate);
 
-  const allocationData: AllocationDataItem[] = assetClassBreakdown.map((item) => ({
-    key: item.asset_class,
-    label: ASSET_CLASS_LABELS[item.asset_class],
-    color: ASSET_CLASS_COLORS[item.asset_class],
-    value: item.value,
-    weight: item.weight,
+  const assetsWithCostBasis = allAssets.filter((a) => a.cost_basis != null);
+  const totalCostBasis = assetsWithCostBasis.reduce(
+    (sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate),
+    0,
+  );
+  // Gain/Loss only against assets that have a cost basis
+  const costBasisTotal = assetsWithCostBasis.reduce(
+    (sum, a) => sum + getNormalizedCostBasisUsd(a, usdVndRate),
+    0,
+  );
+  const totalGainLoss = costBasisTotal > 0 ? totalCostBasis - costBasisTotal : null;
+  const gainLossPct =
+    totalGainLoss != null && costBasisTotal > 0
+      ? (totalGainLoss / costBasisTotal) * 100
+      : null;
+
+  // ── Purpose health rows ─────────────────────────────────────────────────────
+  const purposeHealthRows: PurposeHealthRow[] = purposeRebalancing.rows.map((r) => ({
+    purpose: r.purpose as AssetPurpose,
+    currentPct: r.currentPct,
+    targetPct: r.targetPct,
+    drift: r.differencePct, // positive = underfunded
   }));
 
-  const activeOpportunities = activeOpps.length;
+  // ── Decision metrics ────────────────────────────────────────────────────────
   const today = new Date().toISOString().split('T')[0];
-  const pendingReviews = watchlist.filter(
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const cutoff = ninetyDaysAgo.toISOString().split('T')[0];
+
+  const openDecisions = allDecisions.filter((d) => !d.is_reviewed);
+  const reviewedDecisions = allDecisions.filter((d) => d.is_reviewed);
+  const positiveReviews = allReviews.filter((r) => r.outcome === 'positive').length;
+  const winRate =
+    allReviews.length > 0 ? Math.round((positiveReviews / allReviews.length) * 100) : null;
+  const overdueDecisions = openDecisions.filter((d) => d.decision_date <= cutoff);
+
+  // ── Review queue ────────────────────────────────────────────────────────────
+  const overdueWatchlist = activeWatchlist.filter(
     (w) => w.review_date && w.review_date <= today,
+  );
+  const underfundedBuckets = purposeRebalancing.rows
+    .filter((r) => r.differencePct > 5)
+    .sort((a, b) => b.differencePct - a.differencePct)
+    .slice(0, 4);
+
+  // ── Rebalancing signals ─────────────────────────────────────────────────────
+  // Pick the class/purpose row with the largest absolute drift
+  const largestClassRow = [...rebalancing.rows].sort(
+    (a, b) => Math.abs(b.differencePct) - Math.abs(a.differencePct),
+  )[0];
+  const largestPurposeRow = [...purposeRebalancing.rows].sort(
+    (a, b) => Math.abs(b.differencePct) - Math.abs(a.differencePct),
+  )[0];
+
+  const classSignal =
+    largestClassRow && Math.abs(largestClassRow.differencePct) > 2
+      ? {
+          label: REBALANCING_LABELS[largestClassRow.assetClass as RebalancingAssetClass],
+          currentPct: largestClassRow.currentPct,
+          targetPct: largestClassRow.targetPct,
+          differencePct: largestClassRow.differencePct,
+          action: largestClassRow.action,
+          color: REBALANCING_COLORS[largestClassRow.assetClass as RebalancingAssetClass],
+        }
+      : null;
+
+  const purposeSignal =
+    largestPurposeRow && Math.abs(largestPurposeRow.differencePct) > 2
+      ? {
+          label: PURPOSE_LABELS[largestPurposeRow.purpose as AssetPurpose],
+          currentPct: largestPurposeRow.currentPct,
+          targetPct: largestPurposeRow.targetPct,
+          differencePct: largestPurposeRow.differencePct,
+          action: largestPurposeRow.action,
+          color: PURPOSE_COLORS[largestPurposeRow.purpose as AssetPurpose] ?? '#9CA3AF',
+        }
+      : null;
+
+  // ── Opportunity pipeline ────────────────────────────────────────────────────
+  const inbox = allOpps.filter((o) => o.status === 'new').length;
+  const researching = allOpps.filter((o) => o.status === 'reviewing').length;
+  const highConviction = activeWatchlist.filter(
+    (w) => w.priority === 'high' || (w.conviction_score != null && w.conviction_score >= 8),
   ).length;
 
+  // ── Wealth Score ────────────────────────────────────────────────────────────
+  const allocationScore = computeAllocationScore(
+    rebalancing.driftScore,
+    purposeRebalancing.driftScore,
+  );
+  const decisionScore = computeDecisionScore(allDecisions.length, openDecisions.length);
+  const reviewScore = computeReviewScore(
+    allDecisions.length,
+    reviewedDecisions.length,
+    overdueWatchlist.length,
+  );
+  const hasUsdRate = settingsMap.has('usd_vnd_rate');
+  const hasPurposeTargets = PURPOSE_REBALANCING_PURPOSES.some((p) =>
+    settingsMap.has(PURPOSE_REBALANCING_SETTINGS_KEYS[p]),
+  );
+  const hasClassTargets = REBALANCING_CLASSES.some((c) =>
+    settingsMap.has(REBALANCING_SETTINGS_KEYS[c]),
+  );
+  const configScore = (hasUsdRate ? 8 : 0) + (hasPurposeTargets ? 9 : 0) + (hasClassTargets ? 8 : 0);
+  const wealthScore = allocationScore + decisionScore + reviewScore + configScore;
+
+  // ── Date ─────────────────────────────────────────────────────────────────────
   const todayLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'long',
@@ -79,83 +239,89 @@ export default async function DashboardPage() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-                TNPA
-              </p>
-              <h1 className="text-base font-semibold text-zinc-100 leading-tight">
-                Investment OS
-              </h1>
+              <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
+              <h1 className="text-base font-semibold text-zinc-100 leading-tight">Wealth Command Center</h1>
             </div>
-            <div className="w-px h-8 bg-[#26262B]" />
-            <div>
-              <p className="text-sm text-zinc-300">Command Center</p>
-              <p className="text-[11px] text-zinc-600">v1.0 · Personal Family Office</p>
-            </div>
+            <div className="w-px h-6 bg-[#26262B]" />
+            <p className="text-[11px] text-zinc-600">v1.6 · Personal Family Office</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-zinc-500">{todayLabel}</p>
-            <p className="text-[11px] text-zinc-700 mt-0.5">Manual data · No live prices</p>
+            <p className="text-[11px] text-zinc-700 mt-0.5">Manual data · No live prices · No investment advice</p>
           </div>
         </div>
       </header>
 
-      {/* Dashboard */}
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-5">
-        {/* Row 1: Net Worth Cards */}
-        <NetWorthCards
-          investmentNetWorth={investmentNetWorth}
+
+        {/* 1. Wealth Snapshot */}
+        <WealthSnapshot
           totalNetWorth={totalNetWorth}
-          investableRatio={investableRatio}
+          investableNetWorth={investableNetWorth}
+          totalGainLoss={totalGainLoss}
+          gainLossPct={gainLossPct}
+          usdVndRate={usdVndRate}
         />
-        <div className="flex justify-end -mt-2">
-          <p className="text-[10px] text-zinc-700">
-            Reporting currency: USD · USD/VND: {usdVndRate.toLocaleString('en-US')}
+
+        {/* 2 + 7. Purpose Health ← 2/3 | Wealth Score + Decision Intel ← 1/3 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            <PurposeHealth rows={purposeHealthRows} />
+          </div>
+          <div className="space-y-4">
+            <WealthScore
+              score={wealthScore}
+              allocationScore={allocationScore}
+              decisionScore={decisionScore}
+              reviewScore={reviewScore}
+              configScore={configScore}
+            />
+            <DecisionIntelligence
+              total={allDecisions.length}
+              open={openDecisions.length}
+              reviewed={reviewedDecisions.length}
+              winRate={winRate}
+              overdueCount={overdueDecisions.length}
+            />
+          </div>
+        </div>
+
+        {/* 4. Review Queue */}
+        <ReviewQueue
+          overdueDecisions={overdueDecisions.slice(0, 8)}
+          overdueWatchlist={overdueWatchlist}
+          underfundedBuckets={underfundedBuckets}
+          totalOpen={openDecisions.length}
+        />
+
+        {/* 5 + 6. Rebalancing Signals | Opportunity Pipeline */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <RebalancingSignals
+            classSignal={classSignal}
+            purposeSignal={purposeSignal}
+            classDriftScore={rebalancing.driftScore}
+            purposeDriftScore={purposeRebalancing.driftScore}
+          />
+          <PipelineSummary
+            inbox={inbox}
+            researching={researching}
+            watchlistCount={activeWatchlist.length}
+            highConviction={highConviction}
+          />
+        </div>
+
+        {/* Safety Footer */}
+        <div className="border border-[#26262B] rounded-xl px-5 py-4 bg-[#131316]">
+          <p className="text-[11px] font-semibold text-zinc-500 mb-1">Disclaimer</p>
+          <p className="text-[11px] text-zinc-700 leading-relaxed">
+            This dashboard is a personal tracking tool. It does not provide investment advice, performance
+            guarantees, or automated trading. All decisions are manual and your own responsibility.
+            No data leaves this device.
           </p>
         </div>
 
-        {/* Row 2: Stat Counters */}
-        <StatCounters
-          holdings={allAssets.length}
-          activeOpportunities={activeOpportunities}
-          watchlistItems={watchlist.length}
-          totalNotes={recentNotes.length}
-          recentDecisions={decisions.length}
-          pendingReviews={pendingReviews}
-        />
-
-        {/* Row 3: Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AllocationChart data={allocationData} />
-          <PurposeAllocation data={purposeBreakdown} />
-        </div>
-
-        {/* Row 4: Command Center — Signals, Notes, Next Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <RecentOpportunities opportunities={recentOpps} />
-          <RecentNotes notes={recentNotes} />
-          <NextActions items={watchlist} />
-        </div>
-
-        {/* Row 5: Top Holdings */}
-        <TopHoldings holdings={topHoldings} />
-
-        {/* Row 6: Decisions + Watchlist */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <RecentDecisions decisions={decisions} />
-          <WatchlistSummary items={watchlist} />
-        </div>
-
-        {/* Row 7: Rebalance Alerts */}
-        <RebalanceAlerts alerts={alerts} />
-
-        {/* Row 8: Quick Navigation */}
-        <QuickNav />
-
-        {/* Footer */}
-        <div className="pt-2 pb-6 text-center">
-          <p className="text-[11px] text-zinc-700">
-            TNPA Investment OS · v1.0 · {todayLabel}
-          </p>
+        <div className="pb-4 text-center">
+          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v1.6 · {todayLabel}</p>
         </div>
       </main>
     </div>
