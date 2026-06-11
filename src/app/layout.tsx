@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Sidebar } from '@/components/nav/Sidebar';
 import './globals.css';
@@ -13,12 +13,15 @@ export const metadata: Metadata = {
   title: 'TNPA Investment OS',
   description: 'Personal Family Office Operating System',
   applicationName: 'TNPA Investment OS',
-  themeColor: '#818CF8',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'TNPA OS',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#818CF8',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
