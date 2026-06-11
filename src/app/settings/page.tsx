@@ -1,11 +1,22 @@
 import { getUsdVndRate } from '@/lib/settings';
 import { FxRateForm } from '@/components/settings/FxRateForm';
+import { DataManagement } from '@/components/settings/DataManagement';
 import { Card } from '@/components/ui/Card';
+import { db } from '@/db';
+import { assets, appSettings } from '@/db/schema';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  const usdVndRate = await getUsdVndRate();
+  const [usdVndRate, allAssets, allSettings] = await Promise.all([
+    getUsdVndRate(),
+    db.select().from(assets),
+    db.select().from(appSettings),
+  ]);
+
+  const activeAssets = allAssets.filter((a) => !a.is_archived).length;
+  const archivedAssets = allAssets.filter((a) => a.is_archived).length;
+  const settingsCount = allSettings.length;
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -53,19 +64,18 @@ export default async function SettingsPage() {
           </Card>
         </section>
 
-        {/* Data Protection */}
+        {/* Data Management */}
         <section>
           <div className="mb-3">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Data Protection
+              Data Management
             </p>
           </div>
-          <Card className="p-5">
-            <p className="text-sm font-medium text-zinc-400">Backup &amp; Restore</p>
-            <p className="text-xs text-zinc-600 mt-1">
-              Export portfolio data and restore from backup — coming in a future sprint.
-            </p>
-          </Card>
+          <DataManagement
+            activeAssets={activeAssets}
+            archivedAssets={archivedAssets}
+            settingsCount={settingsCount}
+          />
         </section>
 
         {/* App Info */}
