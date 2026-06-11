@@ -96,21 +96,27 @@ export function Sidebar() {
           </p>
         </div>
         <div className="space-y-0.5">
-          <Link
-            href="/settings"
-            className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
-              isActive('/settings')
-                ? 'bg-[#1C1C21] text-zinc-100'
-                : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
-            }`}
-          >
-            Settings
-          </Link>
+          {[
+            { label: 'Settings', href: '/settings' },
+            { label: 'Health', href: '/system/health' },
+          ].map(({ label, href }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors ${
+                isActive(href)
+                  ? 'bg-[#1C1C21] text-zinc-100'
+                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
         </div>
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v1.0 · Personal Family Office</p>
+        <p className="text-[10px] text-zinc-700">v1.1 · Personal Family Office</p>
       </div>
     </aside>
   );

@@ -4,6 +4,8 @@ import { DataManagement } from '@/components/settings/DataManagement';
 import { Card } from '@/components/ui/Card';
 import { db } from '@/db';
 import { assets, appSettings } from '@/db/schema';
+import { APP_VERSION, APP_ENV, dbMode, isLocalDb } from '@/lib/env';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,28 +82,45 @@ export default async function SettingsPage() {
 
         {/* App Info */}
         <section>
-          <div className="mb-3">
+          <div className="mb-3 flex items-center justify-between">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
               App Info
             </p>
+            <Link
+              href="/system/health"
+              className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
+            >
+              Health →
+            </Link>
           </div>
           <Card className="p-5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-500">Version</span>
-              <span className="text-xs text-zinc-300 tabular-nums">v1.0</span>
+              <span className="text-xs text-zinc-300 tabular-nums">{APP_VERSION}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-500">System</span>
               <span className="text-xs text-zinc-300">TNPA Investment OS</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Type</span>
-              <span className="text-xs text-zinc-300">Personal Family Office</span>
+              <span className="text-xs text-zinc-500">Environment</span>
+              <span className="text-xs text-zinc-300">{APP_ENV}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-500">Database</span>
-              <span className="text-xs text-zinc-300">SQLite (local)</span>
+              <span className={`text-xs ${isLocalDb() ? 'text-amber-400' : 'text-emerald-400'}`}>
+                {dbMode()}
+              </span>
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-500">Type</span>
+              <span className="text-xs text-zinc-300">Personal Family Office</span>
+            </div>
+            {isLocalDb() && (
+              <p className="text-[11px] text-zinc-700 pt-2 border-t border-[#26262B]">
+                Running local SQLite. Back up your data regularly before any migration.
+              </p>
+            )}
           </Card>
         </section>
 
