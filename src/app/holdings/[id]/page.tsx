@@ -31,7 +31,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
   if (!asset) notFound();
 
-  const totalNW = computeTotalNetWorth(allAssets);
+  const totalNW = computeTotalNetWorth(allAssets, 1);
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">

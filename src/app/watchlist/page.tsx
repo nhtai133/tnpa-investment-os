@@ -70,8 +70,14 @@ function WatchlistRow({ item }: { item: WatchlistItem }) {
         </div>
       </div>
 
-      {item.status === 'active' && (
-        <div className="flex-shrink-0 flex items-center gap-2">
+      <div className="flex-shrink-0 flex items-center gap-2">
+        <Link
+          href={`/watchlist/${item.id}`}
+          className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors"
+        >
+          Edit
+        </Link>
+        {item.status === 'active' && (
           <form action={archive}>
             <button
               type="submit"
@@ -80,17 +86,16 @@ function WatchlistRow({ item }: { item: WatchlistItem }) {
               Archive
             </button>
           </form>
-        </div>
-      )}
-
-      {item.status !== 'active' && (
-        <span
-          className="flex-shrink-0 text-[11px] px-2 py-0.5 rounded"
-          style={{ backgroundColor: '#26262B', color: '#71717A' }}
-        >
-          {WATCHLIST_STATUS_LABELS[item.status]}
-        </span>
-      )}
+        )}
+        {item.status !== 'active' && (
+          <span
+            className="text-[11px] px-2 py-0.5 rounded"
+            style={{ backgroundColor: '#26262B', color: '#71717A' }}
+          >
+            {WATCHLIST_STATUS_LABELS[item.status]}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

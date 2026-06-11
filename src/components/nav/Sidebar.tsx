@@ -10,8 +10,8 @@ const PORTFOLIO_LINKS = [
 ];
 
 const RESEARCH_LINKS = [
-  { label: 'Intake', href: '/intake' },
-  { label: 'Pipeline', href: '/pipeline' },
+  { label: 'Research', href: '/research' },
+  { label: 'Opportunities', href: '/pipeline' },
   { label: 'Watchlist', href: '/watchlist' },
   { label: 'Journal', href: '/journal' },
 ];

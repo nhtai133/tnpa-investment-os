@@ -15,6 +15,12 @@ export const OPPORTUNITY_STATUSES = ['new', 'reviewing', 'promoted', 'rejected']
 export const RESEARCH_NOTE_TYPES = ['research', 'observation', 'earnings', 'news', 'source', 'review'] as const;
 export type ResearchNoteType = (typeof RESEARCH_NOTE_TYPES)[number];
 
+export const CONVICTION_LEVELS = ['low', 'medium', 'high'] as const;
+export type ConvictionLevel = (typeof CONVICTION_LEVELS)[number];
+
+export const RESEARCH_STATUSES = ['draft', 'active', 'archived'] as const;
+export type ResearchStatus = (typeof RESEARCH_STATUSES)[number];
+
 export type AssetClass = (typeof ASSET_CLASSES)[number];
 export type AssetPurpose = (typeof ASSET_PURPOSES)[number];
 export type OpportunitySource = (typeof OPPORTUNITY_SOURCES)[number];
@@ -80,7 +86,7 @@ export const watchlistItems = sqliteTable('watchlist_items', {
   }).notNull().default('active'),
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),
-  // v0.7 additions — all nullable, additive only
+  // v0.7 additions
   opportunity_id: integer('opportunity_id').references(() => opportunities.id),
   asset_id: integer('asset_id').references(() => assets.id),
   conviction_score: integer('conviction_score'),
@@ -88,6 +94,11 @@ export const watchlistItems = sqliteTable('watchlist_items', {
   target_entry: text('target_entry'),
   thesis: text('thesis'),
   next_action: text('next_action'),
+  // v1.0 additions
+  priority: text('priority', { enum: CONVICTION_LEVELS }),
+  fair_value: text('fair_value'),
+  current_price: text('current_price'),
+  currency: text('currency').default('USD'),
 });
 
 export const rebalanceAlerts = sqliteTable('rebalance_alerts', {
@@ -169,6 +180,17 @@ export const researchNotes = sqliteTable('research_notes', {
   // Polymorphic — exactly one of these is set
   asset_id: integer('asset_id').references(() => assets.id),
   opportunity_id: integer('opportunity_id').references(() => opportunities.id),
+  // v1.0 structured research fields
+  title: text('title'),
+  symbol: text('symbol'),
+  asset_class: text('asset_class', { enum: ASSET_CLASSES }),
+  thesis: text('thesis'),
+  valuation_notes: text('valuation_notes'),
+  risk_notes: text('risk_notes'),
+  action_plan: text('action_plan'),
+  conviction: text('conviction', { enum: CONVICTION_LEVELS }),
+  research_status: text('research_status', { enum: RESEARCH_STATUSES }).default('active'),
+  // original fields
   note_type: text('note_type', { enum: RESEARCH_NOTE_TYPES }).notNull().default('research'),
   body: text('body').notNull(),
   source_url: text('source_url'),
