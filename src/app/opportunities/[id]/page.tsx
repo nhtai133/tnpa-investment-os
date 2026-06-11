@@ -173,6 +173,13 @@ export default async function OpportunityDetailPage({ params }: Props) {
                   Reject
                 </button>
               </form>
+
+              <Link
+                href={`/decisions/new?title=${encodeURIComponent(opp.name)}&type=buy`}
+                className="px-4 py-2 bg-zinc-700/30 hover:bg-zinc-700/50 text-zinc-300 text-sm font-medium rounded-lg border border-zinc-600/30 transition-colors"
+              >
+                Log Decision →
+              </Link>
             </div>
           </Card>
         )}

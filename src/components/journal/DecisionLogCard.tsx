@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
+
 import {
   formatDate,
   formatCurrency,
@@ -40,34 +41,34 @@ export function DecisionLogCard({ decisions, addHref, allHref, title = 'Decision
           {decisions.slice(0, 5).map((d) => {
             const typeColor = DECISION_TYPE_COLORS[d.decision_type] ?? '#9CA3AF';
             const typeLabel = DECISION_TYPE_LABELS[d.decision_type] ?? d.decision_type;
+            const displayTitle = d.title ?? d.asset_name;
             return (
-              <div key={d.id} className="px-5 py-3.5">
-                <div className="flex items-start gap-3">
-                  <div
-                    className="mt-0.5 w-9 h-6 rounded flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
-                    style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
-                  >
-                    {typeLabel.slice(0, 3).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {d.asset_class && (
-                        <Badge
-                          label={ASSET_CLASS_LABELS[d.asset_class]}
-                          color={ASSET_CLASS_COLORS[d.asset_class]}
-                        />
-                      )}
-                      {d.amount != null && (
-                        <span className="text-xs tabular-nums" style={{ color: d.amount >= 0 ? '#34D399' : '#F87171' }}>
-                          {d.amount >= 0 ? '+' : ''}{formatCurrency(Math.abs(d.amount), true)}
-                        </span>
-                      )}
-                      <span className="text-[11px] text-zinc-600">{formatDate(d.decision_date)}</span>
-                    </div>
-                    <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed line-clamp-2">{d.rationale}</p>
-                  </div>
+              <Link key={d.id} href={`/decisions/${d.id}`} className="flex items-start gap-3 px-5 py-3.5 hover:bg-[#1C1C21] transition-colors">
+                <div
+                  className="mt-0.5 w-9 h-6 rounded flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                  style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
+                >
+                  {typeLabel.slice(0, 3).toUpperCase()}
                 </div>
-              </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium text-zinc-300">{displayTitle}</span>
+                    {d.asset_class && (
+                      <Badge
+                        label={ASSET_CLASS_LABELS[d.asset_class]}
+                        color={ASSET_CLASS_COLORS[d.asset_class]}
+                      />
+                    )}
+                    {d.amount != null && (
+                      <span className="text-xs tabular-nums" style={{ color: d.amount >= 0 ? '#34D399' : '#F87171' }}>
+                        {d.amount >= 0 ? '+' : ''}{formatCurrency(Math.abs(d.amount), true)}
+                      </span>
+                    )}
+                    <span className="text-[11px] text-zinc-600">{formatDate(d.decision_date)}</span>
+                  </div>
+                  <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed line-clamp-1">{d.rationale}</p>
+                </div>
+              </Link>
             );
           })}
         </div>

@@ -14,6 +14,7 @@ const RESEARCH_LINKS = [
   { label: 'Research', href: '/research' },
   { label: 'Opportunities', href: '/pipeline' },
   { label: 'Watchlist', href: '/watchlist' },
+  { label: 'Decisions', href: '/decisions' },
   { label: 'Journal', href: '/journal' },
 ];
 
@@ -117,7 +118,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v1.1 · Personal Family Office</p>
+        <p className="text-[10px] text-zinc-700">v1.5 · Personal Family Office</p>
       </div>
     </aside>
   );

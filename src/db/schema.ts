@@ -138,19 +138,49 @@ export const researchTheses = sqliteTable('research_theses', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const DECISION_TYPES = [
+  'buy', 'sell', 'hold', 'trim', 'add', 'reduce', 'rebalance', 'review', 'reject', 'monitor',
+] as const;
+export type DecisionType = (typeof DECISION_TYPES)[number];
+
+export const DECISION_OUTCOMES = ['positive', 'neutral', 'negative'] as const;
+export type DecisionOutcome = (typeof DECISION_OUTCOMES)[number];
+
 export const decisionLogs = sqliteTable('decision_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   asset_id: integer('asset_id').references(() => assets.id),
   asset_name: text('asset_name').notNull(),
   asset_class: text('asset_class', { enum: ASSET_CLASSES }),
-  decision_type: text('decision_type', {
-    enum: ['buy', 'sell', 'hold', 'trim', 'add', 'reject', 'monitor', 'reduce', 'review'],
-  }).notNull(),
+  decision_type: text('decision_type', { enum: DECISION_TYPES }).notNull(),
   rationale: text('rationale').notNull(),
   amount: real('amount'),
   thesis_id: integer('thesis_id').references(() => researchTheses.id),
   decision_date: text('decision_date').notNull(),
   created_at: text('created_at').notNull(),
+  // v1.5 additions
+  title: text('title'),
+  purpose: text('purpose'),
+  expected_return: text('expected_return'),
+  time_horizon: text('time_horizon'),
+  risks: text('risks'),
+  invalidation_conditions: text('invalidation_conditions'),
+  confidence: integer('confidence'),
+  extended_notes: text('extended_notes'),
+  transaction_id: integer('transaction_id'),
+  is_reviewed: integer('is_reviewed', { mode: 'boolean' }).notNull().default(false),
+});
+
+export const decisionReviews = sqliteTable('decision_reviews', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  decision_id: integer('decision_id').notNull().references(() => decisionLogs.id),
+  review_date: text('review_date').notNull(),
+  outcome: text('outcome', { enum: DECISION_OUTCOMES }).notNull(),
+  current_result: text('current_result'),
+  thesis_still_valid: integer('thesis_still_valid', { mode: 'boolean' }),
+  lessons_learned: text('lessons_learned'),
+  next_action: text('next_action'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
 });
 
 export const assetIntelligence = sqliteTable('asset_intelligence', {
@@ -237,6 +267,7 @@ export type RebalanceAlert = typeof rebalanceAlerts.$inferSelect;
 export type NetWorthSnapshot = typeof netWorthSnapshots.$inferSelect;
 export type ResearchThesis = typeof researchTheses.$inferSelect;
 export type DecisionLog = typeof decisionLogs.$inferSelect;
+export type DecisionReview = typeof decisionReviews.$inferSelect;
 export type AssetIntelligence = typeof assetIntelligence.$inferSelect;
 export type ResearchNote = typeof researchNotes.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;

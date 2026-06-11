@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
-import { assets, researchNotes, transactions } from '@/db/schema';
+import { assets, researchNotes, transactions, decisionLogs } from '@/db/schema';
 import { ASSET_PURPOSES } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { Card } from '@/components/ui/Card';
@@ -12,6 +12,8 @@ import {
   PURPOSE_COLORS,
   ASSET_CLASS_LABELS,
   ASSET_CLASS_COLORS,
+  DECISION_TYPE_LABELS,
+  DECISION_TYPE_COLORS,
   formatCurrency,
   formatPercent,
   formatWeight,
@@ -30,15 +32,12 @@ export default async function BucketDetailPage({
   const purpose = params.purpose as AssetPurpose;
   if (!ASSET_PURPOSES.includes(purpose)) notFound();
 
-  const [allAssets, usdVndRate] = await Promise.all([
+  const [allAssets, usdVndRate, archivedAssets, bucketDecisions] = await Promise.all([
     db.select().from(assets).where(eq(assets.is_archived, false)),
     getUsdVndRate(),
+    db.select().from(assets).where(eq(assets.is_archived, true)),
+    db.select().from(decisionLogs).where(eq(decisionLogs.purpose, purpose)).orderBy(desc(decisionLogs.decision_date)).limit(5),
   ]);
-
-  const archivedAssets = await db
-    .select()
-    .from(assets)
-    .where(eq(assets.is_archived, true));
 
   const bucket = allAssets.filter((a) => a.purpose === purpose);
   const archivedBucket = archivedAssets.filter((a) => a.purpose === purpose);
@@ -281,6 +280,46 @@ export default async function BucketDetailPage({
                   <p className="text-xs text-zinc-300 tabular-nums">{formatValue(txn.amount, txn.currency)}</p>
                 </div>
               ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Related decisions */}
+        {bucketDecisions.length > 0 && (
+          <Card>
+            <div className="px-5 pt-5 pb-4 border-b border-[#26262B] flex items-center justify-between">
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
+                Decisions · {bucketDecisions.length}
+              </span>
+              <Link
+                href={`/decisions/new?title=${encodeURIComponent(label)}&type=review`}
+                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                + Log Decision →
+              </Link>
+            </div>
+            <div className="divide-y divide-[#1A1A1F]">
+              {bucketDecisions.map((d) => {
+                const typeColor = DECISION_TYPE_COLORS[d.decision_type] ?? '#9CA3AF';
+                const typeLabel = DECISION_TYPE_LABELS[d.decision_type] ?? d.decision_type;
+                const displayTitle = d.title ?? d.asset_name;
+                return (
+                  <Link
+                    key={d.id}
+                    href={`/decisions/${d.id}`}
+                    className="flex items-center gap-3 px-5 py-3 hover:bg-[#1C1C21] transition-colors"
+                  >
+                    <span
+                      className="flex-shrink-0 w-9 h-5 rounded flex items-center justify-center text-[10px] font-bold"
+                      style={{ backgroundColor: `${typeColor}20`, color: typeColor }}
+                    >
+                      {typeLabel.slice(0, 3).toUpperCase()}
+                    </span>
+                    <span className="text-sm text-zinc-300 flex-1 min-w-0 truncate">{displayTitle}</span>
+                    <span className="text-[11px] text-zinc-600 flex-shrink-0">{formatDate(d.decision_date)}</span>
+                  </Link>
+                );
+              })}
             </div>
           </Card>
         )}

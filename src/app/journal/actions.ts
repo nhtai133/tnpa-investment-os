@@ -1,8 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { researchNotes, decisionLogs, assets } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { researchNotes } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { ResearchNoteType } from '@/db/schema';
@@ -53,38 +52,10 @@ export async function createResearchNote(formData: FormData) {
 }
 
 // ─── Decision Log ──────────────────────────────────────────────────
+// Thin wrapper — delegates to the canonical createDecision action.
+// Kept for backward compat with /decisions/new/page.tsx imports.
 
 export async function createDecisionLog(formData: FormData) {
-  const str = (key: string) => {
-    const v = formData.get(key);
-    return v && typeof v === 'string' && v.trim() !== '' ? v.trim() : null;
-  };
-
-  const asset_id = Number(formData.get('asset_id'));
-  const redirectTo = str('redirect_to') ?? `/holdings/${asset_id}`;
-
-  // Look up asset_name and asset_class
-  const asset = await db.select().from(assets).where(eq(assets.id, asset_id)).limit(1).then((r) => r[0]);
-  if (!asset) throw new Error('Asset not found');
-
-  const amount_raw = str('amount');
-  const amount = amount_raw ? parseFloat(amount_raw) : null;
-
-  await db.insert(decisionLogs).values({
-    asset_id,
-    asset_name: asset.name,
-    asset_class: asset.asset_class,
-    decision_type: str('decision_type') as 'buy' | 'sell' | 'hold' | 'trim' | 'add' | 'reduce' | 'reject' | 'monitor' | 'review',
-    rationale: str('rationale') ?? '',
-    amount: isNaN(amount as number) ? null : amount,
-    decision_date: str('decision_date') ?? today(),
-    created_at: now(),
-  });
-
-  revalidatePath(`/holdings/${asset_id}`);
-  revalidatePath(`/holdings/${asset_id}/decisions`);
-  revalidatePath('/decisions');
-  revalidatePath('/journal');
-  revalidatePath('/');
-  redirect(redirectTo);
+  const { createDecision } = await import('@/app/decisions/actions');
+  return createDecision(formData);
 }

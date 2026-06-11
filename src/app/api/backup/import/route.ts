@@ -4,6 +4,7 @@ import {
   assets,
   appSettings,
   decisionLogs,
+  decisionReviews,
   watchlistItems,
   opportunities,
   researchNotes,
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
   if (backup.app !== 'TNPA Investment OS') {
     return NextResponse.json({ error: 'Invalid backup: wrong app identifier.' }, { status: 400 });
   }
-  if (backup.backup_version !== 1) {
+  if (backup.backup_version !== 1 && backup.backup_version !== 2) {
     return NextResponse.json({ error: 'Invalid backup: unsupported version.' }, { status: 400 });
   }
   if (!Array.isArray(backup.assets)) {
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
   // Delete in reverse FK dependency order
   await db.delete(transactions);
   await db.delete(researchNotes);
+  await db.delete(decisionReviews);
   await db.delete(decisionLogs);
   await db.delete(watchlistItems);
   await db.delete(opportunities);
@@ -58,6 +60,10 @@ export async function POST(req: NextRequest) {
 
   if (Array.isArray(backup.decision_logs) && backup.decision_logs.length > 0) {
     await db.insert(decisionLogs).values(backup.decision_logs as typeof decisionLogs.$inferInsert[]);
+  }
+
+  if (Array.isArray(backup.decision_reviews) && backup.decision_reviews.length > 0) {
+    await db.insert(decisionReviews).values(backup.decision_reviews as typeof decisionReviews.$inferInsert[]);
   }
 
   if (Array.isArray(backup.research_notes) && backup.research_notes.length > 0) {

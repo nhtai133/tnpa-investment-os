@@ -126,9 +126,10 @@ export const DECISION_TYPE_LABELS: Record<string, string> = {
   trim: 'Trim',
   add: 'Add',
   reduce: 'Reduce',
+  rebalance: 'Rebalance',
+  review: 'Review',
   reject: 'Reject',
   monitor: 'Monitor',
-  review: 'Review',
 };
 
 export const DECISION_TYPE_COLORS: Record<string, string> = {
@@ -137,10 +138,23 @@ export const DECISION_TYPE_COLORS: Record<string, string> = {
   sell: '#F87171',
   trim: '#FBBF24',
   reduce: '#FBBF24',
+  rebalance: '#818CF8',
   hold: '#60A5FA',
   monitor: '#9CA3AF',
   reject: '#F87171',
-  review: '#818CF8',
+  review: '#A78BFA',
+};
+
+export const DECISION_OUTCOME_LABELS: Record<string, string> = {
+  positive: 'Positive',
+  neutral: 'Neutral',
+  negative: 'Negative',
+};
+
+export const DECISION_OUTCOME_COLORS: Record<string, string> = {
+  positive: '#34D399',
+  neutral: '#FBBF24',
+  negative: '#F87171',
 };
 
 export const RESEARCH_NOTE_TYPE_LABELS: Record<string, string> = {
