@@ -4,7 +4,7 @@ import { DataManagement } from '@/components/settings/DataManagement';
 import { Card } from '@/components/ui/Card';
 import { db } from '@/db';
 import { assets, appSettings } from '@/db/schema';
-import { APP_VERSION, APP_ENV, dbMode, isLocalDb } from '@/lib/env';
+import { APP_VERSION, APP_ENV, dbMode, isLocalDb, deployReadiness } from '@/lib/env';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -113,12 +113,18 @@ export default async function SettingsPage() {
               </span>
             </div>
             <div className="flex items-center justify-between">
+              <span className="text-xs text-zinc-500">Deploy Readiness</span>
+              <span className={`text-xs font-medium ${isLocalDb() ? 'text-zinc-600' : 'text-emerald-400'}`}>
+                {deployReadiness()}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-xs text-zinc-500">Type</span>
               <span className="text-xs text-zinc-300">Personal Family Office</span>
             </div>
             {isLocalDb() && (
               <p className="text-[11px] text-zinc-700 pt-2 border-t border-[#26262B]">
-                Running local SQLite. Back up your data regularly before any migration.
+                Running local SQLite. Export a JSON backup before migrating to Turso.
               </p>
             )}
           </Card>
