@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { ASSET_CLASSES, ASSET_PURPOSES, type Asset } from '@/db/schema';
 import { ASSET_CLASS_LABELS, PURPOSE_LABELS } from '@/lib/formatters';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 
 const inputClass =
   'w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-700 transition-colors';
@@ -38,6 +40,7 @@ interface AssetFormProps {
 
 export function AssetForm({ action, defaultValues }: AssetFormProps) {
   const isEdit = !!defaultValues;
+  const [currency, setCurrency] = useState(defaultValues?.currency ?? 'USD');
 
   return (
     <form action={action} className="space-y-5">
@@ -102,13 +105,10 @@ export function AssetForm({ action, defaultValues }: AssetFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
           <Field label="Current Value">
-            <input
-              type="number"
+            <CurrencyInput
               name="current_value"
               required
-              min="0"
-              step="0.01"
-              inputMode="decimal"
+              currency={currency}
               defaultValue={defaultValues?.current_value ?? ''}
               placeholder="0.00"
               className={inputClass}
@@ -120,7 +120,8 @@ export function AssetForm({ action, defaultValues }: AssetFormProps) {
             type="text"
             name="currency"
             maxLength={10}
-            defaultValue={defaultValues?.currency ?? 'USD'}
+            value={currency}
+            onChange={(event) => setCurrency(event.target.value.toUpperCase())}
             placeholder="USD"
             className={`${inputClass} uppercase`}
           />
@@ -142,12 +143,9 @@ export function AssetForm({ action, defaultValues }: AssetFormProps) {
           />
         </Field>
         <Field label="Cost Basis (optional)">
-          <input
-            type="number"
+          <CurrencyInput
             name="cost_basis"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
+            currency={currency}
             defaultValue={defaultValues?.cost_basis ?? ''}
             placeholder="Total amount paid"
             className={inputClass}

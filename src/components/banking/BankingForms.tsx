@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import {
   ASSET_PURPOSES,
@@ -13,6 +14,7 @@ import {
   type BankSavingsDeposit,
 } from '@/db/schema';
 import { PURPOSE_LABELS } from '@/lib/formatters';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 
 const inputClass =
   'w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-zinc-500 transition-colors';
@@ -58,6 +60,8 @@ export function BankAccountForm({
   action: (formData: FormData) => Promise<void>;
   defaultValues?: BankAccount;
 }) {
+  const [currency, setCurrency] = useState(defaultValues?.currency ?? 'VND');
+
   return (
     <form action={action} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -71,10 +75,10 @@ export function BankAccountForm({
           <input name="account_number" defaultValue={defaultValues?.account_number ?? ''} placeholder="1234567890" className={inputClass} />
         </Field>
         <Field label="Balance">
-          <input type="number" step="0.01" name="balance" required defaultValue={defaultValues?.balance ?? 0} className={inputClass} />
+          <CurrencyInput name="balance" currency={currency} required defaultValue={defaultValues?.balance ?? 0} className={inputClass} />
         </Field>
         <Field label="Currency">
-          <select name="currency" defaultValue={defaultValues?.currency ?? 'VND'} className={`${inputClass} appearance-none`}>
+          <select name="currency" value={currency} onChange={(event) => setCurrency(event.target.value)} className={`${inputClass} appearance-none`}>
             <option value="VND">VND</option>
             <option value="USD">USD</option>
           </select>
@@ -132,7 +136,7 @@ export function SavingsDepositForm({
           <input name="deposit_name" required defaultValue={defaultValues?.deposit_name} placeholder="6M savings ladder" className={inputClass} />
         </Field>
         <Field label="Principal">
-          <input type="number" step="0.01" name="principal" required defaultValue={defaultValues?.principal ?? 0} className={inputClass} />
+          <CurrencyInput name="principal" currency="VND" required defaultValue={defaultValues?.principal ?? 0} className={inputClass} />
         </Field>
         <Field label="Interest Rate">
           <input type="number" step="0.01" name="interest_rate" defaultValue={defaultValues?.interest_rate ?? 0} className={inputClass} />
@@ -187,13 +191,13 @@ export function CreditCardForm({
           <input name="card_network" defaultValue={defaultValues?.card_network ?? ''} placeholder="Visa, Mastercard..." className={inputClass} />
         </Field>
         <Field label="Credit Limit">
-          <input type="number" step="0.01" name="credit_limit" defaultValue={defaultValues?.credit_limit ?? 0} className={inputClass} />
+          <CurrencyInput name="credit_limit" currency="VND" defaultValue={defaultValues?.credit_limit ?? 0} className={inputClass} />
         </Field>
         <Field label="Current Used">
-          <input type="number" step="0.01" name="current_used" defaultValue={defaultValues?.current_used ?? 0} className={inputClass} />
+          <CurrencyInput name="current_used" currency="VND" defaultValue={defaultValues?.current_used ?? 0} className={inputClass} />
         </Field>
         <Field label="Available Limit">
-          <input type="number" step="0.01" name="available_limit" defaultValue={defaultValues?.available_limit ?? 0} className={inputClass} />
+          <CurrencyInput name="available_limit" currency="VND" defaultValue={defaultValues?.available_limit ?? 0} className={inputClass} />
         </Field>
         <Field label="Statement Date">
           <input type="date" name="statement_date" defaultValue={defaultValues?.statement_date ?? ''} className={inputClass} />
@@ -202,7 +206,7 @@ export function CreditCardForm({
           <input type="date" name="due_date" defaultValue={defaultValues?.due_date ?? ''} className={inputClass} />
         </Field>
         <Field label="Annual Fee">
-          <input type="number" step="0.01" name="annual_fee" defaultValue={defaultValues?.annual_fee ?? 0} className={inputClass} />
+          <CurrencyInput name="annual_fee" currency="VND" defaultValue={defaultValues?.annual_fee ?? 0} className={inputClass} />
         </Field>
         <Field label="Status">
           <select name="status" defaultValue={defaultValues?.status ?? 'active'} className={`${inputClass} appearance-none`}>
@@ -240,13 +244,13 @@ export function CreditFacilityForm({
           </select>
         </Field>
         <Field label="Limit Amount">
-          <input type="number" step="0.01" name="limit_amount" defaultValue={defaultValues?.limit_amount ?? 0} className={inputClass} />
+          <CurrencyInput name="limit_amount" currency="VND" defaultValue={defaultValues?.limit_amount ?? 0} className={inputClass} />
         </Field>
         <Field label="Current Used">
-          <input type="number" step="0.01" name="current_used" defaultValue={defaultValues?.current_used ?? 0} className={inputClass} />
+          <CurrencyInput name="current_used" currency="VND" defaultValue={defaultValues?.current_used ?? 0} className={inputClass} />
         </Field>
         <Field label="Available Amount">
-          <input type="number" step="0.01" name="available_amount" defaultValue={defaultValues?.available_amount ?? 0} className={inputClass} />
+          <CurrencyInput name="available_amount" currency="VND" defaultValue={defaultValues?.available_amount ?? 0} className={inputClass} />
         </Field>
         <Field label="Interest Rate">
           <input type="number" step="0.01" name="interest_rate" defaultValue={defaultValues?.interest_rate ?? 0} className={inputClass} />

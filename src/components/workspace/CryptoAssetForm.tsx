@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 
 const PURPOSE_OPTIONS = [
   { value: 'wealth_compounder', label: 'Wealth Compounder' },
@@ -114,30 +115,24 @@ export function CryptoAssetForm({ action }: CryptoAssetFormProps) {
 
         <div>
           <label className={labelClass}>Average Cost Per Coin (USD)</label>
-          <input
-            type="number"
-            inputMode="decimal"
+          <CurrencyInput
             name="avg_cost_per_coin"
+            currency="USD"
             placeholder="89000"
-            min="0"
-            step="any"
-            value={avgCost}
-            onChange={(e) => setAvgCost(e.target.value)}
+            defaultValue={avgCost}
+            onRawChange={setAvgCost}
             className={inputClass}
           />
         </div>
 
         <div>
           <label className={labelClass}>Current Price Per Coin (USD)</label>
-          <input
-            type="number"
-            inputMode="decimal"
+          <CurrencyInput
             name="current_price_per_coin"
+            currency="USD"
             placeholder="106000"
-            min="0"
-            step="any"
-            value={currentPrice}
-            onChange={(e) => setCurrentPrice(e.target.value)}
+            defaultValue={currentPrice}
+            onRawChange={setCurrentPrice}
             className={inputClass}
           />
         </div>

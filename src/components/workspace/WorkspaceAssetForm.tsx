@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
 import type { WorkspaceConfig, WorkspaceFieldDef } from './WorkspaceConfig';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 
 const inputClass =
   'w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-700 transition-colors';
@@ -42,7 +43,15 @@ function FieldWrapper({
   );
 }
 
-function renderField(field: WorkspaceFieldDef, defaultPurpose: string) {
+const MONEY_FIELD_NAMES = new Set([
+  'current_value',
+  'cost_basis',
+  'avg_cost',
+  'rental_income',
+  'loan_balance',
+]);
+
+function renderField(field: WorkspaceFieldDef, defaultPurpose: string, currency: string) {
   if (field.type === 'select') {
     return (
       <FieldWrapper key={field.name} field={field}>
@@ -78,6 +87,21 @@ function renderField(field: WorkspaceFieldDef, defaultPurpose: string) {
   }
 
   if (field.type === 'number') {
+    if (MONEY_FIELD_NAMES.has(field.name)) {
+      return (
+        <FieldWrapper key={field.name} field={field}>
+          <CurrencyInput
+            name={field.name}
+            currency={currency}
+            placeholder={field.placeholder}
+            defaultValue={field.defaultValue ?? ''}
+            required={field.required}
+            className={inputClass}
+          />
+        </FieldWrapper>
+      );
+    }
+
     return (
       <FieldWrapper key={field.name} field={field}>
         <input
@@ -145,7 +169,7 @@ export function WorkspaceAssetForm({ config, action }: WorkspaceAssetFormProps) 
       <input type="hidden" name="asset_class" value={config.assetClass} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {config.fields.map((field) => renderField(field, config.defaultPurpose))}
+        {config.fields.map((field) => renderField(field, config.defaultPurpose, config.currency))}
       </div>
 
       <div className="flex items-center gap-3 pt-1">

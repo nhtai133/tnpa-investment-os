@@ -1,10 +1,9 @@
 'use server';
 
 import { db } from '@/db';
-import { assets, appSettings, wealthSnapshots } from '@/db/schema';
+import { appSettings, wealthSnapshots } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { getUsdVndRate } from '@/lib/settings';
 import {
   computeInvestmentNetWorth,
   computeTotalNetWorth,
@@ -12,7 +11,7 @@ import {
   computePurposeBreakdown,
 } from '@/lib/calculations';
 import { normalizeToUsd, getNormalizedCostBasisUsd } from '@/lib/fx';
-import { getCreditLiabilityUsd } from '@/lib/banking';
+import { getPortfolioSummary, positionToAsset } from '@/lib/portfolio-aggregation';
 
 function now() {
   return new Date().toISOString();
@@ -21,18 +20,18 @@ function now() {
 export async function createSnapshot(formData: FormData) {
   const notes = (formData.get('notes') as string | null)?.trim() || null;
 
-  const [allAssets, allSettings] = await Promise.all([
-    db.select().from(assets).where(eq(assets.is_archived, false)),
+  const [portfolio, allSettings] = await Promise.all([
+    getPortfolioSummary(),
     db.select().from(appSettings),
   ]);
+  const allAssets = portfolio.positions.map(positionToAsset);
 
   const settingsMap = new Map(allSettings.map((s) => [s.key, s.value]));
   const storedRate = settingsMap.get('usd_vnd_rate');
-  const usdVndRate = storedRate ? parseFloat(storedRate) : await getUsdVndRate();
+  const usdVndRate = storedRate ? parseFloat(storedRate) : portfolio.usdVndRate;
 
-  const creditLiabilityUsd = await getCreditLiabilityUsd(usdVndRate);
-  const totalNW = computeTotalNetWorth(allAssets, usdVndRate, creditLiabilityUsd);
-  const investableNW = computeInvestmentNetWorth(allAssets, usdVndRate);
+  const totalNW = portfolio.totalNetWorth;
+  const investableNW = portfolio.investmentNetWorth;
 
   const assetsWithCostBasis = allAssets.filter((a) => a.cost_basis != null);
   const totalCostBasis = assetsWithCostBasis.reduce(

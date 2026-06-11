@@ -1,7 +1,4 @@
 import Link from 'next/link';
-import { db } from '@/db';
-import { assets } from '@/db/schema';
-import { asc, eq } from 'drizzle-orm';
 import type { AssetClass } from '@/db/schema';
 import { ASSET_CLASSES } from '@/db/schema';
 import {
@@ -11,7 +8,6 @@ import {
   computePurposeBreakdown,
 } from '@/lib/calculations';
 import { normalizeToUsd } from '@/lib/fx';
-import { getUsdVndRate } from '@/lib/settings';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
 import type { AllocationDataItem } from '@/components/dashboard/AllocationChart';
 import { PurposeAllocation } from '@/components/dashboard/PurposeAllocation';
@@ -20,7 +16,8 @@ import { FilterTabs } from '@/components/holdings/FilterTabs';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 import { ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
-import { getCreditLiabilityUsd } from '@/lib/banking';
+import { getPortfolioSummary, positionToAsset } from '@/lib/portfolio-aggregation';
+import { SourceContributionPanel } from '@/components/portfolio/SourceContributionPanel';
 
 const HOLDING_COLORS = ['#818CF8', '#34D399', '#F472B6', '#FB923C', '#A78BFA', '#38BDF8', '#FBBF24', '#F87171', '#4ADE80', '#22D3EE'];
 
@@ -36,19 +33,17 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
     ? (rawClass as AssetClass)
     : undefined;
 
-  const [activeAssets, archivedAssets, usdVndRate] = await Promise.all([
-    db.select().from(assets).where(eq(assets.is_archived, false)).orderBy(asc(assets.name)),
-    db.select().from(assets).where(eq(assets.is_archived, true)).orderBy(asc(assets.name)),
-    getUsdVndRate(),
-  ]);
+  const portfolio = await getPortfolioSummary();
+  const archivedAssets = portfolio.archivedAssets;
+  const activeAssets = portfolio.positions.map(positionToAsset);
+  const usdVndRate = portfolio.usdVndRate;
 
   const filteredAssets = activeClass
     ? activeAssets.filter((a) => a.asset_class === activeClass)
     : activeAssets;
 
-  const creditLiabilityUsd = await getCreditLiabilityUsd(usdVndRate);
-  const investmentNW = computeInvestmentNetWorth(activeAssets, usdVndRate);
-  const totalNW = computeTotalNetWorth(activeAssets, usdVndRate, creditLiabilityUsd);
+  const investmentNW = portfolio.investmentNetWorth;
+  const totalNW = portfolio.totalNetWorth;
 
   // Scope chart denominators to the filtered set so weights sum to 100% within the current tab
   const chartInvestmentNW = activeClass
@@ -135,6 +130,8 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
           investmentNetWorth={investmentNW}
           totalNetWorth={totalNW}
         />
+
+        <SourceContributionPanel rows={portfolio.sourceContributions} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AllocationChart

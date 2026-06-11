@@ -1,6 +1,5 @@
 import { db } from '@/db';
 import {
-  assets,
   appSettings,
   decisionLogs,
   decisionReviews,
@@ -8,11 +7,6 @@ import {
   opportunities,
 } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { getUsdVndRate } from '@/lib/settings';
-import {
-  computeInvestmentNetWorth,
-  computeTotalNetWorth,
-} from '@/lib/calculations';
 import { normalizeToUsd, getNormalizedCostBasisUsd } from '@/lib/fx';
 import {
   REBALANCING_CLASSES,
@@ -29,7 +23,7 @@ import {
 import { REBALANCING_COLORS, REBALANCING_LABELS } from '@/lib/rebalancing';
 import { PURPOSE_COLORS, PURPOSE_LABELS } from '@/lib/formatters';
 import type { AssetPurpose } from '@/db/schema';
-import { getCreditLiabilityUsd } from '@/lib/banking';
+import { getPortfolioSummary, positionToAsset } from '@/lib/portfolio-aggregation';
 
 import { WealthSnapshot } from '@/components/dashboard/WealthSnapshot';
 import { PurposeHealth, type PurposeHealthRow } from '@/components/dashboard/PurposeHealth';
@@ -38,6 +32,7 @@ import { WealthScore } from '@/components/dashboard/WealthScore';
 import { ReviewQueue } from '@/components/dashboard/ReviewQueue';
 import { RebalancingSignals } from '@/components/dashboard/RebalancingSignals';
 import { PipelineSummary } from '@/components/dashboard/PipelineSummary';
+import { SourceContributionPanel } from '@/components/portfolio/SourceContributionPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,22 +66,22 @@ function computeReviewScore(total: number, reviewed: number, overdueWatchlist: n
 
 export default async function CommandCenter() {
   const [
-    allAssets,
+    portfolio,
     allSettings,
     allDecisions,
     allReviews,
     activeWatchlist,
     allOpps,
-    usdVndRate,
   ] = await Promise.all([
-    db.select().from(assets).where(eq(assets.is_archived, false)),
+    getPortfolioSummary(),
     db.select().from(appSettings),
     db.select().from(decisionLogs).orderBy(desc(decisionLogs.decision_date)),
     db.select().from(decisionReviews),
     db.select().from(watchlistItems).where(eq(watchlistItems.status, 'active')),
     db.select().from(opportunities),
-    getUsdVndRate(),
   ]);
+  const allAssets = portfolio.positions.map(positionToAsset);
+  const usdVndRate = portfolio.usdVndRate;
 
   // ── Settings map ────────────────────────────────────────────────────────────
   const settingsMap = new Map(allSettings.map((s) => [s.key, s.value]));
@@ -115,9 +110,8 @@ export default async function CommandCenter() {
   const purposeRebalancing = computePurposeRebalancing(allAssets, purposeTargets, usdVndRate);
 
   // ── Wealth snapshot ─────────────────────────────────────────────────────────
-  const creditLiabilityUsd = await getCreditLiabilityUsd(usdVndRate);
-  const totalNetWorth = computeTotalNetWorth(allAssets, usdVndRate, creditLiabilityUsd);
-  const investableNetWorth = computeInvestmentNetWorth(allAssets, usdVndRate);
+  const totalNetWorth = portfolio.totalNetWorth;
+  const investableNetWorth = portfolio.investmentNetWorth;
 
   const assetsWithCostBasis = allAssets.filter((a) => a.cost_basis != null);
   const totalCostBasis = assetsWithCostBasis.reduce(
@@ -266,6 +260,8 @@ export default async function CommandCenter() {
           gainLossPct={gainLossPct}
           usdVndRate={usdVndRate}
         />
+
+        <SourceContributionPanel rows={portfolio.sourceContributions} />
 
         {/* 2 + 7. Purpose Health ← 2/3 | Wealth Score + Decision Intel ← 1/3 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

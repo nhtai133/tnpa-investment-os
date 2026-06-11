@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 
 const PURPOSE_OPTIONS = [
   { value: 'liquidity_reserve', label: 'Liquidity Reserve' },
@@ -47,6 +48,7 @@ interface CashFundsAssetFormProps {
 export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
   const [accountType, setAccountType] = useState<string>('Cash');
   const [purpose, setPurpose] = useState<string>('liquidity_reserve');
+  const [currency, setCurrency] = useState<string>('VND');
 
   function handleAccountTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newType = e.target.value;
@@ -113,27 +115,21 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
           <label className={labelClass}>
             Balance / Current Value <span className="text-zinc-700">*</span>
           </label>
-          <input
-            type="number"
-            inputMode="decimal"
+          <CurrencyInput
             name="current_value"
+            currency={currency}
             required
             placeholder="50000000"
-            min="0"
-            step="any"
             className={inputClass}
           />
         </div>
 
         <div>
           <label className={labelClass}>Cost Basis (optional)</label>
-          <input
-            type="number"
-            inputMode="decimal"
+          <CurrencyInput
             name="cost_basis"
+            currency={currency}
             placeholder="Initial deposit / NAV cost"
-            min="0"
-            step="any"
             className={inputClass}
           />
         </div>
@@ -164,7 +160,8 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
           <label className={labelClass}>Currency</label>
           <select
             name="currency"
-            defaultValue="VND"
+            value={currency}
+            onChange={(event) => setCurrency(event.target.value)}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
             <option value="VND">VND</option>

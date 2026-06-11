@@ -1,7 +1,4 @@
-import { db } from '@/db';
-import { assets } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { getUsdVndRate, getAppSetting } from '@/lib/settings';
+import { getAppSetting } from '@/lib/settings';
 import {
   REBALANCING_CLASSES,
   REBALANCING_SETTINGS_KEYS,
@@ -15,14 +12,14 @@ import {
   type RebalancingPurpose,
 } from '@/lib/rebalancing';
 import { RebalancingClient } from '@/components/rebalancing/RebalancingClient';
+import { getPortfolioSummary, positionToAsset } from '@/lib/portfolio-aggregation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RebalancingPage() {
-  const [allAssets, usdVndRate] = await Promise.all([
-    db.select().from(assets).where(eq(assets.is_archived, false)),
-    getUsdVndRate(),
-  ]);
+  const portfolio = await getPortfolioSummary();
+  const allAssets = portfolio.positions.map(positionToAsset);
+  const usdVndRate = portfolio.usdVndRate;
 
   // Asset class targets
   const classTargets: Record<RebalancingAssetClass, number> = { ...DEFAULT_TARGETS };
