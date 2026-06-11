@@ -46,7 +46,15 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl space-y-4">
+          {asset.purpose === 'retirement' && (
+            <div className="rounded-lg border border-orange-900/40 bg-orange-950/20 px-4 py-3">
+              <p className="text-xs font-semibold text-orange-400 mb-1">Retirement Asset</p>
+              <p className="text-[11px] text-orange-700 leading-relaxed">
+                This asset is tagged as Retirement. Review carefully before selling or archiving.
+              </p>
+            </div>
+          )}
           <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
             <AssetForm action={boundUpdate} defaultValues={asset} />
             {!asset.is_archived && (

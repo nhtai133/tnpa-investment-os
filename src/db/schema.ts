@@ -8,6 +8,7 @@ export const ASSET_PURPOSES = [
   'opportunity_capital',
   'store_of_value',
   'strategic_asset',
+  'retirement',
 ] as const;
 
 export const OPPORTUNITY_SOURCES = ['manual', 'telegram', 'ai', 'other'] as const;

@@ -71,6 +71,7 @@ export const PURPOSE_LABELS: Record<AssetPurpose, string> = {
   opportunity_capital: 'Opportunity Capital',
   store_of_value: 'Store of Value',
   strategic_asset: 'Strategic Asset',
+  retirement: 'Retirement',
 };
 
 export const PURPOSE_COLORS: Record<AssetPurpose, string> = {
@@ -80,6 +81,7 @@ export const PURPOSE_COLORS: Record<AssetPurpose, string> = {
   opportunity_capital: '#F472B6',
   store_of_value: '#FBBF24',
   strategic_asset: '#F87171',
+  retirement: '#FB923C',
 };
 
 export const OPPORTUNITY_SOURCE_LABELS: Record<string, string> = {

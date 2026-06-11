@@ -39,6 +39,7 @@ const PURPOSE_OPTIONS = [
   { value: 'opportunity_capital', label: 'Opportunity Capital' },
   { value: 'store_of_value', label: 'Store of Value' },
   { value: 'strategic_asset', label: 'Strategic Asset' },
+  { value: 'retirement', label: 'Retirement' },
 ];
 
 export const BANKING_WORKSPACE_CONFIG: WorkspaceConfig = {
