@@ -35,11 +35,14 @@ export default async function AccountsPage() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-              Lifecycle
+              Lifecycle · System Account Map
             </p>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
               Account Registry
             </h1>
+            <p className="text-xs text-zinc-600 mt-0.5">
+              Admin view — accounts are created from their domain modules.
+            </p>
           </div>
           <Link
             href="/accounts/new"

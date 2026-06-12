@@ -2,6 +2,7 @@
 
 import { db } from '@/db';
 import {
+  accountRegistry,
   assets,
   bankAccounts,
   bankCreditCards,
@@ -81,13 +82,16 @@ export async function createBankAccount(formData: FormData) {
   const accountName = str(formData, 'account_name');
   if (!bankName || !accountName) throw new Error('Bank and account name are required.');
 
+  const currency = str(formData, 'currency') ?? 'VND';
+  const balance = num(formData, 'balance');
+
   await db.insert(bankAccounts).values({
     bank_name: bankName,
     account_name: accountName,
     account_number: str(formData, 'account_number'),
     account_type: (str(formData, 'account_type') ?? 'Reserve') as BankAccountType,
-    currency: str(formData, 'currency') ?? 'VND',
-    balance: num(formData, 'balance'),
+    currency,
+    balance,
     purpose: (str(formData, 'purpose') ?? 'liquidity_reserve') as AssetPurpose,
     custom_purpose: str(formData, 'custom_purpose'),
     vip_tier: str(formData, 'vip_tier'),
@@ -96,6 +100,23 @@ export async function createBankAccount(formData: FormData) {
     created_at: now,
     updated_at: now,
   });
+
+  if (bool(formData, 'link_to_lifecycle')) {
+    await db.insert(accountRegistry).values({
+      name: accountName,
+      type: 'bank_account',
+      institution: bankName,
+      account_number_masked: str(formData, 'account_number'),
+      currency,
+      current_balance: balance,
+      status: 'active',
+      notes: null,
+      created_at: now,
+      updated_at: now,
+    });
+    revalidatePath('/accounts');
+    revalidatePath('/transactions');
+  }
 
   revalidateBanking(bankName);
   redirect('/banking');

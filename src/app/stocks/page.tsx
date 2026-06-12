@@ -1,16 +1,28 @@
 import Link from 'next/link';
+import { db } from '@/db';
+import { accountRegistry } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { getModuleData } from '@/lib/moduleData';
 import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
 import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
 import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
+import { Card, CardHeader } from '@/components/ui/Card';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StocksPage() {
-  const { classAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate } =
-    await getModuleData('stock');
+  const [
+    { classAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate },
+    brokerAccounts,
+  ] = await Promise.all([
+    getModuleData('stock'),
+    db
+      .select()
+      .from(accountRegistry)
+      .where(eq(accountRegistry.type, 'broker_account')),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -57,6 +69,61 @@ export default async function StocksPage() {
         />
 
         <ArchivedSection assets={archivedClassAssets} label="Archived Stocks" usdVndRate={usdVndRate} />
+
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
+              Broker Accounts
+            </p>
+            <Link
+              href="/stocks/accounts"
+              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Manage →
+            </Link>
+          </div>
+          <Card>
+            <CardHeader
+              label="Registered Brokers"
+              action={
+                <Link
+                  href="/stocks/accounts/new"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  + Add Broker Account
+                </Link>
+              }
+            />
+            {brokerAccounts.length === 0 ? (
+              <div className="px-5 py-6 text-sm text-zinc-600">
+                No broker accounts registered.{' '}
+                <Link href="/stocks/accounts/new" className="text-indigo-400 hover:text-indigo-300">
+                  Add one
+                </Link>{' '}
+                to enable lifecycle tracking for stock purchases.
+              </div>
+            ) : (
+              <div className="divide-y divide-[#1A1A1F]">
+                {brokerAccounts.map((account) => (
+                  <div key={account.id} className="flex items-center justify-between px-5 py-3">
+                    <div>
+                      <p className="text-sm text-zinc-200">{account.name}</p>
+                      {account.institution && (
+                        <p className="text-xs text-zinc-600">{account.institution}</p>
+                      )}
+                    </div>
+                    <Link
+                      href={`/accounts/${account.id}`}
+                      className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                    >
+                      View
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </section>
 
         <SectionPlaceholder
           label="Watchlist"

@@ -119,6 +119,25 @@ export function BankAccountForm({
       <Field label="Notes">
         <textarea name="notes" rows={4} defaultValue={defaultValues?.notes ?? ''} className={`${inputClass} resize-none`} />
       </Field>
+
+      {!defaultValues && (
+        <div className="rounded-lg border border-[#26262B] bg-[#101014] px-4 py-3">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="link_to_lifecycle"
+              className="mt-0.5 h-4 w-4 accent-indigo-600 flex-shrink-0"
+            />
+            <div>
+              <p className="text-sm text-zinc-200 font-medium">Register for transaction tracking</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                Use this account as a funding source in transactions. Adds it to the Lifecycle Account Registry.
+              </p>
+            </div>
+          </label>
+        </div>
+      )}
+
       <Footer label={defaultValues ? 'Update Account' : 'Add Account'} cancelHref="/banking" />
     </form>
   );
