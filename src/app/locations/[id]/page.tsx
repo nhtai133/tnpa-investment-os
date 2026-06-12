@@ -60,12 +60,14 @@ export default async function LocationDetailPage({ params }: { params: { id: str
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <Link
-              href="/locations"
-              className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
-            >
-              ← Locations
-            </Link>
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-1.5 text-[11px] font-semibold tracking-widest uppercase">
+              <Link href="/locations" className="text-zinc-600 hover:text-zinc-400 transition-colors">
+                Locations
+              </Link>
+              <span className="text-zinc-800">›</span>
+              <span className="text-zinc-500">{account.name}</span>
+            </nav>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
               {account.name}
             </h1>
@@ -115,11 +117,11 @@ export default async function LocationDetailPage({ params }: { params: { id: str
           />
         </div>
 
-        {/* Custody positions */}
+        {/* Custody positions — collapsed by default */}
         <CollapsibleSection
-          title="Custody Positions"
+          title="Holdings"
           summary={enrichedPositions.length > 0 ? `${enrichedPositions.length} asset${enrichedPositions.length !== 1 ? 's' : ''}` : undefined}
-          defaultOpen={enrichedPositions.length > 0}
+          defaultOpen={false}
         >
           {enrichedPositions.length === 0 ? (
             <Card className="px-6 py-8 text-center">

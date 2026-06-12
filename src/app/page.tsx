@@ -275,10 +275,7 @@ export default async function CommandCenter() {
           usdVndRate={usdVndRate}
         />
 
-        <SourceContributionPanel rows={portfolio.sourceContributions} />
-
-        <LifecycleDashboard {...lifecycleDashboard} />
-
+        {/* 2. Assets by Location — near top for instant custody visibility */}
         <CollapsibleSection
           title="Assets by Location"
           summary={`${locationsData.locations.filter((l) => !l.isEmpty).length} active locations`}
@@ -289,6 +286,10 @@ export default async function CommandCenter() {
             totalValue={locationsData.totalValue}
           />
         </CollapsibleSection>
+
+        <SourceContributionPanel rows={portfolio.sourceContributions} />
+
+        <LifecycleDashboard {...lifecycleDashboard} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="p-5">

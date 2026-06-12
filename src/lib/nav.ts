@@ -9,11 +9,11 @@ export interface NavGroup {
 }
 
 export const PORTFOLIO_LINKS: NavLink[] = [
+  { label: 'Locations', href: '/locations' },
   { label: 'Holdings', href: '/holdings' },
-  { label: 'Buckets', href: '/buckets' },
   { label: 'Transactions', href: '/transactions' },
   { label: 'Accounts', href: '/accounts' },
-  { label: 'Locations', href: '/locations' },
+  { label: 'Buckets', href: '/buckets' },
   { label: 'Rebalancing', href: '/rebalancing' },
   { label: 'Wealth Calendar', href: '/calendar' },
   { label: 'Performance', href: '/performance' },

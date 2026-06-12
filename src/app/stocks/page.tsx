@@ -121,37 +121,43 @@ export default async function StocksPage() {
           />
         </div>
 
-        {/* Holdings + Allocation — default open */}
+        {/* Broker-first view — primary, default open */}
         <CollapsibleSection
-          title="Stock Holdings & Allocation"
+          title="By Broker"
+          summary={brokerSummary}
+          defaultOpen
+        >
+          <BrokerPortfolioBreakdown brokers={brokerBreakdown} />
+        </CollapsibleSection>
+
+        {/* Allocation — default open */}
+        <CollapsibleSection
+          title="Allocation"
           summary={holdingsSummary}
           defaultOpen
         >
-          <div className="space-y-4">
-            <StocksHoldingsTable
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <WorkspaceAllocationChart
               assets={classAssets}
-              totalNetWorth={totalNW}
               usdVndRate={usdVndRate}
-              assetMeta={assetMeta}
+              label="Stock Allocation"
             />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <WorkspaceAllocationChart
-                assets={classAssets}
-                usdVndRate={usdVndRate}
-                label="Stock Allocation"
-              />
-              <BrokerAllocationSummary brokers={brokerBreakdown} />
-            </div>
+            <BrokerAllocationSummary brokers={brokerBreakdown} />
           </div>
         </CollapsibleSection>
 
-        {/* Broker Portfolio Breakdown — default collapsed */}
+        {/* Flat holdings table — secondary, collapsed */}
         <CollapsibleSection
-          title="Broker Portfolio Breakdown"
-          summary={brokerSummary}
+          title="All Holdings"
+          summary={holdingsSummary}
           defaultOpen={false}
         >
-          <BrokerPortfolioBreakdown brokers={brokerBreakdown} />
+          <StocksHoldingsTable
+            assets={classAssets}
+            totalNetWorth={totalNW}
+            usdVndRate={usdVndRate}
+            assetMeta={assetMeta}
+          />
         </CollapsibleSection>
 
         {/* Broker Accounts admin card — default collapsed */}

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Card';
 import { PositionSummaryCard } from '@/components/holdings/PositionSummaryCard';
 import { IntelligenceCard } from '@/components/holdings/IntelligenceCard';
 import { AssetLifecycleCard } from '@/components/holdings/AssetLifecycleCard';
+import { AssetJourneyCard } from '@/components/holdings/AssetJourneyCard';
 import { NotesCard } from '@/components/journal/NotesCard';
 import { DecisionLogCard } from '@/components/journal/DecisionLogCard';
 import { getAssetLifecycleSummary } from '@/lib/asset-lifecycle';
@@ -36,18 +37,47 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
   const totalNW = computeTotalNetWorth(allAssets, 1);
 
+  // Breadcrumb: if asset has a single custody location, show Locations > Account > Asset
+  // If multiple custody locations, show Locations > Asset
+  // If none, fall back to Holdings > Asset
+  const primaryCustody =
+    lifecycle.currentCustody.length === 1 ? lifecycle.currentCustody[0] : null;
+  const hasCustody = lifecycle.currentCustody.length > 0;
+
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
-              <Link
-                href="/holdings"
-                className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
-              >
-                ← Holdings
-              </Link>
+              {/* Breadcrumb */}
+              <nav className="flex items-center gap-1.5 text-[11px] font-semibold tracking-widest uppercase">
+                <Link href="/locations" className="text-zinc-600 hover:text-zinc-400 transition-colors">
+                  Locations
+                </Link>
+                {primaryCustody && (
+                  <>
+                    <span className="text-zinc-800">›</span>
+                    <Link
+                      href={`/locations/${primaryCustody.account.id}`}
+                      className="text-zinc-600 hover:text-zinc-400 transition-colors"
+                    >
+                      {primaryCustody.account.name}
+                    </Link>
+                  </>
+                )}
+                {!hasCustody && (
+                  <>
+                    <span className="text-zinc-800">›</span>
+                    <Link href="/holdings" className="text-zinc-600 hover:text-zinc-400 transition-colors">
+                      Holdings
+                    </Link>
+                  </>
+                )}
+                <span className="text-zinc-800">›</span>
+                <span className="text-zinc-500">{asset.name}</span>
+              </nav>
+
               <div className="flex items-center gap-2 mt-0.5">
                 <h1 className="text-base font-semibold text-zinc-100 leading-tight">
                   {asset.name}
@@ -73,6 +103,9 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
         <PositionSummaryCard asset={asset} totalNetWorth={totalNW} />
+
+        {/* Asset Journey Card — funding → execution → custody → value → gain/loss */}
+        <AssetJourneyCard lifecycle={lifecycle} asset={asset} />
 
         <AssetLifecycleCard lifecycle={lifecycle} currency={asset.currency} />
 
