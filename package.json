@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx src/db/migrate.ts",
+    "validate:account-integration": "tsx scripts/validate-account-integration.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio"
   },

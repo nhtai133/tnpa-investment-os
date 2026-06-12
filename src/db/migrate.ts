@@ -383,6 +383,7 @@ async function createCoreTables() {
       account_number_masked TEXT,
       currency TEXT NOT NULL DEFAULT 'USD',
       current_balance REAL NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'active',
       notes TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
@@ -530,6 +531,8 @@ async function addMissingColumns() {
     const col = sql.match(/ADD COLUMN (\S+)/)?.[1] ?? sql;
     await exec(`transactions.${col}`, sql);
   }
+
+  await exec('account_registry.status', `ALTER TABLE account_registry ADD COLUMN status TEXT NOT NULL DEFAULT 'active'`);
 }
 
 // ── Default seed rows ────────────────────────────────────────────────────────

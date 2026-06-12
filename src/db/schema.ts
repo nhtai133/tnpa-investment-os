@@ -362,6 +362,7 @@ export const accountRegistry = sqliteTable('account_registry', {
   account_number_masked: text('account_number_masked'),
   currency: text('currency').notNull().default('USD'),
   current_balance: real('current_balance').notNull().default(0),
+  status: text('status', { enum: ['active', 'inactive', 'archived'] }).notNull().default('active'),
   notes: text('notes'),
   created_at: text('created_at').notNull(),
   updated_at: text('updated_at').notNull(),

@@ -10,6 +10,14 @@ interface LifecycleDashboardProps {
     quantity: number;
     costBasis: number;
   }>;
+  cryptoByWallet: Array<{
+    account: { id: number; name: string };
+    asset: { id: number; name: string; symbol: string | null; currency: string };
+    quantity: number;
+    costBasis: number;
+  }>;
+  brokerExchangeExposure: Array<{ account: { id: number; name: string; currency: string }; costBasis: number }>;
+  idleCashByBankBroker: Array<{ account: { id: number; name: string; currency: string }; balance: number }>;
   cryptoColdStoragePct: number;
   idleCash: number;
   investedCapital: number;
@@ -21,6 +29,9 @@ interface LifecycleDashboardProps {
 export function LifecycleDashboard({
   cashByAccount,
   assetsByCustody,
+  cryptoByWallet,
+  brokerExchangeExposure,
+  idleCashByBankBroker,
   cryptoColdStoragePct,
   idleCash,
   investedCapital,
@@ -59,6 +70,45 @@ export function LifecycleDashboard({
                 key={`${row.account?.id}-${row.asset?.id}`}
                 label={`${row.asset?.symbol ?? row.asset?.name ?? '-'} at ${row.account?.name ?? '-'}`}
                 value={row.quantity.toLocaleString()}
+              />
+            ))}
+          </List>
+        </Card>
+
+        <Card>
+          <CardHeader label="Crypto by Wallet" />
+          <List>
+            {cryptoByWallet.slice(0, 6).map((row) => (
+              <Row
+                key={`${row.account.id}-${row.asset.id}`}
+                label={`${row.asset.symbol ?? row.asset.name} at ${row.account.name}`}
+                value={row.quantity.toLocaleString()}
+              />
+            ))}
+          </List>
+        </Card>
+
+        <Card>
+          <CardHeader label="Broker/Exchange Exposure" />
+          <List>
+            {brokerExchangeExposure.slice(0, 6).map((row) => (
+              <Row
+                key={row.account.id}
+                label={row.account.name}
+                value={formatValue(row.costBasis, row.account.currency)}
+              />
+            ))}
+          </List>
+        </Card>
+
+        <Card>
+          <CardHeader label="Idle Cash by Bank/Broker" />
+          <List>
+            {idleCashByBankBroker.slice(0, 6).map((row) => (
+              <Row
+                key={row.account.id}
+                label={row.account.name}
+                value={formatValue(row.balance, row.account.currency)}
               />
             ))}
           </List>

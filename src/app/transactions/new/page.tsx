@@ -18,7 +18,11 @@ export default async function NewTransactionPage({ searchParams }: Props) {
       .from(assets)
       .where(eq(assets.is_archived, false))
       .orderBy(asc(assets.name)),
-    db.select().from(accountRegistry).orderBy(asc(accountRegistry.type), asc(accountRegistry.name)),
+    db
+      .select()
+      .from(accountRegistry)
+      .where(eq(accountRegistry.status, 'active'))
+      .orderBy(asc(accountRegistry.type), asc(accountRegistry.name)),
   ]);
 
   const preselectedAssetId = searchParams.asset_id ? Number(searchParams.asset_id) : undefined;

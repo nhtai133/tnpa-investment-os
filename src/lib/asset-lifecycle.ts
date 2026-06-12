@@ -9,7 +9,7 @@ import {
   type Asset,
   type TransactionType,
 } from '@/db/schema';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, or, sql } from 'drizzle-orm';
 
 const EPSILON = 0.00000001;
 
@@ -63,6 +63,24 @@ export interface AssetLifecycleSummary {
   totalReturn: number;
 }
 
+export interface AccountRegistryMetrics {
+  accountId: number;
+  linkedTransactionCount: number;
+  linkedAssetCount: number;
+  totalCustodyValue: number;
+}
+
+export interface AccountDetailSummary {
+  account: AccountRegistry;
+  linkedTransactions: Array<typeof transactions.$inferSelect>;
+  fundedAssets: Asset[];
+  executedAssets: Asset[];
+  custodiedAssets: Array<{ asset: Asset; quantity: number; costBasis: number }>;
+  transfersIn: Array<typeof transactions.$inferSelect>;
+  transfersOut: Array<typeof transactions.$inferSelect>;
+  realizedPnl: number;
+}
+
 function requireValue<T>(value: T | null | undefined, message: string): T {
   if (value === null || value === undefined || value === '') {
     throw new Error(message);
@@ -73,6 +91,19 @@ function requireValue<T>(value: T | null | undefined, message: string): T {
 async function getAsset(assetId: number | null): Promise<Asset | null> {
   if (!assetId) return null;
   return db.select().from(assets).where(eq(assets.id, assetId)).limit(1).then((rows) => rows[0] ?? null);
+}
+
+async function assertActiveAccount(accountId: number | null, message: string) {
+  if (!accountId) throw new Error(message);
+  const account = await db
+    .select()
+    .from(accountRegistry)
+    .where(eq(accountRegistry.id, accountId))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+  if (!account) throw new Error(`${message} Account Registry record was not found.`);
+  if (account.status !== 'active') throw new Error(`${account.name} is not active in Account Registry.`);
+  return account;
 }
 
 async function getPosition(assetId: number, custodyAccountId: number) {
@@ -176,6 +207,29 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
   const now = new Date().toISOString();
   const asset = await getAsset(input.assetId);
   validateLifecycleInput(input, asset);
+
+  if (input.type === 'buy') {
+    await Promise.all([
+      assertActiveAccount(input.fundingAccountId, 'Buy transaction requires a funding source.'),
+      assertActiveAccount(input.executionAccountId, 'Buy transaction requires an execution venue.'),
+      assertActiveAccount(input.custodyAccountId, 'Buy transaction requires a custody location.'),
+    ]);
+  }
+
+  if (input.type === 'sell') {
+    await Promise.all([
+      assertActiveAccount(input.executionAccountId, 'Sell transaction requires an execution venue.'),
+      assertActiveAccount(input.receiveAccountId, 'Sell transaction requires a receive destination.'),
+      assertActiveAccount(input.fromCustodyAccountId ?? input.custodyAccountId, 'Sell transaction requires source custody.'),
+    ]);
+  }
+
+  if (input.type === 'transfer') {
+    await Promise.all([
+      assertActiveAccount(input.fromCustodyAccountId, 'Transfer requires source custody.'),
+      assertActiveAccount(input.toCustodyAccountId, 'Transfer requires destination custody.'),
+    ]);
+  }
 
   const quantity = input.quantity ?? 0;
   const fees = input.fees ?? 0;
@@ -415,8 +469,9 @@ export async function getLifecycleDashboard() {
 
   const accountMap = new Map(accounts.map((account) => [account.id, account]));
   const assetMap = new Map(allAssets.map((asset) => [asset.id, asset]));
-  const cashByAccount = accounts
-    .filter((account) => account.type === 'bank_account' || account.type === 'cash_location')
+  const activeAccounts = accounts.filter((account) => account.status === 'active');
+  const cashByAccount = activeAccounts
+    .filter((account) => ['bank_account', 'cash_location', 'broker_account'].includes(account.type))
     .map((account) => ({ account, balance: account.current_balance }));
 
   const assetsByCustody = positions
@@ -430,6 +485,26 @@ export async function getLifecycleDashboard() {
     .filter((row) => row.account && row.asset);
 
   const cryptoPositions = assetsByCustody.filter((row) => row.asset?.asset_class === 'crypto');
+  const cryptoByWallet = cryptoPositions
+    .filter((row) => row.account?.type === 'crypto_wallet' || row.account?.type === 'crypto_exchange')
+    .map((row) => ({
+      account: row.account!,
+      asset: row.asset!,
+      quantity: row.quantity,
+      costBasis: row.costBasis,
+    }));
+  const brokerExchangeExposure = assetsByCustody
+    .filter((row) => row.account?.type === 'broker_account' || row.account?.type === 'crypto_exchange')
+    .reduce<Array<{ account: AccountRegistry; costBasis: number }>>((rows, row) => {
+      const account = row.account!;
+      const existing = rows.find((item) => item.account.id === account.id);
+      if (existing) existing.costBasis += row.costBasis;
+      else rows.push({ account, costBasis: row.costBasis });
+      return rows;
+    }, []);
+  const idleCashByBankBroker = cashByAccount.filter((row) =>
+    ['bank_account', 'broker_account'].includes(row.account.type),
+  );
   const cryptoTotal = cryptoPositions.reduce((sum, row) => sum + row.costBasis, 0);
   const coldStorage = cryptoPositions
     .filter((row) => row.account?.type === 'crypto_wallet')
@@ -440,11 +515,96 @@ export async function getLifecycleDashboard() {
   return {
     cashByAccount,
     assetsByCustody,
+    cryptoByWallet,
+    brokerExchangeExposure,
+    idleCashByBankBroker,
     cryptoColdStoragePct: cryptoTotal > 0 ? (coldStorage / cryptoTotal) * 100 : 0,
     idleCash: cashByAccount.reduce((sum, row) => sum + row.balance, 0),
     investedCapital,
     recentMoneyFlows: recentTransactions.filter((txn) => txn.type !== 'transfer').slice(0, 5),
     recentTransfers: recentTransactions.filter((txn) => txn.type === 'transfer').slice(0, 5),
     lifetimePnl,
+  };
+}
+
+function transactionUsesAccount(transaction: typeof transactions.$inferSelect, accountId: number) {
+  return [
+    transaction.funding_account_id,
+    transaction.execution_account_id,
+    transaction.custody_account_id,
+    transaction.receive_account_id,
+    transaction.from_custody_account_id,
+    transaction.to_custody_account_id,
+  ].includes(accountId);
+}
+
+export async function getAccountRegistryMetrics(): Promise<AccountRegistryMetrics[]> {
+  const [allAccounts, txns, positions] = await Promise.all([
+    db.select().from(accountRegistry),
+    db.select().from(transactions),
+    db.select().from(assetCustodyPositions),
+  ]);
+
+  return allAccounts.map((account) => {
+    const linkedTransactions = txns.filter((transaction) => transactionUsesAccount(transaction, account.id));
+    const linkedAssetIds = new Set<number>();
+    for (const transaction of linkedTransactions) {
+      if (transaction.asset_id) linkedAssetIds.add(transaction.asset_id);
+    }
+    for (const position of positions) {
+      if (position.custody_account_id === account.id) linkedAssetIds.add(position.asset_id);
+    }
+
+    return {
+      accountId: account.id,
+      linkedTransactionCount: linkedTransactions.length,
+      linkedAssetCount: linkedAssetIds.size,
+      totalCustodyValue: positions
+        .filter((position) => position.custody_account_id === account.id)
+        .reduce((sum, position) => sum + position.cost_basis, 0),
+    };
+  });
+}
+
+export async function getAccountDetailSummary(accountId: number): Promise<AccountDetailSummary | null> {
+  const [account, txns, allAssets, positions] = await Promise.all([
+    db.select().from(accountRegistry).where(eq(accountRegistry.id, accountId)).limit(1).then((rows) => rows[0] ?? null),
+    db.select().from(transactions).where(or(
+      eq(transactions.funding_account_id, accountId),
+      eq(transactions.execution_account_id, accountId),
+      eq(transactions.custody_account_id, accountId),
+      eq(transactions.receive_account_id, accountId),
+      eq(transactions.from_custody_account_id, accountId),
+      eq(transactions.to_custody_account_id, accountId),
+    )).orderBy(desc(transactions.transaction_date), desc(transactions.created_at)),
+    db.select().from(assets),
+    db.select().from(assetCustodyPositions).where(eq(assetCustodyPositions.custody_account_id, accountId)),
+  ]);
+
+  if (!account) return null;
+  const assetMap = new Map(allAssets.map((asset) => [asset.id, asset]));
+
+  function assetsFor(predicate: (transaction: typeof txns[number]) => boolean) {
+    const ids = new Set(txns.filter(predicate).map((transaction) => transaction.asset_id).filter((id): id is number => id != null));
+    return Array.from(ids).map((id) => assetMap.get(id)).filter((asset): asset is Asset => Boolean(asset));
+  }
+
+  return {
+    account,
+    linkedTransactions: txns,
+    fundedAssets: assetsFor((transaction) => transaction.funding_account_id === accountId),
+    executedAssets: assetsFor((transaction) => transaction.execution_account_id === accountId),
+    custodiedAssets: positions
+      .map((position) => ({
+        asset: assetMap.get(position.asset_id),
+        quantity: position.quantity,
+        costBasis: position.cost_basis,
+      }))
+      .filter((row): row is { asset: Asset; quantity: number; costBasis: number } => Boolean(row.asset)),
+    transfersIn: txns.filter((transaction) => transaction.to_custody_account_id === accountId),
+    transfersOut: txns.filter((transaction) => transaction.from_custody_account_id === accountId),
+    realizedPnl: txns
+      .filter((transaction) => transaction.receive_account_id === accountId || transaction.execution_account_id === accountId)
+      .reduce((sum, transaction) => sum + (transaction.realized_pnl ?? 0), 0),
   };
 }
