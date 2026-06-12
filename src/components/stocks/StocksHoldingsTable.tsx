@@ -6,8 +6,11 @@ import type { Asset } from '@/db/schema';
 
 export interface AssetAccountMeta {
   brokerName: string | null;
+  brokerId: number | null;
   custodyName: string | null;
+  custodyId: number | null;
   fundingName: string | null;
+  fundingId: number | null;
 }
 
 interface StocksHoldingsTableProps {
@@ -28,10 +31,10 @@ export function StocksHoldingsTable({
       <Card className="px-6 py-16 text-center">
         <p className="text-sm text-zinc-500">No stock holdings.</p>
         <Link
-          href="/holdings/new"
+          href="/stocks/new"
           className="mt-3 inline-block text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
         >
-          + Add your first asset
+          + Add your first holding
         </Link>
       </Card>
     );
@@ -159,14 +162,41 @@ export function StocksHoldingsTable({
 
                   {showMeta && (
                     <>
-                      <td className="px-4 py-3.5 text-xs text-zinc-500 hidden xl:table-cell whitespace-nowrap">
-                        {meta?.brokerName ?? '—'}
+                      <td className="px-4 py-3.5 hidden xl:table-cell whitespace-nowrap">
+                        {meta?.brokerId ? (
+                          <Link
+                            href={`/stocks/accounts/${meta.brokerId}`}
+                            className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                          >
+                            {meta.brokerName}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-zinc-500">{meta?.brokerName ?? '—'}</span>
+                        )}
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-zinc-500 hidden xl:table-cell whitespace-nowrap">
-                        {meta?.custodyName ?? '—'}
+                      <td className="px-4 py-3.5 hidden xl:table-cell whitespace-nowrap">
+                        {meta?.custodyId ? (
+                          <Link
+                            href={`/accounts/${meta.custodyId}`}
+                            className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                          >
+                            {meta.custodyName}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-zinc-500">{meta?.custodyName ?? '—'}</span>
+                        )}
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-zinc-500 hidden xl:table-cell whitespace-nowrap">
-                        {meta?.fundingName ?? '—'}
+                      <td className="px-4 py-3.5 hidden xl:table-cell whitespace-nowrap">
+                        {meta?.fundingId ? (
+                          <Link
+                            href={`/accounts/${meta.fundingId}`}
+                            className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                          >
+                            {meta.fundingName}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-zinc-500">{meta?.fundingName ?? '—'}</span>
+                        )}
                       </td>
                     </>
                   )}

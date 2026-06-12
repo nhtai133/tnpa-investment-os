@@ -4,7 +4,6 @@ import { accountRegistry } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getModuleData } from '@/lib/moduleData';
 import { getBrokerPortfolioBreakdown } from '@/lib/broker-portfolio';
-import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
 import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
@@ -13,6 +12,7 @@ import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { BrokerPortfolioBreakdown } from '@/components/stocks/BrokerPortfolioBreakdown';
 import { BrokerAllocationSummary } from '@/components/stocks/BrokerAllocationSummary';
 import { StocksHoldingsTable } from '@/components/stocks/StocksHoldingsTable';
+import { formatValue } from '@/lib/formatters';
 import type { AssetAccountMeta } from '@/components/stocks/StocksHoldingsTable';
 
 export const dynamic = 'force-dynamic';
@@ -28,20 +28,31 @@ export default async function StocksPage() {
     getBrokerPortfolioBreakdown(),
   ]);
 
+  // Derived KPI values
+  const brokerCash = brokerBreakdown.reduce((sum, b) => sum + b.cashBalance, 0);
+  const totalWorkspaceValue = classValue + brokerCash;
+
+  // Build per-asset metadata map with IDs for linkable columns
   const assetMeta = new Map<number, AssetAccountMeta>();
   for (const row of brokerBreakdown) {
     for (const holding of row.holdings) {
       const existing = assetMeta.get(holding.asset.id);
       if (existing) {
+        // Asset held at multiple brokers — combine names, clear IDs (can't link to one)
         if (existing.brokerName && !existing.brokerName.includes(row.broker.name)) {
           existing.brokerName = `${existing.brokerName}, ${row.broker.name}`;
           existing.custodyName = existing.brokerName;
+          existing.brokerId = null;
+          existing.custodyId = null;
         }
       } else {
         assetMeta.set(holding.asset.id, {
           brokerName: row.broker.name,
+          brokerId: row.broker.id,
           custodyName: row.broker.name,
+          custodyId: row.broker.id,
           fundingName: holding.fundingAccountName,
+          fundingId: holding.fundingAccountId,
         });
       }
     }
@@ -49,16 +60,12 @@ export default async function StocksPage() {
 
   const holdingsSummary =
     classAssets.length > 0 ? `${classAssets.length} positions` : undefined;
-
   const brokerSummary =
     brokerBreakdown.length > 0
       ? `${brokerBreakdown.length} broker${brokerBreakdown.length !== 1 ? 's' : ''}`
       : undefined;
-
   const archivedSummary =
-    archivedClassAssets.length > 0
-      ? `${archivedClassAssets.length} archived`
-      : undefined;
+    archivedClassAssets.length > 0 ? `${archivedClassAssets.length} archived` : undefined;
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -72,25 +79,47 @@ export default async function StocksPage() {
               Stocks
             </h1>
           </div>
-          <Link
-            href="/stocks/new"
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            + Add Stock
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/stocks/new"
+              className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors"
+            >
+              Add Existing Holding
+            </Link>
+            <Link
+              href="/transactions/new"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Record Buy
+            </Link>
+          </div>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
-        {/* Always-visible KPIs */}
-        <WorkspaceKPIs
-          totalValue={classValue}
-          count={classAssets.length}
-          investmentNetWorth={investmentNW}
-          totalNetWorth={totalNW}
-          currency="VND"
-          classValueUsd={classValueUsd}
-        />
+        {/* Top-level KPI cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard
+            label="Stock Market Value"
+            value={formatValue(classValue, 'VND')}
+            sub={classValueUsd ? `≈ ${formatValue(classValueUsd, 'USD')}` : undefined}
+          />
+          <KpiCard
+            label="Broker Cash"
+            value={formatValue(brokerCash, 'VND')}
+            sub={`${brokerBreakdown.length} broker${brokerBreakdown.length !== 1 ? 's' : ''}`}
+          />
+          <KpiCard
+            label="Total Workspace"
+            value={formatValue(totalWorkspaceValue, 'VND')}
+            highlight
+          />
+          <KpiCard
+            label="Holdings"
+            value={String(classAssets.length)}
+            sub="active positions"
+          />
+        </div>
 
         {/* Holdings + Allocation — default open */}
         <CollapsibleSection
@@ -220,5 +249,33 @@ export default async function StocksPage() {
         </CollapsibleSection>
       </main>
     </div>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  sub,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <Card className="p-5">
+      <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">
+        {label}
+      </p>
+      <p
+        className={`text-xl font-light tracking-tight tabular-nums ${
+          highlight ? 'text-zinc-50' : 'text-zinc-100'
+        }`}
+      >
+        {value}
+      </p>
+      {sub && <p className="text-[11px] text-zinc-600 mt-1">{sub}</p>}
+    </Card>
   );
 }

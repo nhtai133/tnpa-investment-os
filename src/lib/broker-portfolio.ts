@@ -13,6 +13,7 @@ export interface BrokerHolding {
   gainLoss: number;
   gainLossPct: number | null;
   fundingAccountName: string | null;
+  fundingAccountId: number | null;
 }
 
 export interface BrokerPortfolioRow {
@@ -84,6 +85,7 @@ export async function getBrokerPortfolioBreakdown(): Promise<BrokerPortfolioRow[
           gainLoss,
           gainLossPct,
           fundingAccountName: fundingAccount?.name ?? null,
+          fundingAccountId: fundingAccount?.id ?? null,
         };
       })
       .filter((h): h is BrokerHolding => h !== null);

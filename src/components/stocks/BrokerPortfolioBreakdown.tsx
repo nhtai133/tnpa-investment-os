@@ -57,16 +57,14 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
 
           return (
             <div key={row.broker.id}>
-              {/* Compact row — always visible */}
-              <button
-                type="button"
-                onClick={() => toggle(row.broker.id)}
-                aria-expanded={isOpen}
-                className="w-full flex items-center gap-4 px-5 py-3 hover:bg-[#101014] transition-colors text-left"
-              >
-                <span className="text-sm font-medium text-zinc-200 flex-1 min-w-0 truncate">
+              {/* Compact row — broker name is a link, chevron is the expand toggle */}
+              <div className="flex items-center gap-4 px-5 py-3 hover:bg-[#101014] transition-colors">
+                <Link
+                  href={`/stocks/accounts/${row.broker.id}`}
+                  className="text-sm font-medium text-zinc-200 hover:text-indigo-300 transition-colors flex-1 min-w-0 truncate"
+                >
                   {row.broker.name}
-                </span>
+                </Link>
                 <span className="text-xs tabular-nums text-zinc-500 hidden sm:block w-[100px]">
                   <span className="text-zinc-600">Cash </span>
                   {formatValue(row.cashBalance, row.broker.currency)}
@@ -86,23 +84,29 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                   {totalPnl >= 0 ? '+' : ''}
                   {formatValue(totalPnl, row.broker.currency)}
                 </span>
-                <svg
-                  className={`w-4 h-4 text-zinc-600 flex-shrink-0 transition-transform duration-200 ${
-                    isOpen ? 'rotate-180' : ''
-                  }`}
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  aria-hidden="true"
+                <button
+                  type="button"
+                  onClick={() => toggle(row.broker.id)}
+                  aria-expanded={isOpen}
+                  aria-label={isOpen ? `Collapse ${row.broker.name}` : `Expand ${row.broker.name}`}
+                  className="p-1 -mr-1 text-zinc-600 hover:text-zinc-400 transition-colors flex-shrink-0"
                 >
-                  <path
-                    d="M2 4L6 8L10 4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 4L6 8L10 4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
 
               {/* Expanded detail */}
               <div
@@ -138,7 +142,6 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                       <Link
                         href={`/stocks/accounts/${row.broker.id}`}
                         className="ml-auto text-indigo-400 hover:text-indigo-300 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         View Broker →
                       </Link>
@@ -224,8 +227,19 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                                     </p>
                                   )}
                                 </td>
-                                <td className="px-5 py-2.5 text-zinc-600 text-xs whitespace-nowrap">
-                                  {h.fundingAccountName ?? '—'}
+                                <td className="px-5 py-2.5 whitespace-nowrap">
+                                  {h.fundingAccountId ? (
+                                    <Link
+                                      href={`/accounts/${h.fundingAccountId}`}
+                                      className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                                    >
+                                      {h.fundingAccountName}
+                                    </Link>
+                                  ) : (
+                                    <span className="text-xs text-zinc-600">
+                                      {h.fundingAccountName ?? '—'}
+                                    </span>
+                                  )}
                                 </td>
                               </tr>
                             ))}

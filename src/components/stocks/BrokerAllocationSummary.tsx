@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { formatValue, formatWeight } from '@/lib/formatters';
 import type { BrokerPortfolioRow } from '@/lib/broker-portfolio';
@@ -39,8 +40,13 @@ export function BrokerAllocationSummary({ brokers }: Props) {
               const totalPnl = row.realizedPnl + row.unrealizedPnl;
               return (
                 <tr key={row.broker.id} className="hover:bg-[#101014] transition-colors">
-                  <td className="px-5 py-2.5 text-zinc-200 font-medium whitespace-nowrap">
-                    {row.broker.name}
+                  <td className="px-5 py-2.5 whitespace-nowrap">
+                    <Link
+                      href={`/stocks/accounts/${row.broker.id}`}
+                      className="text-sm font-medium text-zinc-200 hover:text-indigo-300 transition-colors"
+                    >
+                      {row.broker.name}
+                    </Link>
                   </td>
                   <td className="px-5 py-2.5 text-zinc-300 tabular-nums whitespace-nowrap">
                     {formatValue(row.stockCustodyValue, row.broker.currency)}
