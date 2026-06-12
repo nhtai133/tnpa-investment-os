@@ -3,12 +3,15 @@ import { db } from '@/db';
 import { accountRegistry } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getModuleData } from '@/lib/moduleData';
+import { getBrokerPortfolioBreakdown } from '@/lib/broker-portfolio';
 import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
 import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
-import { HoldingsTable } from '@/components/holdings/HoldingsTable';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
 import { Card, CardHeader } from '@/components/ui/Card';
+import { BrokerPortfolioBreakdown } from '@/components/stocks/BrokerPortfolioBreakdown';
+import { StocksHoldingsTable } from '@/components/stocks/StocksHoldingsTable';
+import type { AssetAccountMeta } from '@/components/stocks/StocksHoldingsTable';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,13 +19,32 @@ export default async function StocksPage() {
   const [
     { classAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate },
     brokerAccounts,
+    brokerBreakdown,
   ] = await Promise.all([
     getModuleData('stock'),
-    db
-      .select()
-      .from(accountRegistry)
-      .where(eq(accountRegistry.type, 'broker_account')),
+    db.select().from(accountRegistry).where(eq(accountRegistry.type, 'broker_account')),
+    getBrokerPortfolioBreakdown(),
   ]);
+
+  // Build per-asset metadata for the enhanced holdings table
+  const assetMeta = new Map<number, AssetAccountMeta>();
+  for (const row of brokerBreakdown) {
+    for (const holding of row.holdings) {
+      const existing = assetMeta.get(holding.asset.id);
+      if (existing) {
+        if (existing.brokerName && !existing.brokerName.includes(row.broker.name)) {
+          existing.brokerName = `${existing.brokerName}, ${row.broker.name}`;
+          existing.custodyName = existing.brokerName;
+        }
+      } else {
+        assetMeta.set(holding.asset.id, {
+          brokerName: row.broker.name,
+          custodyName: row.broker.name,
+          fundingName: holding.fundingAccountName,
+        });
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -57,9 +79,21 @@ export default async function StocksPage() {
 
         <section>
           <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
+            Broker Portfolio Breakdown
+          </p>
+          <BrokerPortfolioBreakdown brokers={brokerBreakdown} />
+        </section>
+
+        <section>
+          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
             Stock Holdings
           </p>
-          <HoldingsTable assets={classAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
+          <StocksHoldingsTable
+            assets={classAssets}
+            totalNetWorth={totalNW}
+            usdVndRate={usdVndRate}
+            assetMeta={assetMeta}
+          />
         </section>
 
         <WorkspaceAllocationChart
@@ -112,12 +146,20 @@ export default async function StocksPage() {
                         <p className="text-xs text-zinc-600">{account.institution}</p>
                       )}
                     </div>
-                    <Link
-                      href={`/accounts/${account.id}`}
-                      className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-                    >
-                      View
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/stocks/accounts/${account.id}`}
+                        className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                      >
+                        Detail
+                      </Link>
+                      <Link
+                        href={`/accounts/${account.id}`}
+                        className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                      >
+                        Registry
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>
