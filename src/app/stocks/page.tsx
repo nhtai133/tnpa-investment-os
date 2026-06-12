@@ -8,8 +8,10 @@ import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
 import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
 import { ArchivedSection } from '@/components/holdings/ArchivedSection';
-import { Card, CardHeader } from '@/components/ui/Card';
+import { Card } from '@/components/ui/Card';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { BrokerPortfolioBreakdown } from '@/components/stocks/BrokerPortfolioBreakdown';
+import { BrokerAllocationSummary } from '@/components/stocks/BrokerAllocationSummary';
 import { StocksHoldingsTable } from '@/components/stocks/StocksHoldingsTable';
 import type { AssetAccountMeta } from '@/components/stocks/StocksHoldingsTable';
 
@@ -26,7 +28,6 @@ export default async function StocksPage() {
     getBrokerPortfolioBreakdown(),
   ]);
 
-  // Build per-asset metadata for the enhanced holdings table
   const assetMeta = new Map<number, AssetAccountMeta>();
   for (const row of brokerBreakdown) {
     for (const holding of row.holdings) {
@@ -45,6 +46,19 @@ export default async function StocksPage() {
       }
     }
   }
+
+  const holdingsSummary =
+    classAssets.length > 0 ? `${classAssets.length} positions` : undefined;
+
+  const brokerSummary =
+    brokerBreakdown.length > 0
+      ? `${brokerBreakdown.length} broker${brokerBreakdown.length !== 1 ? 's' : ''}`
+      : undefined;
+
+  const archivedSummary =
+    archivedClassAssets.length > 0
+      ? `${archivedClassAssets.length} archived`
+      : undefined;
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -68,6 +82,7 @@ export default async function StocksPage() {
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
+        {/* Always-visible KPIs */}
         <WorkspaceKPIs
           totalValue={classValue}
           count={classAssets.length}
@@ -77,57 +92,65 @@ export default async function StocksPage() {
           classValueUsd={classValueUsd}
         />
 
-        <section>
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            Broker Portfolio Breakdown
-          </p>
-          <BrokerPortfolioBreakdown brokers={brokerBreakdown} />
-        </section>
-
-        <section>
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            Stock Holdings
-          </p>
-          <StocksHoldingsTable
-            assets={classAssets}
-            totalNetWorth={totalNW}
-            usdVndRate={usdVndRate}
-            assetMeta={assetMeta}
-          />
-        </section>
-
-        <WorkspaceAllocationChart
-          assets={classAssets}
-          usdVndRate={usdVndRate}
-          label="Stock Allocation"
-        />
-
-        <ArchivedSection assets={archivedClassAssets} label="Archived Stocks" usdVndRate={usdVndRate} />
-
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Broker Accounts
-            </p>
-            <Link
-              href="/stocks/accounts"
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-            >
-              Manage →
-            </Link>
+        {/* Holdings + Allocation — default open */}
+        <CollapsibleSection
+          title="Stock Holdings & Allocation"
+          summary={holdingsSummary}
+          defaultOpen
+        >
+          <div className="space-y-4">
+            <StocksHoldingsTable
+              assets={classAssets}
+              totalNetWorth={totalNW}
+              usdVndRate={usdVndRate}
+              assetMeta={assetMeta}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <WorkspaceAllocationChart
+                assets={classAssets}
+                usdVndRate={usdVndRate}
+                label="Stock Allocation"
+              />
+              <BrokerAllocationSummary brokers={brokerBreakdown} />
+            </div>
           </div>
+        </CollapsibleSection>
+
+        {/* Broker Portfolio Breakdown — default collapsed */}
+        <CollapsibleSection
+          title="Broker Portfolio Breakdown"
+          summary={brokerSummary}
+          defaultOpen={false}
+        >
+          <BrokerPortfolioBreakdown brokers={brokerBreakdown} />
+        </CollapsibleSection>
+
+        {/* Broker Accounts admin card — default collapsed */}
+        <CollapsibleSection
+          title="Broker Accounts"
+          summary={brokerAccounts.length > 0 ? `${brokerAccounts.length} registered` : undefined}
+          defaultOpen={false}
+        >
           <Card>
-            <CardHeader
-              label="Registered Brokers"
-              action={
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#26262B]">
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
+                Registered Brokers
+              </span>
+              <div className="flex items-center gap-3">
                 <Link
                   href="/stocks/accounts/new"
                   className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
                   + Add Broker Account
                 </Link>
-              }
-            />
+                <Link
+                  href="/stocks/accounts"
+                  className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  Manage →
+                </Link>
+              </div>
+            </div>
             {brokerAccounts.length === 0 ? (
               <div className="px-5 py-6 text-sm text-zinc-600">
                 No broker accounts registered.{' '}
@@ -165,17 +188,36 @@ export default async function StocksPage() {
               </div>
             )}
           </Card>
-        </section>
+        </CollapsibleSection>
 
-        <SectionPlaceholder
-          label="Watchlist"
-          note="Stock watchlist — coming in a future sprint."
-        />
+        {/* Archived — default collapsed */}
+        <CollapsibleSection
+          title="Archived Stocks"
+          summary={archivedSummary}
+          defaultOpen={false}
+        >
+          <ArchivedSection
+            assets={archivedClassAssets}
+            label="Archived Stocks"
+            usdVndRate={usdVndRate}
+          />
+        </CollapsibleSection>
 
-        <SectionPlaceholder
-          label="Research Notes"
-          note="Research notes — coming in a future sprint."
-        />
+        {/* Watchlist — default collapsed */}
+        <CollapsibleSection title="Watchlist" defaultOpen={false}>
+          <SectionPlaceholder
+            label="Watchlist"
+            note="Stock watchlist — coming in a future sprint."
+          />
+        </CollapsibleSection>
+
+        {/* Research Notes — default collapsed */}
+        <CollapsibleSection title="Research Notes" defaultOpen={false}>
+          <SectionPlaceholder
+            label="Research Notes"
+            note="Research notes — coming in a future sprint."
+          />
+        </CollapsibleSection>
       </main>
     </div>
   );
