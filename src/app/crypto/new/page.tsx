@@ -1,8 +1,17 @@
 import Link from 'next/link';
+import { db } from '@/db';
+import { accountRegistry } from '@/db/schema';
+import { inArray } from 'drizzle-orm';
 import { createCryptoAsset } from '@/app/crypto/actions';
 import { CryptoAssetForm } from '@/components/workspace/CryptoAssetForm';
 
-export default function NewCryptoAssetPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function NewCryptoAssetPage() {
+  const cryptoAccounts = await db
+    .select()
+    .from(accountRegistry)
+    .where(inArray(accountRegistry.type, ['crypto_exchange', 'crypto_wallet']));
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
@@ -29,7 +38,7 @@ export default function NewCryptoAssetPage() {
           </div>
 
           <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
-            <CryptoAssetForm action={createCryptoAsset} />
+            <CryptoAssetForm action={createCryptoAsset} cryptoAccounts={cryptoAccounts} />
           </div>
         </div>
       </main>

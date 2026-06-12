@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
+import type { AccountRegistry } from '@/db/schema';
 
 const PURPOSE_OPTIONS = [
   { value: 'wealth_compounder', label: 'Wealth Compounder' },
@@ -41,9 +42,10 @@ function formatUSD(value: number): string {
 
 interface CryptoAssetFormProps {
   action: (formData: FormData) => Promise<void>;
+  cryptoAccounts: AccountRegistry[];
 }
 
-export function CryptoAssetForm({ action }: CryptoAssetFormProps) {
+export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps) {
   const [quantity, setQuantity] = useState('');
   const [avgCost, setAvgCost] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
@@ -179,14 +181,34 @@ export function CryptoAssetForm({ action }: CryptoAssetFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="md:col-span-2">
-          <label className={labelClass}>Wallet / Source</label>
-          <input
-            type="text"
-            name="wallet_source"
-            placeholder="e.g. Coinbase, Hardware Wallet, Binance"
-            maxLength={200}
-            className={inputClass}
-          />
+          <label className={labelClass}>Custody Account</label>
+          {cryptoAccounts.length === 0 ? (
+            <div className="rounded-lg border border-[#26262B] bg-[#101014] px-4 py-3">
+              <p className="text-sm text-zinc-600">
+                No exchanges or wallets registered.{' '}
+                <Link
+                  href="/crypto/accounts/new?return=/crypto/new"
+                  className="text-indigo-400 hover:text-indigo-300"
+                >
+                  Add Exchange or Wallet
+                </Link>
+                {' '}to assign custody.
+              </p>
+            </div>
+          ) : (
+            <select
+              name="custody_account_id"
+              defaultValue=""
+              className={`${inputClass} appearance-none cursor-pointer`}
+            >
+              <option value="">No custody account selected</option>
+              {cryptoAccounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name} ({account.type === 'crypto_exchange' ? 'Exchange' : 'Wallet'})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div>

@@ -70,7 +70,7 @@ export function TransactionForm({
   const totalCash = computedTradeAmount + feeAmount + taxAmount;
 
   const fundingAccounts = accounts.filter((account) =>
-    ['bank_account', 'cash_location'].includes(account.type),
+    ['bank_account', 'cash_location', 'crypto_exchange', 'crypto_wallet'].includes(account.type),
   );
   const executionAccounts = accounts.filter((account) =>
     ['broker_account', 'crypto_exchange'].includes(account.type),

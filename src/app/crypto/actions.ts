@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { assets } from '@/db/schema';
+import { assets, assetCustodyPositions } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { AssetPurpose } from '@/db/schema';
@@ -14,7 +14,8 @@ export async function createCryptoAsset(formData: FormData) {
   const avgCostPerCoinRaw = formData.get('avg_cost_per_coin') as string;
   const currentPricePerCoinRaw = formData.get('current_price_per_coin') as string;
   const purpose = ((formData.get('purpose') as string) || 'wealth_compounder') as AssetPurpose;
-  const walletSource = ((formData.get('wallet_source') as string) || '').trim();
+  const custodyAccountIdRaw = ((formData.get('custody_account_id') as string) || '').trim();
+  const custodyAccountId = custodyAccountIdRaw ? parseInt(custodyAccountIdRaw, 10) : null;
   const notesRaw = ((formData.get('notes') as string) || '').trim();
 
   const quantity = quantityRaw ? parseFloat(quantityRaw) : null;
@@ -32,12 +33,11 @@ export async function createCryptoAsset(formData: FormData) {
   const notesParts: string[] = [];
   if (avgCostPerCoin !== null) notesParts.push(`Avg Cost/Coin: ${avgCostPerCoin}`);
   if (currentPricePerCoin !== null) notesParts.push(`Current Price/Coin: ${currentPricePerCoin}`);
-  if (walletSource) notesParts.push(`Source: ${walletSource}`);
   if (notesRaw) notesParts.push(notesRaw);
 
   const now = new Date().toISOString();
 
-  await db.insert(assets).values({
+  const inserted = await db.insert(assets).values({
     name,
     symbol,
     asset_class: 'crypto',
@@ -51,7 +51,23 @@ export async function createCryptoAsset(formData: FormData) {
     include_in_total_net_worth: true,
     created_at: now,
     updated_at: now,
-  });
+  }).returning({ id: assets.id });
+
+  if (
+    custodyAccountId !== null &&
+    Number.isFinite(custodyAccountId) &&
+    quantity !== null &&
+    quantity > 0
+  ) {
+    await db.insert(assetCustodyPositions).values({
+      asset_id: inserted[0].id,
+      custody_account_id: custodyAccountId,
+      quantity,
+      cost_basis: costBasis ?? 0,
+      updated_at: now,
+    });
+    revalidatePath('/accounts');
+  }
 
   revalidatePath('/crypto');
   revalidatePath('/holdings');
