@@ -36,6 +36,8 @@ import { PipelineSummary } from '@/components/dashboard/PipelineSummary';
 import { SourceContributionPanel } from '@/components/portfolio/SourceContributionPanel';
 import { BankingAlertsCard, UpcomingBankingEvents } from '@/components/banking/BankingEvents';
 import { Card } from '@/components/ui/Card';
+import { LifecycleDashboard } from '@/components/dashboard/LifecycleDashboard';
+import { getLifecycleDashboard } from '@/lib/asset-lifecycle';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +78,7 @@ export default async function CommandCenter() {
     activeWatchlist,
     allOpps,
     bankingEvents,
+    lifecycleDashboard,
   ] = await Promise.all([
     getPortfolioSummary(),
     db.select().from(appSettings),
@@ -84,6 +87,7 @@ export default async function CommandCenter() {
     db.select().from(watchlistItems).where(eq(watchlistItems.status, 'active')),
     db.select().from(opportunities),
     getBankingMaturitySummary(),
+    getLifecycleDashboard(),
   ]);
   const allAssets = portfolio.positions.map(positionToAsset);
   const usdVndRate = portfolio.usdVndRate;
@@ -267,6 +271,8 @@ export default async function CommandCenter() {
         />
 
         <SourceContributionPanel rows={portfolio.sourceContributions} />
+
+        <LifecycleDashboard {...lifecycleDashboard} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="p-5">

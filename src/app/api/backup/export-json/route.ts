@@ -11,6 +11,9 @@ import {
   researchNotes,
   transactions,
   wealthSnapshots,
+  accountRegistry,
+  ledgerEntries,
+  assetCustodyPositions,
 } from '@/db/schema';
 
 export async function GET() {
@@ -25,6 +28,9 @@ export async function GET() {
     notesData,
     transactionsData,
     snapshotsData,
+    accountData,
+    ledgerData,
+    custodyData,
   ] = await Promise.all([
     db.select().from(assets),
     db.select().from(appSettings),
@@ -36,6 +42,9 @@ export async function GET() {
     db.select().from(researchNotes),
     db.select().from(transactions),
     db.select().from(wealthSnapshots),
+    db.select().from(accountRegistry),
+    db.select().from(ledgerEntries),
+    db.select().from(assetCustodyPositions),
   ]);
 
   const activeCount = assetsData.filter((a) => !a.is_archived).length;
@@ -43,7 +52,7 @@ export async function GET() {
 
   const backup = {
     app: 'TNPA Investment OS',
-    backup_version: 4,
+    backup_version: 5,
     exported_at: new Date().toISOString(),
     asset_count: activeCount,
     archived_asset_count: archivedCount,
@@ -57,6 +66,9 @@ export async function GET() {
     research_notes: notesData,
     transactions: transactionsData,
     wealth_snapshots: snapshotsData,
+    account_registry: accountData,
+    ledger_entries: ledgerData,
+    asset_custody_positions: custodyData,
   };
 
   const date = new Date().toISOString().split('T')[0];

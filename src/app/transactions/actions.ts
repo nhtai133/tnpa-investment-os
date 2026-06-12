@@ -1,8 +1,7 @@
 'use server';
 
-import { db } from '@/db';
-import { transactions } from '@/db/schema';
 import type { TransactionType } from '@/db/schema';
+import { createLifecycleTransaction } from '@/lib/asset-lifecycle';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -22,30 +21,46 @@ export async function createTransaction(formData: FormData) {
   const assetIdRaw = str(formData, 'asset_id');
   const asset_id = assetIdRaw ? Number(assetIdRaw) : null;
 
-  const amount = num(formData, 'amount');
-  if (amount === null) throw new Error('Amount is required.');
-
   const type = str(formData, 'type') as TransactionType;
   if (!type) throw new Error('Transaction type is required.');
 
   const now = new Date().toISOString();
   const today = now.split('T')[0];
+  const quantity = num(formData, 'quantity');
+  const price = num(formData, 'price');
+  const fees = num(formData, 'fees') ?? 0;
+  const tax = num(formData, 'tax') ?? 0;
+  const totalAmount = num(formData, 'total_amount');
+  const grossProceeds = num(formData, 'gross_proceeds');
+  const amount = num(formData, 'amount') ?? totalAmount ?? grossProceeds ?? ((quantity ?? 0) * (price ?? 0));
 
-  await db.insert(transactions).values({
-    asset_id: asset_id ?? undefined,
+  if (!Number.isFinite(amount)) throw new Error('Amount is required.');
+
+  await createLifecycleTransaction({
+    assetId: asset_id,
     type,
-    transaction_date: str(formData, 'transaction_date') ?? today,
-    quantity: num(formData, 'quantity'),
-    price: num(formData, 'price'),
+    transactionDate: str(formData, 'transaction_date') ?? today,
+    settlementDate: str(formData, 'settlement_date'),
+    quantity,
+    price,
     amount,
+    totalAmount,
+    grossProceeds,
     currency: str(formData, 'currency') ?? 'USD',
-    fees: num(formData, 'fees'),
+    fees,
+    tax,
+    fundingAccountId: num(formData, 'funding_account_id'),
+    executionAccountId: num(formData, 'execution_account_id'),
+    custodyAccountId: num(formData, 'custody_account_id'),
+    receiveAccountId: num(formData, 'receive_account_id'),
+    fromCustodyAccountId: num(formData, 'from_custody_account_id'),
+    toCustodyAccountId: num(formData, 'to_custody_account_id'),
+    transferFee: num(formData, 'transfer_fee'),
     notes: str(formData, 'notes'),
-    created_at: now,
-    updated_at: now,
   });
 
   revalidatePath('/transactions');
+  revalidatePath('/accounts');
   revalidatePath('/');
   redirect('/transactions');
 }

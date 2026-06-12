@@ -246,8 +246,20 @@ export const appSettings = sqliteTable('app_settings', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const ACCOUNT_TYPES = [
+  'bank_account',
+  'broker_account',
+  'crypto_exchange',
+  'crypto_wallet',
+  'cash_location',
+  'gold_storage',
+  'real_estate_registry',
+  'other_custody',
+] as const;
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
+
 export const TRANSACTION_TYPES = [
-  'buy', 'sell', 'deposit', 'withdraw', 'dividend', 'interest', 'fee', 'transfer',
+  'buy', 'sell', 'transfer', 'deposit', 'withdraw', 'fee', 'dividend', 'interest', 'adjustment',
 ] as const;
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
@@ -342,18 +354,67 @@ export const bankCreditFacilities = sqliteTable('bank_credit_facilities', {
   updated_at: text('updated_at').notNull(),
 });
 
+export const accountRegistry = sqliteTable('account_registry', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  type: text('type', { enum: ACCOUNT_TYPES }).notNull(),
+  institution: text('institution'),
+  account_number_masked: text('account_number_masked'),
+  currency: text('currency').notNull().default('USD'),
+  current_balance: real('current_balance').notNull().default(0),
+  notes: text('notes'),
+  created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
 export const transactions = sqliteTable('transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   asset_id: integer('asset_id').references(() => assets.id),
   type: text('type', { enum: TRANSACTION_TYPES }).notNull(),
   transaction_date: text('transaction_date').notNull(),
+  settlement_date: text('settlement_date'),
   quantity: real('quantity'),
   price: real('price'),
   amount: real('amount').notNull(),
+  total_amount: real('total_amount'),
+  gross_proceeds: real('gross_proceeds'),
   currency: text('currency').notNull().default('USD'),
   fees: real('fees'),
+  tax: real('tax'),
+  funding_account_id: integer('funding_account_id').references(() => accountRegistry.id),
+  execution_account_id: integer('execution_account_id').references(() => accountRegistry.id),
+  custody_account_id: integer('custody_account_id').references(() => accountRegistry.id),
+  receive_account_id: integer('receive_account_id').references(() => accountRegistry.id),
+  from_custody_account_id: integer('from_custody_account_id').references(() => accountRegistry.id),
+  to_custody_account_id: integer('to_custody_account_id').references(() => accountRegistry.id),
+  transfer_fee: real('transfer_fee'),
+  realized_pnl: real('realized_pnl'),
   notes: text('notes'),
   created_at: text('created_at').notNull(),
+  updated_at: text('updated_at').notNull(),
+});
+
+export const ledgerEntries = sqliteTable('ledger_entries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  transaction_id: integer('transaction_id').notNull().references(() => transactions.id),
+  account_id: integer('account_id').references(() => accountRegistry.id),
+  asset_id: integer('asset_id').references(() => assets.id),
+  entry_type: text('entry_type', {
+    enum: ['cash_debit', 'cash_credit', 'asset_debit', 'asset_credit', 'fee', 'tax', 'realized_pnl'],
+  }).notNull(),
+  amount: real('amount'),
+  quantity: real('quantity'),
+  currency: text('currency').notNull().default('USD'),
+  description: text('description'),
+  created_at: text('created_at').notNull(),
+});
+
+export const assetCustodyPositions = sqliteTable('asset_custody_positions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  asset_id: integer('asset_id').notNull().references(() => assets.id),
+  custody_account_id: integer('custody_account_id').notNull().references(() => accountRegistry.id),
+  quantity: real('quantity').notNull().default(0),
+  cost_basis: real('cost_basis').notNull().default(0),
   updated_at: text('updated_at').notNull(),
 });
 
@@ -385,6 +446,9 @@ export type DecisionReview = typeof decisionReviews.$inferSelect;
 export type AssetIntelligence = typeof assetIntelligence.$inferSelect;
 export type ResearchNote = typeof researchNotes.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type AccountRegistry = typeof accountRegistry.$inferSelect;
+export type LedgerEntry = typeof ledgerEntries.$inferSelect;
+export type AssetCustodyPosition = typeof assetCustodyPositions.$inferSelect;
 export type WealthSnapshot = typeof wealthSnapshots.$inferSelect;
 export type BankAccount = typeof bankAccounts.$inferSelect;
 export type BankSavingsDeposit = typeof bankSavingsDeposits.$inferSelect;

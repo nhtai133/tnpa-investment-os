@@ -12,6 +12,7 @@ export const PORTFOLIO_LINKS: NavLink[] = [
   { label: 'Holdings', href: '/holdings' },
   { label: 'Buckets', href: '/buckets' },
   { label: 'Transactions', href: '/transactions' },
+  { label: 'Accounts', href: '/accounts' },
   { label: 'Rebalancing', href: '/rebalancing' },
   { label: 'Wealth Calendar', href: '/calendar' },
   { label: 'Performance', href: '/performance' },
@@ -50,7 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
 
 // All non-primary routes — used for "More" tab active detection in bottom nav
 export const MORE_PREFIXES: string[] = [
-  '/transactions', '/research', '/pipeline', '/watchlist',
+  '/transactions', '/accounts', '/research', '/pipeline', '/watchlist',
   '/decisions', '/journal', '/stocks', '/crypto', '/real-estate',
   '/gold', '/banking', '/funds', '/private-loans', '/settings', '/system',
   '/calendar', '/performance',

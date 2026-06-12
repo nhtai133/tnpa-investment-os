@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { assets } from '@/db/schema';
+import { accountRegistry, assets } from '@/db/schema';
 import { asc, eq } from 'drizzle-orm';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { TransactionForm } from '@/components/transactions/TransactionForm';
@@ -12,11 +12,14 @@ interface Props {
 }
 
 export default async function NewTransactionPage({ searchParams }: Props) {
-  const activeAssets = await db
-    .select()
-    .from(assets)
-    .where(eq(assets.is_archived, false))
-    .orderBy(asc(assets.name));
+  const [activeAssets, accounts] = await Promise.all([
+    db
+      .select()
+      .from(assets)
+      .where(eq(assets.is_archived, false))
+      .orderBy(asc(assets.name)),
+    db.select().from(accountRegistry).orderBy(asc(accountRegistry.type), asc(accountRegistry.name)),
+  ]);
 
   const preselectedAssetId = searchParams.asset_id ? Number(searchParams.asset_id) : undefined;
 
@@ -44,6 +47,7 @@ export default async function NewTransactionPage({ searchParams }: Props) {
               <TransactionForm
                 action={createTransaction}
                 assets={activeAssets}
+                accounts={accounts}
                 preselectedAssetId={preselectedAssetId}
               />
             </div>

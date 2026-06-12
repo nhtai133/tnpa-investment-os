@@ -11,6 +11,9 @@ import {
   researchNotes,
   transactions,
   wealthSnapshots,
+  accountRegistry,
+  ledgerEntries,
+  assetCustodyPositions,
 } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 
@@ -27,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid backup: wrong app identifier.' }, { status: 400 });
   }
   const version = backup.backup_version;
-  if (version !== 1 && version !== 2 && version !== 3 && version !== 4) {
+  if (![1, 2, 3, 4, 5].includes(version as number)) {
     return NextResponse.json({ error: 'Invalid backup: unsupported version.' }, { status: 400 });
   }
   if (!Array.isArray(backup.assets)) {
@@ -36,6 +39,8 @@ export async function POST(req: NextRequest) {
 
   // Delete in reverse FK dependency order
   await db.delete(wealthSnapshots);
+  await db.delete(ledgerEntries);
+  await db.delete(assetCustodyPositions);
   await db.delete(transactions);
   await db.delete(researchNotes);
   await db.delete(decisionReviews);
@@ -44,6 +49,7 @@ export async function POST(req: NextRequest) {
   await db.delete(opportunities);
   await db.delete(assetIntelligence);
   await db.delete(assets);
+  await db.delete(accountRegistry);
   await db.delete(appSettings);
 
   // Insert in FK dependency order
@@ -53,6 +59,10 @@ export async function POST(req: NextRequest) {
 
   if (Array.isArray(backup.app_settings) && backup.app_settings.length > 0) {
     await db.insert(appSettings).values(backup.app_settings as typeof appSettings.$inferInsert[]);
+  }
+
+  if (Array.isArray(backup.account_registry) && backup.account_registry.length > 0) {
+    await db.insert(accountRegistry).values(backup.account_registry as typeof accountRegistry.$inferInsert[]);
   }
 
   if (Array.isArray(backup.asset_intelligence) && backup.asset_intelligence.length > 0) {
@@ -81,6 +91,14 @@ export async function POST(req: NextRequest) {
 
   if (Array.isArray(backup.transactions) && backup.transactions.length > 0) {
     await db.insert(transactions).values(backup.transactions as typeof transactions.$inferInsert[]);
+  }
+
+  if (Array.isArray(backup.asset_custody_positions) && backup.asset_custody_positions.length > 0) {
+    await db.insert(assetCustodyPositions).values(backup.asset_custody_positions as typeof assetCustodyPositions.$inferInsert[]);
+  }
+
+  if (Array.isArray(backup.ledger_entries) && backup.ledger_entries.length > 0) {
+    await db.insert(ledgerEntries).values(backup.ledger_entries as typeof ledgerEntries.$inferInsert[]);
   }
 
   if (Array.isArray(backup.wealth_snapshots) && backup.wealth_snapshots.length > 0) {

@@ -184,6 +184,7 @@ export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
   interest: 'Interest',
   fee: 'Fee',
   transfer: 'Transfer',
+  adjustment: 'Adjustment',
 };
 
 export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {
@@ -195,4 +196,5 @@ export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {
   interest: '#FBBF24',
   fee: '#6B7280',
   transfer: '#E879F9',
+  adjustment: '#9CA3AF',
 };

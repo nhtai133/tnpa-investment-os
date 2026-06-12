@@ -373,6 +373,47 @@ async function createCoreTables() {
       updated_at TEXT NOT NULL
     )
   `);
+
+  await exec('account_registry', `
+    CREATE TABLE IF NOT EXISTS account_registry (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      institution TEXT,
+      account_number_masked TEXT,
+      currency TEXT NOT NULL DEFAULT 'USD',
+      current_balance REAL NOT NULL DEFAULT 0,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+
+  await exec('ledger_entries', `
+    CREATE TABLE IF NOT EXISTS ledger_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      transaction_id INTEGER NOT NULL REFERENCES transactions(id),
+      account_id INTEGER REFERENCES account_registry(id),
+      asset_id INTEGER REFERENCES assets(id),
+      entry_type TEXT NOT NULL,
+      amount REAL,
+      quantity REAL,
+      currency TEXT NOT NULL DEFAULT 'USD',
+      description TEXT,
+      created_at TEXT NOT NULL
+    )
+  `);
+
+  await exec('asset_custody_positions', `
+    CREATE TABLE IF NOT EXISTS asset_custody_positions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      asset_id INTEGER NOT NULL REFERENCES assets(id),
+      custody_account_id INTEGER NOT NULL REFERENCES account_registry(id),
+      quantity REAL NOT NULL DEFAULT 0,
+      cost_basis REAL NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
+    )
+  `);
 }
 
 // ── Column backfills for existing databases ──────────────────────────────────
@@ -470,6 +511,25 @@ async function addMissingColumns() {
     const col = sql.match(/ADD COLUMN (\S+)/)?.[1] ?? sql;
     await exec(`research_notes.${col}`, sql);
   }
+
+  const transactionV21 = [
+    `ALTER TABLE transactions ADD COLUMN settlement_date TEXT`,
+    `ALTER TABLE transactions ADD COLUMN total_amount REAL`,
+    `ALTER TABLE transactions ADD COLUMN gross_proceeds REAL`,
+    `ALTER TABLE transactions ADD COLUMN tax REAL`,
+    `ALTER TABLE transactions ADD COLUMN funding_account_id INTEGER REFERENCES account_registry(id)`,
+    `ALTER TABLE transactions ADD COLUMN execution_account_id INTEGER REFERENCES account_registry(id)`,
+    `ALTER TABLE transactions ADD COLUMN custody_account_id INTEGER REFERENCES account_registry(id)`,
+    `ALTER TABLE transactions ADD COLUMN receive_account_id INTEGER REFERENCES account_registry(id)`,
+    `ALTER TABLE transactions ADD COLUMN from_custody_account_id INTEGER REFERENCES account_registry(id)`,
+    `ALTER TABLE transactions ADD COLUMN to_custody_account_id INTEGER REFERENCES account_registry(id)`,
+    `ALTER TABLE transactions ADD COLUMN transfer_fee REAL`,
+    `ALTER TABLE transactions ADD COLUMN realized_pnl REAL`,
+  ];
+  for (const sql of transactionV21) {
+    const col = sql.match(/ADD COLUMN (\S+)/)?.[1] ?? sql;
+    await exec(`transactions.${col}`, sql);
+  }
 }
 
 // ── Default seed rows ────────────────────────────────────────────────────────
@@ -497,6 +557,166 @@ async function seedDefaults() {
       WHERE bank_name = 'Techcombank' AND facility_name = 'Techcombank ShopCash'
     )
   `);
+
+  await exec('account_registry: v2.1 example accounts', `
+    INSERT INTO account_registry (
+      name, type, institution, account_number_masked, currency, current_balance,
+      notes, created_at, updated_at
+    )
+    SELECT 'BIDV 8888791996', 'bank_account', 'BIDV', '****91996', 'VND', 850000000,
+      'Primary funding account for investment flows.', datetime('now'), datetime('now')
+    WHERE NOT EXISTS (SELECT 1 FROM account_registry WHERE name = 'BIDV 8888791996')
+    UNION ALL
+    SELECT 'VCBS', 'broker_account', 'VCBS', NULL, 'VND', 0,
+      'Execution and custody venue for Vietnamese listed securities.', datetime('now'), datetime('now')
+    WHERE NOT EXISTS (SELECT 1 FROM account_registry WHERE name = 'VCBS')
+    UNION ALL
+    SELECT 'Binance', 'crypto_exchange', 'Binance', NULL, 'USD', 0,
+      'Crypto execution venue and hot wallet custody.', datetime('now'), datetime('now')
+    WHERE NOT EXISTS (SELECT 1 FROM account_registry WHERE name = 'Binance')
+    UNION ALL
+    SELECT 'Ledger Nano X', 'crypto_wallet', 'Self custody', NULL, 'USD', 0,
+      'Cold storage wallet for long-term crypto custody.', datetime('now'), datetime('now')
+    WHERE NOT EXISTS (SELECT 1 FROM account_registry WHERE name = 'Ledger Nano X')
+  `);
+
+  await exec('assets: v2.1 VCB example asset', `
+    INSERT INTO assets (
+      name, symbol, asset_class, purpose, current_value, currency,
+      include_in_investment_net_worth, include_in_total_net_worth,
+      quantity, cost_basis, notes, is_archived, created_at, updated_at
+    )
+    SELECT
+      'Vietcombank', 'VCB', 'stock', 'wealth_compounder', 75000000, 'VND',
+      1, 1, 1000, 70050000,
+      'Seeded for asset lifecycle example: bought via VCBS using BIDV funding.',
+      0, datetime('now'), datetime('now')
+    WHERE NOT EXISTS (SELECT 1 FROM assets WHERE symbol = 'VCB')
+  `);
+
+  await exec('assets: v2.1 BTC example asset if missing', `
+    INSERT INTO assets (
+      name, symbol, asset_class, purpose, current_value, currency,
+      include_in_investment_net_worth, include_in_total_net_worth,
+      quantity, cost_basis, notes, is_archived, created_at, updated_at
+    )
+    SELECT
+      'Bitcoin', 'BTC', 'crypto', 'wealth_compounder', 60000, 'USD',
+      1, 1, 0.6, 50050,
+      'Seeded for crypto lifecycle example.',
+      0, datetime('now'), datetime('now')
+    WHERE NOT EXISTS (SELECT 1 FROM assets WHERE symbol = 'BTC')
+  `);
+
+  await exec('transactions: v2.1 VCB buy example', `
+    INSERT INTO transactions (
+      asset_id, type, transaction_date, settlement_date, quantity, price, amount,
+      total_amount, currency, fees, tax, funding_account_id, execution_account_id,
+      custody_account_id, notes, created_at, updated_at
+    )
+    SELECT
+      a.id, 'buy', date('now', '-35 day'), date('now', '-33 day'), 1000, 70000, 70050000,
+      70000000, 'VND', 50000, 0, bidv.id, vcbs.id, vcbs.id,
+      'Example flow: Buy VCB using BIDV through VCBS, custody at VCBS.',
+      datetime('now'), datetime('now')
+    FROM assets a
+    JOIN account_registry bidv ON bidv.name = 'BIDV 8888791996'
+    JOIN account_registry vcbs ON vcbs.name = 'VCBS'
+    WHERE a.symbol = 'VCB'
+      AND NOT EXISTS (
+        SELECT 1 FROM transactions t
+        WHERE t.asset_id = a.id AND t.type = 'buy' AND t.notes LIKE 'Example flow: Buy VCB%'
+      )
+  `);
+
+  await exec('transactions: v2.1 BTC buy example', `
+    INSERT INTO transactions (
+      asset_id, type, transaction_date, settlement_date, quantity, price, amount,
+      total_amount, currency, fees, tax, funding_account_id, execution_account_id,
+      custody_account_id, notes, created_at, updated_at
+    )
+    SELECT
+      a.id, 'buy', date('now', '-21 day'), date('now', '-21 day'), 0.6, 83333.33, 50050,
+      50000, 'USD', 50, 0, bidv.id, binance.id, binance.id,
+      'Example flow: Buy BTC using BIDV through Binance, initial custody at Binance.',
+      datetime('now'), datetime('now')
+    FROM assets a
+    JOIN account_registry bidv ON bidv.name = 'BIDV 8888791996'
+    JOIN account_registry binance ON binance.name = 'Binance'
+    WHERE a.symbol = 'BTC'
+      AND NOT EXISTS (
+        SELECT 1 FROM transactions t
+        WHERE t.asset_id = a.id AND t.type = 'buy' AND t.notes LIKE 'Example flow: Buy BTC%'
+      )
+  `);
+
+  await exec('transactions: v2.1 BTC transfer example', `
+    INSERT INTO transactions (
+      asset_id, type, transaction_date, settlement_date, quantity, price, amount,
+      currency, from_custody_account_id, to_custody_account_id, transfer_fee,
+      notes, created_at, updated_at
+    )
+    SELECT
+      a.id, 'transfer', date('now', '-20 day'), date('now', '-20 day'), 0.5, NULL, 0,
+      'USD', binance.id, ledger.id, 8,
+      'Example flow: Transfer 0.5 BTC from Binance Spot Wallet to Ledger Nano X.',
+      datetime('now'), datetime('now')
+    FROM assets a
+    JOIN account_registry binance ON binance.name = 'Binance'
+    JOIN account_registry ledger ON ledger.name = 'Ledger Nano X'
+    WHERE a.symbol = 'BTC'
+      AND NOT EXISTS (
+        SELECT 1 FROM transactions t
+        WHERE t.asset_id = a.id AND t.type = 'transfer' AND t.notes LIKE 'Example flow: Transfer 0.5 BTC%'
+      )
+  `);
+
+  await exec('asset_custody_positions: v2.1 example positions', `
+    INSERT INTO asset_custody_positions (asset_id, custody_account_id, quantity, cost_basis, updated_at)
+    SELECT a.id, acct.id, p.quantity, p.cost_basis, datetime('now')
+    FROM (
+      SELECT 'VCB' AS symbol, 'VCBS' AS account_name, 1000 AS quantity, 70050000 AS cost_basis
+      UNION ALL SELECT 'BTC', 'Binance', 0.1, 8341.67
+      UNION ALL SELECT 'BTC', 'Ledger Nano X', 0.5, 41708.33
+    ) p
+    JOIN assets a ON a.symbol = p.symbol
+    JOIN account_registry acct ON acct.name = p.account_name
+    WHERE NOT EXISTS (
+      SELECT 1 FROM asset_custody_positions existing
+      WHERE existing.asset_id = a.id AND existing.custody_account_id = acct.id
+    )
+  `);
+
+  await exec('ledger_entries: v2.1 example ledger entries', `
+    INSERT INTO ledger_entries (
+      transaction_id, account_id, asset_id, entry_type, amount, quantity,
+      currency, description, created_at
+    )
+    SELECT t.id, t.funding_account_id, t.asset_id, 'cash_debit',
+      -(COALESCE(t.total_amount, t.amount) + COALESCE(t.fees, 0) + COALESCE(t.tax, 0)),
+      NULL, t.currency, 'Funding account cash outflow.', datetime('now')
+    FROM transactions t
+    WHERE t.notes LIKE 'Example flow:%' AND t.type = 'buy'
+      AND NOT EXISTS (SELECT 1 FROM ledger_entries le WHERE le.transaction_id = t.id)
+    UNION ALL
+    SELECT t.id, t.custody_account_id, t.asset_id, 'asset_debit',
+      NULL, t.quantity, t.currency, 'Asset position acquired into custody.', datetime('now')
+    FROM transactions t
+    WHERE t.notes LIKE 'Example flow:%' AND t.type = 'buy'
+      AND NOT EXISTS (SELECT 1 FROM ledger_entries le WHERE le.transaction_id = t.id)
+    UNION ALL
+    SELECT t.id, t.from_custody_account_id, t.asset_id, 'asset_credit',
+      NULL, -t.quantity, t.currency, 'Asset transferred out of custody.', datetime('now')
+    FROM transactions t
+    WHERE t.notes LIKE 'Example flow:%' AND t.type = 'transfer'
+      AND NOT EXISTS (SELECT 1 FROM ledger_entries le WHERE le.transaction_id = t.id)
+    UNION ALL
+    SELECT t.id, t.to_custody_account_id, t.asset_id, 'asset_debit',
+      NULL, t.quantity, t.currency, 'Asset transferred into custody.', datetime('now')
+    FROM transactions t
+    WHERE t.notes LIKE 'Example flow:%' AND t.type = 'transfer'
+      AND NOT EXISTS (SELECT 1 FROM ledger_entries le WHERE le.transaction_id = t.id)
+  `);
 }
 
 // ── Verification ─────────────────────────────────────────────────────────────
@@ -509,6 +729,7 @@ async function verify() {
     'research_theses', 'decision_logs', 'decision_reviews',
     'asset_intelligence', 'research_notes', 'transactions', 'wealth_snapshots',
     'bank_accounts', 'bank_savings_deposits', 'bank_credit_cards', 'bank_credit_facilities',
+    'account_registry', 'ledger_entries', 'asset_custody_positions',
   ];
   for (const table of tables) {
     try {
@@ -524,7 +745,7 @@ async function verify() {
 
 async function migrate() {
   console.log('════════════════════════════════════════════');
-  console.log('  TNPA Investment OS — Migration Runner v2.0');
+  console.log('  TNPA Investment OS — Migration Runner v2.1');
   console.log('════════════════════════════════════════════');
   console.log(`  DB: ${displayUrl}`);
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { db } from '@/db';
-import { transactions, assets } from '@/db/schema';
+import { accountRegistry, transactions, assets } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { Card } from '@/components/ui/Card';
 import {
@@ -42,16 +42,18 @@ function formatAmount(amount: number, currency: string): string {
 }
 
 export default async function TransactionsPage() {
-  const [txns, allAssets] = await Promise.all([
+  const [txns, allAssets, accounts] = await Promise.all([
     db
       .select()
       .from(transactions)
       .orderBy(desc(transactions.transaction_date), desc(transactions.created_at))
       .limit(500),
     db.select().from(assets),
+    db.select().from(accountRegistry),
   ]);
 
   const assetMap = new Map(allAssets.map((a) => [a.id, a]));
+  const accountMap = new Map(accounts.map((a) => [a.id, a]));
 
   const buyCount = txns.filter((t) => t.type === 'buy').length;
   const sellCount = txns.filter((t) => t.type === 'sell').length;
@@ -130,7 +132,7 @@ export default async function TransactionsPage() {
                   <tr className="border-b border-[#26262B]">
                     {[
                       'Date', 'Type', 'Asset', 'Class',
-                      'Quantity', 'Price', 'Amount', 'Currency', 'Fees', 'Notes',
+                      'Quantity', 'Price', 'Amount', 'Funding', 'Execution', 'Custody', 'Receive', 'Fees', 'P&L',
                     ].map((col) => (
                       <th
                         key={col}
@@ -180,13 +182,23 @@ export default async function TransactionsPage() {
                           {formatAmount(txn.amount, txn.currency)}
                         </td>
                         <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
-                          {txn.currency}
+                          {accountMap.get(txn.funding_account_id ?? -1)?.name ?? '—'}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
+                          {accountMap.get(txn.execution_account_id ?? -1)?.name ?? '—'}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
+                          {accountMap.get(txn.custody_account_id ?? txn.from_custody_account_id ?? -1)?.name ?? '—'}
+                          {txn.to_custody_account_id ? ` -> ${accountMap.get(txn.to_custody_account_id)?.name ?? 'Unknown'}` : ''}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
+                          {accountMap.get(txn.receive_account_id ?? -1)?.name ?? '—'}
                         </td>
                         <td className="px-4 py-3 text-xs text-zinc-500 tabular-nums whitespace-nowrap">
                           {txn.fees != null ? formatAmount(txn.fees, txn.currency) : '—'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-zinc-500 max-w-[200px] truncate">
-                          {txn.notes ?? '—'}
+                        <td className="px-4 py-3 text-xs text-zinc-500 tabular-nums whitespace-nowrap">
+                          {txn.realized_pnl != null ? formatAmount(txn.realized_pnl, txn.currency) : '—'}
                         </td>
                       </tr>
                     );

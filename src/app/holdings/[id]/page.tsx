@@ -8,8 +8,10 @@ import { ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
 import { Badge } from '@/components/ui/Card';
 import { PositionSummaryCard } from '@/components/holdings/PositionSummaryCard';
 import { IntelligenceCard } from '@/components/holdings/IntelligenceCard';
+import { AssetLifecycleCard } from '@/components/holdings/AssetLifecycleCard';
 import { NotesCard } from '@/components/journal/NotesCard';
 import { DecisionLogCard } from '@/components/journal/DecisionLogCard';
+import { getAssetLifecycleSummary } from '@/lib/asset-lifecycle';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +23,13 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
   const id = Number(params.id);
   if (isNaN(id)) notFound();
 
-  const [asset, allAssets, intel, notes, decisions] = await Promise.all([
+  const [asset, allAssets, intel, notes, decisions, lifecycle] = await Promise.all([
     db.select().from(assets).where(eq(assets.id, id)).limit(1).then((r) => r[0]),
     db.select().from(assets),
     db.select().from(assetIntelligence).where(eq(assetIntelligence.asset_id, id)).limit(1).then((r) => r[0] ?? null),
     db.select().from(researchNotes).where(eq(researchNotes.asset_id, id)).orderBy(desc(researchNotes.created_at)).limit(5),
     db.select().from(decisionLogs).where(eq(decisionLogs.asset_id, id)).orderBy(desc(decisionLogs.decision_date)).limit(5),
+    getAssetLifecycleSummary(id),
   ]);
 
   if (!asset) notFound();
@@ -70,6 +73,8 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
         <PositionSummaryCard asset={asset} totalNetWorth={totalNW} />
+
+        <AssetLifecycleCard lifecycle={lifecycle} currency={asset.currency} />
 
         {intel ? (
           <IntelligenceCard intel={intel} assetId={asset.id} assetClass={asset.asset_class} />
