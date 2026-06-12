@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import type { AccountRegistry, Asset, TransactionType } from '@/db/schema';
 import { TRANSACTION_TYPES } from '@/db/schema';
 import { TRANSACTION_TYPE_LABELS } from '@/lib/formatters';
+import type { TransactionFormState } from '@/app/transactions/actions';
 
 const inputClass =
   'w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-zinc-500 transition-colors';
@@ -33,8 +34,10 @@ function SubmitButton() {
   );
 }
 
+const ASSET_REQUIRED_TYPES: TransactionType[] = ['buy', 'sell', 'transfer'];
+
 interface TransactionFormProps {
-  action: (formData: FormData) => Promise<void>;
+  action: (prevState: TransactionFormState, formData: FormData) => Promise<TransactionFormState>;
   assets: Asset[];
   accounts: AccountRegistry[];
   preselectedAssetId?: number;
@@ -49,6 +52,7 @@ export function TransactionForm({
   cancelHref = '/transactions',
 }: TransactionFormProps) {
   const todayStr = new Date().toISOString().split('T')[0];
+  const [state, formAction] = useFormState(action, null);
   const [type, setType] = useState<TransactionType | ''>('');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
@@ -99,8 +103,16 @@ export function TransactionForm({
     );
   }
 
+  const assetRequired = ASSET_REQUIRED_TYPES.includes(type as TransactionType);
+
   return (
-    <form action={action} className="space-y-5">
+    <form action={formAction} className="space-y-5">
+
+      {state?.error && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
+          <p className="text-sm text-red-400">{state.error}</p>
+        </div>
+      )}
 
       {/* Date + Type */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,13 +147,16 @@ export function TransactionForm({
       {preselectedAssetId ? (
         <input type="hidden" name="asset_id" value={preselectedAssetId} />
       ) : (
-        <Field label="Asset (optional)">
+        <Field label={assetRequired ? 'Asset' : 'Asset (optional)'}>
           <select
             name="asset_id"
             defaultValue=""
+            required={assetRequired}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">No asset - cash / general transaction</option>
+            <option value="" disabled={assetRequired}>
+              {assetRequired ? 'Select an asset…' : 'No asset - cash / general transaction'}
+            </option>
             {assets.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}{a.symbol ? ` (${a.symbol})` : ''}
