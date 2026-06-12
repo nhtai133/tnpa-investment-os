@@ -38,6 +38,9 @@ import { BankingAlertsCard, UpcomingBankingEvents } from '@/components/banking/B
 import { Card } from '@/components/ui/Card';
 import { LifecycleDashboard } from '@/components/dashboard/LifecycleDashboard';
 import { getLifecycleDashboard } from '@/lib/asset-lifecycle';
+import { LocationsSummary } from '@/components/dashboard/LocationsSummary';
+import { getPortfolioLocations } from '@/lib/locations';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,6 +82,7 @@ export default async function CommandCenter() {
     allOpps,
     bankingEvents,
     lifecycleDashboard,
+    locationsData,
   ] = await Promise.all([
     getPortfolioSummary(),
     db.select().from(appSettings),
@@ -88,6 +92,7 @@ export default async function CommandCenter() {
     db.select().from(opportunities),
     getBankingMaturitySummary(),
     getLifecycleDashboard(),
+    getPortfolioLocations(),
   ]);
   const allAssets = portfolio.positions.map(positionToAsset);
   const usdVndRate = portfolio.usdVndRate;
@@ -273,6 +278,17 @@ export default async function CommandCenter() {
         <SourceContributionPanel rows={portfolio.sourceContributions} />
 
         <LifecycleDashboard {...lifecycleDashboard} />
+
+        <CollapsibleSection
+          title="Assets by Location"
+          summary={`${locationsData.locations.filter((l) => !l.isEmpty).length} active locations`}
+          defaultOpen
+        >
+          <LocationsSummary
+            locations={locationsData.locations}
+            totalValue={locationsData.totalValue}
+          />
+        </CollapsibleSection>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="p-5">
