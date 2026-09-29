@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { formatDate } from '@/lib/formatters';
@@ -50,81 +51,80 @@ export function IntelligenceCard({ intel, assetId, assetClass }: IntelligenceCar
   return (
     <Card>
       <CardHeader
-        label="Asset Intelligence"
+        label={tr("Asset Intelligence")}
         action={
           <Link
             href={`/holdings/${assetId}/intelligence/edit`}
             className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            Edit →
-          </Link>
+            {tr("Edit →")}</Link>
         }
       />
       <div className="p-5 space-y-6">
         {hasThesis && (
-          <Section title="A · Core Thesis">
-            <IntelField label="Investment Thesis" value={intel.investment_thesis} />
-            <IntelField label="Risk Notes" value={intel.risk_notes} />
+          <Section title={tr("A · Core Thesis")}>
+            <IntelField label={tr("Investment Thesis")} value={intel.investment_thesis} />
+            <IntelField label={tr("Risk Notes")} value={intel.risk_notes} />
           </Section>
         )}
 
         {hasZones && (
-          <Section title="B · Strategy Zones">
+          <Section title={tr("B · Strategy Zones")}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
               <div>
-                <IntelField label="Buy Zone" value={intel.buy_zone} />
-                <IntelField label="Accumulation Plan" value={intel.accumulation_plan} />
+                <IntelField label={tr("Buy Zone")} value={intel.buy_zone} />
+                <IntelField label={tr("Accumulation Plan")} value={intel.accumulation_plan} />
               </div>
               <div>
-                <IntelField label="Sell Zone" value={intel.sell_zone} />
-                <IntelField label="Exit Plan" value={intel.exit_plan} />
+                <IntelField label={tr("Sell Zone")} value={intel.sell_zone} />
+                <IntelField label={tr("Exit Plan")} value={intel.exit_plan} />
               </div>
             </div>
           </Section>
         )}
 
         {hasReview && (
-          <Section title="C · Review System">
+          <Section title={tr("C · Review System")}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
-              <IntelField label="Review Cadence" value={intel.review_cadence} />
-              <IntelField label="Next Review Date" value={intel.next_review_date} />
+              <IntelField label={tr("Review Cadence")} value={intel.review_cadence} />
+              <IntelField label={tr("Next Review Date")} value={intel.next_review_date} />
             </div>
           </Section>
         )}
 
         {hasClassSpecific && (
-          <Section title="D · Asset-Class Notes">
+          <Section title={tr("D · Asset-Class Notes")}>
             {isStock && (
               <>
-                <IntelField label="Dividend / Income Notes" value={intel.dividend_notes} />
-                <IntelField label="Valuation Notes" value={intel.valuation_notes} />
+                <IntelField label={tr("Dividend / Income Notes")} value={intel.dividend_notes} />
+                <IntelField label={tr("Valuation Notes")} value={intel.valuation_notes} />
               </>
             )}
             {isCrypto && (
               <>
-                <IntelField label="Cycle Thesis" value={intel.cycle_thesis} />
-                <IntelField label="DCA Plan" value={intel.dca_plan} />
+                <IntelField label={tr("Cycle Thesis")} value={intel.cycle_thesis} />
+                <IntelField label={tr("DCA Plan")} value={intel.dca_plan} />
               </>
             )}
             {isRealEstate && (
               <>
-                <IntelField label="Legal Status" value={intel.legal_status} />
-                <IntelField label="Yield Notes" value={intel.yield_notes} />
+                <IntelField label={tr("Legal Status")} value={intel.legal_status} />
+                <IntelField label={tr("Yield Notes")} value={intel.yield_notes} />
               </>
             )}
-            {isGold && <IntelField label="Accumulation Plan" value={intel.accumulation_plan} />}
-            {isCash && <IntelField label="Yield Notes" value={intel.yield_notes} />}
+            {isGold && <IntelField label={tr("Accumulation Plan")} value={intel.accumulation_plan} />}
+            {isCash && <IntelField label={tr("Yield Notes")} value={intel.yield_notes} />}
             {isPrivateLoan && (
               <>
-                <IntelField label="Loan Terms" value={intel.loan_terms} />
-                <IntelField label="Counterparty Notes" value={intel.counterparty_notes} />
+                <IntelField label={tr("Loan Terms")} value={intel.loan_terms} />
+                <IntelField label={tr("Counterparty Notes")} value={intel.counterparty_notes} />
               </>
             )}
           </Section>
         )}
 
         <p className="text-[11px] text-zinc-700 pt-2 border-t border-[#1C1C21]">
-          Last updated {formatDate(intel.updated_at)}
+          {'' + tr("Last updated") + ' '}{formatDate(intel.updated_at)}
         </p>
       </div>
     </Card>

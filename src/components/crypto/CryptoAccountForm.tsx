@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
@@ -43,19 +45,19 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
     <form action={action} className="space-y-5">
       {returnUrl && <input type="hidden" name="return_url" value={returnUrl} />}
 
-      <Field label="Account Type">
+      <Field label={tr("Account Type")}>
         <select
           name="type"
           value={accountType}
           onChange={(e) => setAccountType(e.target.value as 'crypto_exchange' | 'crypto_wallet')}
           className={`${inputClass} appearance-none cursor-pointer`}
         >
-          <option value="crypto_exchange">Exchange (Binance, Bybit, OKX…)</option>
-          <option value="crypto_wallet">Wallet (Ledger, Trezor, Metamask…)</option>
+          <option value="crypto_exchange">{tr("Exchange (Binance, Bybit, OKX…)")}</option>
+          <option value="crypto_wallet">{tr("Wallet (Ledger, Trezor, Metamask…)")}</option>
         </select>
       </Field>
 
-      <Field label="Account Name">
+      <Field label={tr("Account Name")}>
         <input
           name="name"
           required
@@ -82,16 +84,16 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Currency">
+        <Field label={tr("Currency")}>
           <select name="currency" defaultValue="USD" className={`${inputClass} appearance-none cursor-pointer`}>
-            <option value="USD">USD</option>
-            <option value="USDT">USDT</option>
-            <option value="USDC">USDC</option>
-            <option value="BTC">BTC</option>
-            <option value="ETH">ETH</option>
+            <option value="USD">{tr("USD")}</option>
+            <option value="USDT">{tr("USDT")}</option>
+            <option value="USDC">{tr("USDC")}</option>
+            <option value="BTC">{tr("BTC")}</option>
+            <option value="ETH">{tr("ETH")}</option>
           </select>
         </Field>
-        <Field label="Current Balance">
+        <Field label={tr("Current Balance")}>
           <input
             name="current_balance"
             type="number"
@@ -103,7 +105,7 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
         </Field>
       </div>
 
-      <Field label="Notes (optional)">
+      <Field label={tr("Notes (optional)")}>
         <textarea
           name="notes"
           rows={3}
@@ -118,8 +120,7 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
           href={returnUrl ?? '/crypto/accounts'}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

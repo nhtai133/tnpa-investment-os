@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -37,7 +39,7 @@ function SubmitButton() {
 }
 
 function formatUSD(value: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'USD' }).format(value);
 }
 
 interface CryptoAssetFormProps {
@@ -68,13 +70,13 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="md:col-span-2">
           <label className={labelClass}>
-            Asset Name <span className="text-zinc-700">*</span>
+            {'' + tr("Asset Name") + ' '}<span className="text-zinc-700">*</span>
           </label>
           <input
             type="text"
             name="name"
             required
-            placeholder="Bitcoin"
+            placeholder={tr("Bitcoin")}
             maxLength={200}
             className={inputClass}
           />
@@ -82,14 +84,14 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
 
         <div>
           <label className={labelClass}>
-            Symbol <span className="text-zinc-700">*</span>
+            {'' + tr("Symbol") + ' '}<span className="text-zinc-700">*</span>
           </label>
           <input
             type="text"
             name="symbol"
             required
             list="symbol-suggestions"
-            placeholder="BTC"
+            placeholder={tr("BTC")}
             maxLength={20}
             className={`${inputClass} uppercase`}
           />
@@ -101,7 +103,7 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
         </div>
 
         <div>
-          <label className={labelClass}>Quantity</label>
+          <label className={labelClass}>{tr("Quantity")}</label>
           <input
             type="number"
             inputMode="decimal"
@@ -116,7 +118,7 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
         </div>
 
         <div>
-          <label className={labelClass}>Average Cost Per Coin (USD)</label>
+          <label className={labelClass}>{tr("Average Cost Per Coin (USD)")}</label>
           <CurrencyInput
             name="avg_cost_per_coin"
             currency="USD"
@@ -128,7 +130,7 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
         </div>
 
         <div>
-          <label className={labelClass}>Current Price Per Coin (USD)</label>
+          <label className={labelClass}>{tr("Current Price Per Coin (USD)")}</label>
           <CurrencyInput
             name="current_price_per_coin"
             currency="USD"
@@ -143,23 +145,22 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
       {hasCalc && (
         <div className="rounded-lg border border-[#26262B] bg-[#0C0C0E] px-4 py-4">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            Calculated
-          </p>
+            {tr("Calculated")}</p>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-[10px] text-zinc-600 mb-0.5">Cost Basis</p>
+              <p className="text-[10px] text-zinc-600 mb-0.5">{tr("Cost Basis")}</p>
               <p className="text-sm font-medium text-zinc-200 tabular-nums">
                 {formatUSD(costBasis)}
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-zinc-600 mb-0.5">Current Value</p>
+              <p className="text-[10px] text-zinc-600 mb-0.5">{tr("Current Value")}</p>
               <p className="text-sm font-medium text-zinc-200 tabular-nums">
                 {formatUSD(currentValue)}
               </p>
             </div>
             <div>
-              <p className="text-[10px] text-zinc-600 mb-0.5">Unrealized PnL</p>
+              <p className="text-[10px] text-zinc-600 mb-0.5">{tr("Unrealized PnL")}</p>
               <p
                 className={`text-sm font-medium tabular-nums ${
                   pnl > 0 ? 'text-emerald-400' : pnl < 0 ? 'text-red-400' : 'text-zinc-400'
@@ -181,19 +182,17 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="md:col-span-2">
-          <label className={labelClass}>Custody Account</label>
+          <label className={labelClass}>{tr("Custody Account")}</label>
           {cryptoAccounts.length === 0 ? (
             <div className="rounded-lg border border-[#26262B] bg-[#101014] px-4 py-3">
               <p className="text-sm text-zinc-600">
-                No exchanges or wallets registered.{' '}
+                {tr("No exchanges or wallets registered.")}{' '}
                 <Link
                   href="/crypto/accounts/new?return=/crypto/new"
                   className="text-indigo-400 hover:text-indigo-300"
                 >
-                  Add Exchange or Wallet
-                </Link>
-                {' '}to assign custody.
-              </p>
+                  {tr("Add Exchange or Wallet")}</Link>
+                {' '}{tr("to assign custody.")}</p>
             </div>
           ) : (
             <select
@@ -201,10 +200,10 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
               defaultValue=""
               className={`${inputClass} appearance-none cursor-pointer`}
             >
-              <option value="">No custody account selected</option>
+              <option value="">{tr("No custody account selected")}</option>
               {cryptoAccounts.map((account) => (
                 <option key={account.id} value={account.id}>
-                  {account.name} ({account.type === 'crypto_exchange' ? 'Exchange' : 'Wallet'})
+                  {account.name} ({tr(account.type === 'crypto_exchange' ? 'Exchange' : 'Wallet')})
                 </option>
               ))}
             </select>
@@ -213,7 +212,7 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
 
         <div>
           <label className={labelClass}>
-            Purpose <span className="text-zinc-700">*</span>
+            {'' + tr("Purpose") + ' '}<span className="text-zinc-700">*</span>
           </label>
           <select
             name="purpose"
@@ -230,11 +229,11 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
         </div>
 
         <div className="md:col-span-2">
-          <label className={labelClass}>Notes</label>
+          <label className={labelClass}>{tr("Notes")}</label>
           <textarea
             name="notes"
             rows={3}
-            placeholder="Thesis, custody notes, review triggers…"
+            placeholder={tr("Thesis, custody notes, review triggers…")}
             className={`${inputClass} resize-none`}
           />
         </div>
@@ -246,8 +245,7 @@ export function CryptoAssetForm({ action, cryptoAccounts }: CryptoAssetFormProps
           href="/crypto"
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </Link>
+          {tr("Cancel")}</Link>
       </div>
     </form>
   );

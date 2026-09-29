@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useEffect, useState, useRef } from 'react';
 import { Badge, Card, CardHeader } from '@/components/ui/Card';
@@ -36,7 +38,7 @@ function createWalletId() {
 
 function formatLastSynced(value: string | null) {
   if (!value) return 'Not synced';
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('vi-VN', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -161,15 +163,13 @@ export function CryptoPortfolioClient() {
       {saveError && <p role="alert" className="text-red-400">{saveError}</p>}
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
         <p className="text-sm font-medium text-amber-200">
-          Never enter seed phrase, private key, or recovery phrase. TNPA Investment OS only tracks
-          public wallet addresses.
-        </p>
+          {tr("Never enter seed phrase, private key, or recovery phrase. TNPA Investment OS only tracks public wallet addresses.")}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-6">
         <Card>
           <CardHeader
-            label="Wallet Registry"
+            label={tr("Wallet Registry")}
             action={editingId ? 'Editing wallet' : 'New wallet'}
           />
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
@@ -178,8 +178,7 @@ export function CryptoPortfolioClient() {
                 htmlFor="wallet-name"
                 className="block text-xs font-medium text-zinc-400 mb-1.5"
               >
-                Wallet name
-              </label>
+                {tr("Wallet name")}</label>
               <input
                 id="wallet-name"
                 value={form.name}
@@ -187,7 +186,7 @@ export function CryptoPortfolioClient() {
                   setForm((current) => ({ ...current, name: event.target.value }))
                 }
                 className="w-full rounded-lg border border-[#2F2F36] bg-[#0C0C0E] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-700 focus:border-indigo-500"
-                placeholder="Treasury wallet"
+                placeholder={tr("Treasury wallet")}
                 required
               />
             </div>
@@ -198,8 +197,7 @@ export function CryptoPortfolioClient() {
                   htmlFor="wallet-chain"
                   className="block text-xs font-medium text-zinc-400 mb-1.5"
                 >
-                  Chain
-                </label>
+                  {tr("Chain")}</label>
                 <select
                   id="wallet-chain"
                   value={form.chain}
@@ -228,8 +226,7 @@ export function CryptoPortfolioClient() {
                   }
                   className="h-4 w-4 rounded border-zinc-600 bg-[#0C0C0E] text-indigo-600"
                 />
-                Is active
-              </label>
+                {tr("Is active")}</label>
             </div>
 
             <div>
@@ -237,8 +234,7 @@ export function CryptoPortfolioClient() {
                 htmlFor="wallet-address"
                 className="block text-xs font-medium text-zinc-400 mb-1.5"
               >
-                Public address
-              </label>
+                {tr("Public address")}</label>
               <input
                 id="wallet-address"
                 value={form.address}
@@ -246,7 +242,7 @@ export function CryptoPortfolioClient() {
                   setForm((current) => ({ ...current, address: event.target.value }))
                 }
                 className="w-full rounded-lg border border-[#2F2F36] bg-[#0C0C0E] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-700 focus:border-indigo-500"
-                placeholder="0x…"
+                placeholder={tr("0x…")}
                 required
               />
             </div>
@@ -256,8 +252,7 @@ export function CryptoPortfolioClient() {
                 htmlFor="wallet-notes"
                 className="block text-xs font-medium text-zinc-400 mb-1.5"
               >
-                Notes
-              </label>
+                {tr("Notes")}</label>
               <textarea
                 id="wallet-notes"
                 value={form.notes}
@@ -265,7 +260,7 @@ export function CryptoPortfolioClient() {
                   setForm((current) => ({ ...current, notes: event.target.value }))
                 }
                 className="min-h-24 w-full resize-y rounded-lg border border-[#2F2F36] bg-[#0C0C0E] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-700 focus:border-indigo-500"
-                placeholder="Purpose, custody notes, exchange source, or tracking context"
+                placeholder={tr("Purpose, custody notes, exchange source, or tracking context")}
               />
             </div>
 
@@ -282,32 +277,30 @@ export function CryptoPortfolioClient() {
                   onClick={resetForm}
                   className="rounded-lg border border-[#2F2F36] px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-[#1C1C21]"
                 >
-                  Cancel
-                </button>
+                  {tr("Cancel")}</button>
               )}
             </div>
           </form>
         </Card>
 
         <Card>
-          <CardHeader label="Registered Wallets" action={`${wallets.length} total`} />
+          <CardHeader label={tr("Registered Wallets")} action={`${wallets.length} total`} />
           {wallets.length === 0 ? (
             <div className="px-5 py-14 text-center">
               <p className="mx-auto max-w-md text-sm text-zinc-400">
-                Add your first public wallet address to start tracking crypto holdings.
-              </p>
+                {tr("Add your first public wallet address to start tracking crypto holdings.")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left">
                 <thead>
                   <tr className="border-b border-[#26262B] text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
-                    <th className="px-5 py-3">Name</th>
-                    <th className="px-5 py-3">Chain</th>
-                    <th className="px-5 py-3">Address</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3">Last synced</th>
-                    <th className="px-5 py-3 text-right">Actions</th>
+                    <th className="px-5 py-3">{tr("Name")}</th>
+                    <th className="px-5 py-3">{tr("Chain")}</th>
+                    <th className="px-5 py-3">{tr("Address")}</th>
+                    <th className="px-5 py-3">{tr("Status")}</th>
+                    <th className="px-5 py-3">{tr("Last synced")}</th>
+                    <th className="px-5 py-3 text-right">{tr("Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -348,15 +341,13 @@ export function CryptoPortfolioClient() {
                             onClick={() => editWallet(wallet)}
                             className="rounded-md border border-[#2F2F36] px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-[#1C1C21]"
                           >
-                            Edit
-                          </button>
+                            {tr("Edit")}</button>
                           <button
                             type="button"
                             onClick={() => deleteWallet(wallet.id)}
                             className="rounded-md border border-red-500/30 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/10"
                           >
-                            Delete
-                          </button>
+                            {tr("Delete")}</button>
                         </div>
                       </td>
                     </tr>

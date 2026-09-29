@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { accountRegistry } from '@/db/schema';
@@ -27,27 +28,23 @@ export default async function CryptoAccountsPage() {
               href="/crypto"
               className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
             >
-              ← Crypto Portfolio
-            </Link>
+              {tr("← Crypto Portfolio")}</Link>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Exchanges & Wallets
-            </h1>
+              {tr("Exchanges & Wallets")}</h1>
             <p className="text-xs text-zinc-600 mt-0.5">
-              Execution venues and custody locations for crypto assets.
-            </p>
+              {tr("Execution venues and custody locations for crypto assets.")}</p>
           </div>
           <Link
             href="/crypto/accounts/new"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Exchange or Wallet
-          </Link>
+            {tr("+ Add Exchange or Wallet")}</Link>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
-        <AccountTable title="Exchanges" accounts={exchanges} emptyLabel="exchange" />
-        <AccountTable title="Wallets" accounts={wallets} emptyLabel="wallet" />
+        <AccountTable title={tr("Exchanges")} accounts={exchanges} emptyLabel={tr("exchange")} />
+        <AccountTable title={tr("Wallets")} accounts={wallets} emptyLabel={tr("wallet")} />
       </main>
     </div>
   );
@@ -67,12 +64,12 @@ function AccountTable({
       <CardHeader label={title} action={`${accounts.length} registered`} />
       {accounts.length === 0 ? (
         <div className="px-6 py-8 text-center">
-          <p className="text-sm text-zinc-600 mb-3">No {emptyLabel}s registered yet.</p>
+          <p className="text-sm text-zinc-600 mb-3">{'' + tr("No") + ' '}{emptyLabel}{tr("s registered yet.")}</p>
           <Link
             href="/crypto/accounts/new"
             className="inline-block text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
           >
-            + Add your first {emptyLabel}
+            {'' + tr("+ Add your first") + ' '}{emptyLabel}
           </Link>
         </div>
       ) : (
@@ -111,7 +108,7 @@ function AccountTable({
                   <td className="px-5 py-3 text-zinc-200 tabular-nums whitespace-nowrap">
                     {formatValue(account.current_balance, account.currency)}
                   </td>
-                  <td className="px-5 py-3 text-zinc-500 whitespace-nowrap">{account.status}</td>
+                  <td className="px-5 py-3 text-zinc-500 whitespace-nowrap">{tr(account.status)}</td>
                 </tr>
               ))}
             </tbody>

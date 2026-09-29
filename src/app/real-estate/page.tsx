@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getModuleData } from '@/lib/moduleData';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
@@ -28,9 +29,9 @@ export default async function RealEstatePage() {
         <WorkspaceAllocationChart
           assets={classAssets}
           usdVndRate={usdVndRate}
-          label="Real Estate Allocation"
+          label={tr("Real Estate Allocation")}
         />
-        <ArchivedSection assets={archivedClassAssets} label="Archived Real Estate" usdVndRate={usdVndRate} />
+        <ArchivedSection assets={archivedClassAssets} label={tr("Archived Real Estate")} usdVndRate={usdVndRate} />
       </main>
     </div>
   );

@@ -60,3 +60,6 @@ snapshots/
 exports/
 backups/
 .tnpa-wealth-os/
+.tnpa-wealth-os-dev/
+.tnpa-wealth-os*/
+wealth.db

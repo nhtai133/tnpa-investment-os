@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -34,16 +35,15 @@ export default async function EditDecisionPage({ params }: Props) {
             href={`/decisions/${id}`}
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Decision
-          </Link>
-          <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">Edit Decision</h1>
+            {tr("← Decision")}</Link>
+          <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">{tr("Edit Decision")}</h1>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-2xl">
           <Card>
-            <CardHeader label="Edit Decision" />
+            <CardHeader label={tr("Edit Decision")} />
             <div className="p-5">
               <DecisionForm
                 action={action}

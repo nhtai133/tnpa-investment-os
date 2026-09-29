@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -13,7 +15,7 @@ function NavGroup({ label, links, isActive }: {
     <>
       <div className="pt-5 pb-1 px-3">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
-          {label}
+          {tr(label)}
         </p>
       </div>
       <div className="space-y-0.5">
@@ -27,7 +29,7 @@ function NavGroup({ label, links, isActive }: {
                 : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
             }`}
           >
-            {lbl}
+            {tr(lbl)}
           </Link>
         ))}
       </div>
@@ -45,8 +47,8 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-52 flex-shrink-0 border-r border-[#26262B] flex-col h-full bg-[#0C0C0E]">
       <div className="px-4 py-4 border-b border-[#26262B]">
-        <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">TNPA</p>
-        <p className="text-sm font-semibold text-zinc-200 mt-0.5">Investment OS</p>
+        <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("TNPA")}</p>
+        <p className="text-sm font-semibold text-zinc-200 mt-0.5">TNPA Wealth OS</p>
       </div>
 
       <nav className="flex-1 px-3 py-3 overflow-y-auto">
@@ -59,8 +61,7 @@ export function Sidebar() {
                 : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
             }`}
           >
-            Dashboard
-          </Link>
+            {tr("Dashboard")}</Link>
         </div>
 
         {NAV_GROUPS.filter((g) => g.label !== 'System').map((group) => (
@@ -69,8 +70,7 @@ export function Sidebar() {
 
         <div className="pt-5 pb-1 px-3">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
-            System
-          </p>
+            {tr("System")}</p>
         </div>
         <div className="space-y-0.5">
           {SYSTEM_LINKS.map(({ label, href }) => (
@@ -83,14 +83,14 @@ export function Sidebar() {
                   : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
               }`}
             >
-              {label}
+              {tr(label)}
             </Link>
           ))}
         </div>
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v2.1.5 · Local Only</p>
+        <p className="text-[10px] text-zinc-700">v2.1.5.1 · Nội bộ</p>
       </div>
     </aside>
   );

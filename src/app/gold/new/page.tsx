@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { createGoldAsset } from '@/app/gold/actions';
 import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
@@ -12,11 +13,9 @@ export default function NewGoldAssetPage() {
             href="/gold"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Gold
-          </Link>
+            {tr("← Gold")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Gold
-          </h1>
+            {tr("Add Gold")}</h1>
         </div>
       </header>
 

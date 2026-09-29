@@ -1,4 +1,5 @@
 import type { AssetClass, AssetPurpose, TransactionType } from '@/db/schema';
+import { tr } from '@/i18n';
 
 export function formatCurrency(value: number, compact = false): string {
   if (compact && Math.abs(value) >= 1_000_000) {
@@ -7,7 +8,7 @@ export function formatCurrency(value: number, compact = false): string {
   if (compact && Math.abs(value) >= 1_000) {
     return `$${(value / 1_000).toFixed(1)}K`;
   }
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
@@ -35,7 +36,7 @@ export function formatWeight(value: number): string {
 }
 
 export function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString('vi-VN', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -43,14 +44,7 @@ export function formatDate(dateStr: string): string {
 }
 
 export const ASSET_CLASS_LABELS: Record<AssetClass, string> = {
-  stock: 'Stock',
-  crypto: 'Crypto',
-  real_estate: 'Real Estate',
-  gold: 'Gold',
-  cash: 'Cash',
-  funds: 'Funds',
-  private_loan: 'Private Loan',
-  other: 'Other',
+  stock: tr('Stock'), crypto: tr('Crypto'), real_estate: tr('Real Estate'), gold: tr('Gold'), cash: tr('Cash'), funds: tr('Funds'), private_loan: tr('Private Loan'), other: tr('Other'),
 };
 
 export const ASSET_CLASS_COLORS: Record<AssetClass, string> = {
@@ -65,13 +59,7 @@ export const ASSET_CLASS_COLORS: Record<AssetClass, string> = {
 };
 
 export const PURPOSE_LABELS: Record<AssetPurpose, string> = {
-  wealth_compounder: 'Wealth Compounder',
-  income_generator: 'Income Generator',
-  liquidity_reserve: 'Liquidity Reserve',
-  opportunity_capital: 'Opportunity Capital',
-  store_of_value: 'Store of Value',
-  strategic_asset: 'Strategic Asset',
-  retirement: 'Retirement',
+  wealth_compounder: tr('Wealth Compounder'), income_generator: tr('Income Generator'), liquidity_reserve: tr('Liquidity Reserve'), opportunity_capital: tr('Opportunity Capital'), store_of_value: tr('Store of Value'), strategic_asset: tr('Strategic Asset'), retirement: tr('Retirement'),
 };
 
 export const PURPOSE_COLORS: Record<AssetPurpose, string> = {
@@ -85,10 +73,7 @@ export const PURPOSE_COLORS: Record<AssetPurpose, string> = {
 };
 
 export const OPPORTUNITY_SOURCE_LABELS: Record<string, string> = {
-  manual: 'Manual',
-  telegram: 'Telegram',
-  ai: 'AI',
-  other: 'Other',
+  manual: tr('Manual'), telegram: tr('Telegram'), ai: 'AI', other: tr('Other'),
 };
 
 export const OPPORTUNITY_SOURCE_COLORS: Record<string, string> = {
@@ -99,10 +84,7 @@ export const OPPORTUNITY_SOURCE_COLORS: Record<string, string> = {
 };
 
 export const OPPORTUNITY_STATUS_LABELS: Record<string, string> = {
-  new: 'New',
-  reviewing: 'Reviewing',
-  promoted: 'Promoted',
-  rejected: 'Rejected',
+  new: tr('New'), reviewing: tr('Reviewing'), promoted: tr('Promoted'), rejected: tr('Rejected'),
 };
 
 export const OPPORTUNITY_STATUS_COLORS: Record<string, string> = {
@@ -113,23 +95,11 @@ export const OPPORTUNITY_STATUS_COLORS: Record<string, string> = {
 };
 
 export const WATCHLIST_STATUS_LABELS: Record<string, string> = {
-  active: 'Active',
-  archived: 'Archived',
-  promoted: 'Promoted',
-  rejected: 'Rejected',
+  active: tr('Active'), archived: tr('Archived'), promoted: tr('Promoted'), rejected: tr('Rejected'),
 };
 
 export const DECISION_TYPE_LABELS: Record<string, string> = {
-  buy: 'Buy',
-  sell: 'Sell',
-  hold: 'Hold',
-  trim: 'Trim',
-  add: 'Add',
-  reduce: 'Reduce',
-  rebalance: 'Rebalance',
-  review: 'Review',
-  reject: 'Reject',
-  monitor: 'Monitor',
+  buy: tr('Buy'), sell: tr('Sell'), hold: tr('Hold'), trim: tr('Trim'), add: tr('Add'), reduce: tr('Reduce'), rebalance: tr('Rebalance'), review: tr('Review'), reject: tr('Reject'), monitor: tr('Monitor'),
 };
 
 export const DECISION_TYPE_COLORS: Record<string, string> = {
@@ -146,9 +116,7 @@ export const DECISION_TYPE_COLORS: Record<string, string> = {
 };
 
 export const DECISION_OUTCOME_LABELS: Record<string, string> = {
-  positive: 'Positive',
-  neutral: 'Neutral',
-  negative: 'Negative',
+  positive: tr('Positive'), neutral: tr('Neutral'), negative: tr('Negative'),
 };
 
 export const DECISION_OUTCOME_COLORS: Record<string, string> = {
@@ -158,12 +126,7 @@ export const DECISION_OUTCOME_COLORS: Record<string, string> = {
 };
 
 export const RESEARCH_NOTE_TYPE_LABELS: Record<string, string> = {
-  research: 'Research',
-  observation: 'Observation',
-  earnings: 'Earnings',
-  news: 'News',
-  source: 'Source',
-  review: 'Review',
+  research: tr('Research'), observation: tr('Observation'), earnings: tr('Earnings'), news: tr('News'), source: tr('Source'), review: tr('Review'),
 };
 
 export const RESEARCH_NOTE_TYPE_COLORS: Record<string, string> = {
@@ -176,15 +139,7 @@ export const RESEARCH_NOTE_TYPE_COLORS: Record<string, string> = {
 };
 
 export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
-  buy: 'Buy',
-  sell: 'Sell',
-  deposit: 'Deposit',
-  withdraw: 'Withdraw',
-  dividend: 'Dividend',
-  interest: 'Interest',
-  fee: 'Fee',
-  transfer: 'Transfer',
-  adjustment: 'Adjustment',
+  buy: tr('Buy'), sell: tr('Sell'), deposit: tr('Deposit'), withdraw: tr('Withdraw'), dividend: tr('Dividend'), interest: tr('Interest'), fee: tr('Fee'), transfer: tr('Transfer'), adjustment: tr('Adjustment'),
 };
 
 export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {

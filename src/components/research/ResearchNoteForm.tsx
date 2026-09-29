@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 import type { Asset, ResearchNote } from '@/db/schema';
@@ -63,29 +65,29 @@ export function ResearchNoteForm({
 
   return (
     <form action={action} className="space-y-5">
-      <p className={sectionClass}>Identification</p>
+      <p className={sectionClass}>{tr("Identification")}</p>
 
       {/* Title + Symbol */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Field label="Title">
+          <Field label={tr("Title")}>
             <input
               type="text"
               name="title"
               maxLength={200}
               defaultValue={d?.title ?? ''}
-              placeholder="e.g. Bitcoin Bull Case 2025"
+              placeholder={tr("e.g. Bitcoin Bull Case 2025")}
               className={inputClass}
             />
           </Field>
         </div>
-        <Field label="Symbol (optional)">
+        <Field label={tr("Symbol (optional)")}>
           <input
             type="text"
             name="symbol"
             maxLength={20}
             defaultValue={d?.symbol ?? ''}
-            placeholder="e.g. BTC"
+            placeholder={tr("e.g. BTC")}
             className={`${inputClass} uppercase`}
           />
         </Field>
@@ -93,19 +95,19 @@ export function ResearchNoteForm({
 
       {/* Asset Class + Note Type */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Asset Class (optional)">
+        <Field label={tr("Asset Class (optional)")}>
           <select
             name="asset_class"
             defaultValue={d?.asset_class ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">Select class…</option>
+            <option value="">{tr("Select class…")}</option>
             {ASSET_CLASSES.map((c) => (
               <option key={c} value={c}>{ASSET_CLASS_LABELS[c]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Note Type">
+        <Field label={tr("Note Type")}>
           <select
             name="note_type"
             defaultValue={d?.note_type ?? 'research'}
@@ -120,13 +122,13 @@ export function ResearchNoteForm({
 
       {/* Related Asset */}
       {assets.length > 0 && (
-        <Field label="Related Asset (optional)">
+        <Field label={tr("Related Asset (optional)")}>
           <select
             name="asset_id"
             defaultValue={d?.asset_id ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">No linked asset</option>
+            <option value="">{tr("No linked asset")}</option>
             {assets.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}{a.symbol ? ` (${a.symbol})` : ''}
@@ -136,80 +138,80 @@ export function ResearchNoteForm({
         </Field>
       )}
 
-      <p className={sectionClass}>Research</p>
+      <p className={sectionClass}>{tr("Research")}</p>
 
       {/* Thesis */}
-      <Field label="Thesis">
+      <Field label={tr("Thesis")}>
         <textarea
           name="thesis"
           rows={4}
           defaultValue={d?.thesis ?? ''}
-          placeholder="Core investment thesis — why is this interesting?"
+          placeholder={tr("Core investment thesis — why is this interesting?")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* Valuation + Risk */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Valuation Notes (optional)">
+        <Field label={tr("Valuation Notes (optional)")}>
           <textarea
             name="valuation_notes"
             rows={3}
             defaultValue={d?.valuation_notes ?? ''}
-            placeholder="P/E, DCF, fair value estimate…"
+            placeholder={tr("P/E, DCF, fair value estimate…")}
             className={`${inputClass} resize-none`}
           />
         </Field>
-        <Field label="Risk Notes (optional)">
+        <Field label={tr("Risk Notes (optional)")}>
           <textarea
             name="risk_notes"
             rows={3}
             defaultValue={d?.risk_notes ?? ''}
-            placeholder="Key risks, concerns, red flags…"
+            placeholder={tr("Key risks, concerns, red flags…")}
             className={`${inputClass} resize-none`}
           />
         </Field>
       </div>
 
       {/* Action Plan */}
-      <Field label="Action Plan (optional)">
+      <Field label={tr("Action Plan (optional)")}>
         <textarea
           name="action_plan"
           rows={2}
           defaultValue={d?.action_plan ?? ''}
-          placeholder="What will you do? Buy trigger, sizing, entry conditions…"
+          placeholder={tr("What will you do? Buy trigger, sizing, entry conditions…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* General Notes */}
-      <Field label="Additional Notes (optional)">
+      <Field label={tr("Additional Notes (optional)")}>
         <textarea
           name="body"
           rows={3}
           defaultValue={d?.body ?? ''}
-          placeholder="Supplementary notes, data sources, links…"
+          placeholder={tr("Supplementary notes, data sources, links…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
-      <p className={sectionClass}>Meta</p>
+      <p className={sectionClass}>{tr("Meta")}</p>
 
       {/* Conviction + Status */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Field label="Conviction">
+        <Field label={tr("Conviction")}>
           <select
             name="conviction"
             defaultValue={d?.conviction ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">— not set —</option>
+            <option value="">{tr("— not set —")}</option>
             {CONVICTION_LEVELS.map((c) => (
               <option key={c} value={c}>{CONVICTION_LABELS[c]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Status">
+        <Field label={tr("Status")}>
           <select
             name="research_status"
             defaultValue={d?.research_status ?? 'active'}
@@ -220,24 +222,24 @@ export function ResearchNoteForm({
             ))}
           </select>
         </Field>
-        <Field label="Source Label (optional)">
+        <Field label={tr("Source Label (optional)")}>
           <input
             type="text"
             name="source_label"
             defaultValue={d?.source_label ?? ''}
-            placeholder="e.g. Bloomberg, Twitter"
+            placeholder={tr("e.g. Bloomberg, Twitter")}
             className={inputClass}
           />
         </Field>
       </div>
 
       {/* Source URL */}
-      <Field label="Source URL (optional)">
+      <Field label={tr("Source URL (optional)")}>
         <input
           type="url"
           name="source_url"
           defaultValue={d?.source_url ?? ''}
-          placeholder="https://…"
+          placeholder={tr("https://…")}
           className={inputClass}
         />
       </Field>
@@ -248,8 +250,7 @@ export function ResearchNoteForm({
           href={cancelHref}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

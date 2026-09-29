@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -37,8 +38,7 @@ export default async function NewOpportunityNotePage({ params }: Props) {
             ← {opp.name}
           </Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Research Note
-          </h1>
+            {tr("Add Research Note")}</h1>
         </div>
       </header>
 

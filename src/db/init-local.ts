@@ -3,9 +3,10 @@ import { chmodSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { initializeSchema } from './initialize';
-import { DATABASE_PATH, PRIVATE_ROOT, ensurePrivateDirectories, resolveLocalDatabaseUrl } from '../lib/local-paths';
+import { DATABASE_PATH, PRIVATE_ROOT, TNPA_ENV, ensurePrivateDirectories, resolveLocalDatabaseUrl } from '../lib/local-paths';
 
 async function main() {
+  if (TNPA_ENV === 'production' && !process.argv.includes('--confirm-production-schema-migration')) throw new Error('Production schema initialization requires --confirm-production-schema-migration.');
   process.umask(0o077);
   const url = resolveLocalDatabaseUrl();
   ensurePrivateDirectories();

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import { formatDate, formatValue } from '@/lib/formatters';
@@ -23,10 +24,10 @@ export function BankingAlertsCard({ events }: { events: BankingEvent[] }) {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader label="Banking Alerts" action={`${alerts.length} active`} />
+      <CardHeader label={tr("Banking Alerts")} action={`${alerts.length} active`} />
       {alerts.length === 0 ? (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-zinc-600">No banking alerts in the next 30 days.</p>
+          <p className="text-sm text-zinc-600">{tr("No banking alerts in the next 30 days.")}</p>
         </div>
       ) : (
         <div>
@@ -60,7 +61,7 @@ export function UpcomingBankingEvents({ events }: { events: BankingEvent[] }) {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader label="Upcoming Banking Events" action={`${upcoming.length} events`} />
+      <CardHeader label={tr("Upcoming Banking Events")} action={`${upcoming.length} events`} />
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -91,8 +92,7 @@ export function UpcomingBankingEvents({ events }: { events: BankingEvent[] }) {
             {upcoming.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-sm text-zinc-600">
-                  No upcoming banking events.
-                </td>
+                  {tr("No upcoming banking events.")}</td>
               </tr>
             )}
           </tbody>

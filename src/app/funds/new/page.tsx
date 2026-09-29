@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { createFundAsset } from '@/app/funds/actions';
 import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
@@ -12,11 +13,9 @@ export default function NewFundAssetPage() {
             href="/funds"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Funds &amp; ETFs
-          </Link>
+            {tr("← Funds & ETFs")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Fund / ETF
-          </h1>
+            {tr("Add Fund / ETF")}</h1>
         </div>
       </header>
 

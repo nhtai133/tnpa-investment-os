@@ -7,12 +7,13 @@ import { createClient } from '@libsql/client/sqlite3';
 import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from '../src/db/schema';
 import { initializeSchema } from '../src/db/initialize';
-import { resolveLocalDatabaseUrl, DATABASE_PATH } from '../src/lib/local-paths';
+import { resolveLocalDatabaseUrl, DATABASE_PATH, dataRootFor } from '../src/lib/local-paths';
 import { isLocalRequest } from '../src/lib/local-request';
 import { normalizeToUsd, convertCurrency } from '../src/lib/fx';
 import { buildPortfolioSummary, type PortfolioInput } from '../src/lib/portfolio-model';
 import { readBackup, restoreBackup, validateBackup, csvCell, TABLE_NAMES } from '../src/lib/backup';
 import { createLifecycleTransaction, type LifecycleTransactionInput } from '../src/lib/asset-lifecycle';
+import { tr, t } from '../src/i18n';
 
 async function fixture() {
   const directory = mkdtempSync(join(tmpdir(), 'tnpa-test-'));
@@ -30,17 +31,31 @@ const input = (extra: Partial<PortfolioInput> = {}): PortfolioInput => ({ usdVnd
 const txn = (extra: Partial<LifecycleTransactionInput> = {}): LifecycleTransactionInput => ({ assetId: 1, type: 'buy', transactionDate: '2026-09-28', settlementDate: null, quantity: 10, price: 10, amount: 100, totalAmount: 100, grossProceeds: null, currency: 'USD', fees: 2, tax: 0, fundingAccountId: 1, executionAccountId: 1, custodyAccountId: 1, receiveAccountId: null, fromCustodyAccountId: null, toCustodyAccountId: null, transferFee: null, notes: null, ...extra });
 
 test('database configuration fails closed for remote, relative, repository and legacy settings', () => {
-  const testEnv = (values: Record<string, string | undefined> = {}) => ({ NODE_ENV: 'test', ...values }) as NodeJS.ProcessEnv;
-  assert.ok(resolveLocalDatabaseUrl(testEnv()).endsWith('/.tnpa-wealth-os/database/wealth.db'));
+  const testEnv = (values: Record<string, string | undefined> = {}) => ({ NODE_ENV: 'test', TNPA_ENV: 'development', TNPA_DATA_ROOT: dataRootFor('development'), ...values }) as NodeJS.ProcessEnv;
+  assert.ok(resolveLocalDatabaseUrl(testEnv()).endsWith('/.tnpa-wealth-os-dev/database/wealth.db'));
   assert.ok(resolveLocalDatabaseUrl(testEnv({ DATABASE_URL: `file:${DATABASE_PATH}` })));
   for (const DATABASE_URL of ['libsql://example.invalid', 'https://example.invalid', 'file:tnpa-investment.db', 'file:/tmp/wealth.db', '', `file:${DATABASE_PATH}?syncUrl=https://example.invalid`]) assert.throws(() => resolveLocalDatabaseUrl(testEnv({ DATABASE_URL })));
   assert.throws(() => resolveLocalDatabaseUrl(testEnv({ TURSO_DATABASE_URL: 'libsql://example.invalid' })));
   assert.throws(() => resolveLocalDatabaseUrl(testEnv({ TURSO_AUTH_TOKEN: 'invalid' })));
+  assert.ok(resolveLocalDatabaseUrl(testEnv({ TNPA_ENV: 'production', TNPA_DATA_ROOT: dataRootFor('production') })).endsWith('/.tnpa-wealth-os/database/wealth.db'));
+  assert.throws(() => resolveLocalDatabaseUrl(testEnv({ TNPA_ENV: 'development', TNPA_DATA_ROOT: dataRootFor('production') })));
+  assert.throws(() => resolveLocalDatabaseUrl({ NODE_ENV: 'test' } as NodeJS.ProcessEnv));
+});
+
+test('environment data roots are distinct and cannot resolve across development and production', () => {
+  assert.notEqual(dataRootFor('development'), dataRootFor('production'));
+  assert.notEqual(dataRootFor('development', '/Users/tester'), dataRootFor('production', '/Users/tester'));
+});
+
+test('Vietnamese navigation copy wins ambiguous phrases while domain copy stays specific', () => {
+  assert.equal(tr('Holdings'), 'Tài sản');
+  assert.equal(t('stocks', 'Holdings'), 'Khoản đang nắm giữ');
 });
 
 test('local requests reject foreign origins, forged hosts and mutation without origin', () => {
   const good = { host: '127.0.0.1:3001', origin: 'http://127.0.0.1:3001', 'sec-fetch-site': 'same-origin' };
   assert.equal(isLocalRequest(new Headers(good), true), true);
+  assert.equal(isLocalRequest(new Headers({ host: '127.0.0.1:3002', origin: 'http://127.0.0.1:3002', 'sec-fetch-site': 'same-origin' }), true, 'development'), true);
   assert.equal(isLocalRequest(new Headers({ ...good, 'x-forwarded-host': good.host }), true), true);
   for (const bad of [{ ...good, host: '192.168.1.1:3001' }, { ...good, origin: 'https://evil.invalid' }, { ...good, 'sec-fetch-site': 'cross-site' }, { ...good, 'x-forwarded-host': 'evil.invalid' }, { host: good.host }]) assert.equal(isLocalRequest(new Headers(bad), true), false);
 });
@@ -81,9 +96,12 @@ test('archives and explicit cash mirrors excluded; unpaid inactive credit remain
 
 test('banking, settings/address book and every table round-trip, with pre-import snapshot', async () => {
   const { client, database } = await fixture();
+  let recovered: ReturnType<typeof createClient> | undefined;
+  let recoveryDir: string | undefined;
   try {
     await database.insert(schema.bankAccounts).values(bank());
-    await database.insert(schema.bankSavingsDeposits).values({ deposit_name: 'Fixture deposit', bank_account_id: 1, principal: 1000, created_at: now, updated_at: now });
+    await database.insert(schema.bankSavingsDeposits).values({ deposit_name: 'QA synthetic term deposit', bank_account_id: 1, principal: 1000, created_at: now, updated_at: now });
+    await database.insert(schema.assets).values([asset({ name: 'QA synthetic stock', symbol: 'QASTK' }), asset({ id: 2, name: 'QA synthetic crypto', symbol: 'QACRY', asset_class: 'crypto', quantity: 0.01 })]);
     await database.insert(schema.bankCreditCards).values({ bank_name: 'Fixture', card_name: 'Fixture card', current_used: 100, created_at: now, updated_at: now });
     await database.insert(schema.bankCreditFacilities).values({ bank_name: 'Fixture', facility_name: 'Fixture facility', current_used: 200, created_at: now, updated_at: now });
     await database.insert(schema.appSettings).values({ key: 'crypto_wallets', value: '[]', updated_at: now });
@@ -96,7 +114,18 @@ test('banking, settings/address book and every table round-trip, with pre-import
     assert.equal(path, 'in-memory-test-backup'); assert.ok(protectedBefore);
     const restored = await readBackup(client);
     for (const name of TABLE_NAMES) assert.deepEqual(restored[name], backup[name]);
+
+    // Simulate a lost development database: initialize a separate clean SQLite file and restore the exported fixture.
+    recoveryDir = mkdtempSync(join(tmpdir(), 'tnpa-dev-restore-'));
+    recovered = createClient({ url: 'file:' + join(recoveryDir, 'recovered.db') });
+    await initializeSchema(recovered);
+    await restoreBackup(recovered, backup, 'REPLACE LOCAL DATA', () => 'dev-only-pre-restore-copy');
+    const afterRecovery = await readBackup(recovered);
+    for (const name of TABLE_NAMES) assert.deepEqual(afterRecovery[name], backup[name]);
+    assert.equal((afterRecovery.assets as unknown[]).length, 2);
+    assert.equal((afterRecovery.bank_savings_deposits as unknown[]).length, 1);
   } finally { client.close(); }
+  if (recovered) { recovered.close(); if (recoveryDir) rmSync(recoveryDir, { recursive: true, force: true }); }
 });
 
 test('invalid imports, missing tables, legacy versions and backup write failure preserve original rows', async () => {

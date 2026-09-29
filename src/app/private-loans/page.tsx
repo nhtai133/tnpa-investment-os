@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getModuleData } from '@/lib/moduleData';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
@@ -14,7 +15,7 @@ export default async function PrivateLoansPage() {
     <div className="min-h-screen bg-[#0C0C0E]">
       <ModulePageHeader
         assetClass="private_loan"
-        title="Private Loans"
+        title={tr("Private Loans")}
         addHref="/private-loans/new"
         addLabel="+ Add Loan"
         currency="VND"
@@ -29,9 +30,9 @@ export default async function PrivateLoansPage() {
         <WorkspaceAllocationChart
           assets={classAssets}
           usdVndRate={usdVndRate}
-          label="Private Loans Allocation"
+          label={tr("Private Loans Allocation")}
         />
-        <ArchivedSection assets={archivedClassAssets} label="Archived Private Loans" usdVndRate={usdVndRate} />
+        <ArchivedSection assets={archivedClassAssets} label={tr("Archived Private Loans")} usdVndRate={usdVndRate} />
       </main>
     </div>
   );

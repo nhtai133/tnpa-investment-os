@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getPortfolioSummary } from '@/lib/portfolio-aggregation';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -55,8 +56,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
               {/* Breadcrumb */}
               <nav className="flex items-center gap-1.5 text-[11px] font-semibold tracking-widest uppercase">
                 <Link href="/locations" className="text-zinc-600 hover:text-zinc-400 transition-colors">
-                  Locations
-                </Link>
+                  {tr("Locations")}</Link>
                 {primaryCustody && (
                   <>
                     <span className="text-zinc-800">›</span>
@@ -72,8 +72,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
                   <>
                     <span className="text-zinc-800">›</span>
                     <Link href="/holdings" className="text-zinc-600 hover:text-zinc-400 transition-colors">
-                      Holdings
-                    </Link>
+                      {tr("Holdings")}</Link>
                   </>
                 )}
                 <span className="text-zinc-800">›</span>
@@ -98,8 +97,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
             href={`/holdings/${asset.id}/edit`}
             className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-300 hover:text-zinc-100 rounded-lg transition-colors"
           >
-            Edit
-          </Link>
+            {tr("Edit")}</Link>
         </div>
       </header>
 
@@ -115,13 +113,12 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
           <IntelligenceCard intel={intel} assetId={asset.id} assetClass={asset.asset_class} />
         ) : (
           <div className="bg-[#131316] border border-[#26262B] border-dashed rounded-xl px-6 py-10 text-center">
-            <p className="text-sm text-zinc-600 mb-3">No intelligence added for this asset yet.</p>
+            <p className="text-sm text-zinc-600 mb-3">{tr("No intelligence added for this asset yet.")}</p>
             <Link
               href={`/holdings/${asset.id}/intelligence/new`}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Add Intelligence
-            </Link>
+              {tr("+ Add Intelligence")}</Link>
           </div>
         )}
 
@@ -130,13 +127,13 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
             notes={notes}
             addHref={`/holdings/${asset.id}/notes/new`}
             allHref={`/holdings/${asset.id}/notes`}
-            title="Research Notes"
+            title={tr("Research Notes")}
           />
           <DecisionLogCard
             decisions={decisions}
             addHref={`/decisions/new?asset_id=${asset.id}`}
             allHref="/decisions"
-            title="Decision Log"
+            title={tr("Decision Log")}
           />
         </div>
       </main>

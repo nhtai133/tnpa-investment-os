@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import { SourceBadge } from '@/components/opportunities/SourceBadge';
@@ -13,17 +14,15 @@ export function RecentOpportunities({ opportunities }: RecentOpportunitiesProps)
   return (
     <Card>
       <CardHeader
-        label="Recent Signals"
+        label={tr("Recent Signals")}
         action={
           <div className="flex items-center gap-3">
             {opportunities.length > 0 && (
               <Link href="/pipeline" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-                All →
-              </Link>
+                {tr("All →")}</Link>
             )}
             <Link href="/intake" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-              + Intake
-            </Link>
+              {tr("+ Intake")}</Link>
           </div>
         }
       />
@@ -65,13 +64,12 @@ export function RecentOpportunities({ opportunities }: RecentOpportunitiesProps)
         </div>
       ) : (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-zinc-700 mb-3">No signals yet.</p>
+          <p className="text-sm text-zinc-700 mb-3">{tr("No signals yet.")}</p>
           <Link
             href="/intake"
             className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Signal
-          </Link>
+            {tr("+ Add Signal")}</Link>
         </div>
       )}
     </Card>

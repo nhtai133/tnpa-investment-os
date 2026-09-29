@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
@@ -48,8 +50,7 @@ function Footer({ label, cancelHref }: { label: string; cancelHref: string }) {
     <div className="flex items-center gap-3 pt-1">
       <SubmitButton label={label} />
       <a href={cancelHref} className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
-        Cancel
-      </a>
+        {tr("Cancel")}</a>
     </div>
   );
 }
@@ -66,30 +67,30 @@ export function BankAccountForm({
   return (
     <form action={action} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Bank">
-          <input name="bank_name" required defaultValue={defaultValues?.bank_name} placeholder="Techcombank" className={inputClass} />
+        <Field label={tr("Bank")}>
+          <input name="bank_name" required defaultValue={defaultValues?.bank_name} placeholder={tr("Techcombank")} className={inputClass} />
         </Field>
-        <Field label="Account Name">
-          <input name="account_name" required defaultValue={defaultValues?.account_name} placeholder="Main checking" className={inputClass} />
+        <Field label={tr("Account Name")}>
+          <input name="account_name" required defaultValue={defaultValues?.account_name} placeholder={tr("Main checking")} className={inputClass} />
         </Field>
-        <Field label="Account Number">
+        <Field label={tr("Account Number")}>
           <input name="account_number" defaultValue={defaultValues?.account_number ?? ''} placeholder="1234567890" className={inputClass} />
         </Field>
-        <Field label="Account Type">
+        <Field label={tr("Account Type")}>
           <select name="account_type" defaultValue={defaultValues?.account_type ?? 'Reserve'} className={`${inputClass} appearance-none`}>
-            {BANK_ACCOUNT_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+            {BANK_ACCOUNT_TYPES.map((type) => <option key={type} value={type}>{tr(type)}</option>)}
           </select>
         </Field>
-        <Field label="Balance">
+        <Field label={tr("Balance")}>
           <CurrencyInput name="balance" currency={currency} required defaultValue={defaultValues?.balance ?? 0} className={inputClass} />
         </Field>
-        <Field label="Currency">
+        <Field label={tr("Currency")}>
           <select name="currency" value={currency} onChange={(event) => setCurrency(event.target.value)} className={`${inputClass} appearance-none`}>
-            <option value="VND">VND</option>
-            <option value="USD">USD</option>
+            <option value="VND">{tr("VND")}</option>
+            <option value="USD">{tr("USD")}</option>
           </select>
         </Field>
-        <Field label="Portfolio Purpose">
+        <Field label={tr("Portfolio Purpose")}>
           <select name="purpose" defaultValue={defaultValues?.purpose ?? 'liquidity_reserve'} className={`${inputClass} appearance-none`}>
             {ASSET_PURPOSES.map((purpose) => (
               <option key={purpose} value={purpose}>
@@ -98,25 +99,25 @@ export function BankAccountForm({
             ))}
           </select>
         </Field>
-        <Field label="VIP Tier">
-          <input name="vip_tier" defaultValue={defaultValues?.vip_tier ?? ''} placeholder="Priority, Private..." className={inputClass} />
+        <Field label={tr("VIP Tier")}>
+          <input name="vip_tier" defaultValue={defaultValues?.vip_tier ?? ''} placeholder={tr("Priority, Private...")} className={inputClass} />
         </Field>
-        <Field label="Status">
+        <Field label={tr("Status")}>
           <select name="status" defaultValue={defaultValues?.status ?? 'active'} className={`${inputClass} appearance-none`}>
-            {BANK_ACCOUNT_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+            {BANK_ACCOUNT_STATUSES.map((status) => <option key={status} value={status}>{tr(status)}</option>)}
           </select>
         </Field>
       </div>
-      <Field label="Custom Purpose">
+      <Field label={tr("Custom Purpose")}>
         <textarea
           name="custom_purpose"
           rows={3}
           defaultValue={defaultValues?.custom_purpose ?? ''}
-          placeholder="BIDV dùng để trữ tiền đầu tư chứng khoán và cho vay cá nhân"
+          placeholder={tr("BIDV dùng để trữ tiền đầu tư chứng khoán và cho vay cá nhân")}
           className={`${inputClass} resize-none`}
         />
       </Field>
-      <Field label="Notes">
+      <Field label={tr("Notes")}>
         <textarea name="notes" rows={4} defaultValue={defaultValues?.notes ?? ''} className={`${inputClass} resize-none`} />
       </Field>
 
@@ -129,10 +130,9 @@ export function BankAccountForm({
               className="mt-0.5 h-4 w-4 accent-indigo-600 flex-shrink-0"
             />
             <div>
-              <p className="text-sm text-zinc-200 font-medium">Register for transaction tracking</p>
+              <p className="text-sm text-zinc-200 font-medium">{tr("Register for transaction tracking")}</p>
               <p className="text-xs text-zinc-500 mt-1">
-                Use this account as a funding source in transactions. Adds it to the Lifecycle Account Registry.
-              </p>
+                {tr("Use this account as a funding source in transactions. Adds it to the Lifecycle Account Registry.")}</p>
             </div>
           </label>
         </div>
@@ -155,49 +155,48 @@ export function SavingsDepositForm({
   return (
     <form action={action} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Linked Account">
+        <Field label={tr("Linked Account")}>
           <select name="bank_account_id" defaultValue={defaultValues?.bank_account_id ?? ''} className={`${inputClass} appearance-none`}>
-            <option value="">No linked account</option>
+            <option value="">{tr("No linked account")}</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>{account.bank_name} - {account.account_name}</option>
             ))}
           </select>
         </Field>
-        <Field label="Bank">
-          <input name="bank_name" defaultValue={defaultValues?.bank_name ?? ''} placeholder="Techcombank" className={inputClass} />
+        <Field label={tr("Bank")}>
+          <input name="bank_name" defaultValue={defaultValues?.bank_name ?? ''} placeholder={tr("Techcombank")} className={inputClass} />
         </Field>
-        <Field label="Deposit Name">
-          <input name="deposit_name" required defaultValue={defaultValues?.deposit_name} placeholder="6M savings ladder" className={inputClass} />
+        <Field label={tr("Deposit Name")}>
+          <input name="deposit_name" required defaultValue={defaultValues?.deposit_name} placeholder={tr("6M savings ladder")} className={inputClass} />
         </Field>
-        <Field label="Principal">
+        <Field label={tr("Principal")}>
           <CurrencyInput name="principal" currency="VND" required defaultValue={defaultValues?.principal ?? 0} className={inputClass} />
         </Field>
-        <Field label="Interest Rate">
+        <Field label={tr("Interest Rate")}>
           <input type="number" step="0.01" name="interest_rate" defaultValue={defaultValues?.interest_rate ?? 0} className={inputClass} />
         </Field>
-        <Field label="Term Months">
+        <Field label={tr("Term Months")}>
           <input type="number" name="term_months" defaultValue={defaultValues?.term_months ?? 0} className={inputClass} />
         </Field>
-        <Field label="Start Date">
+        <Field label={tr("Start Date")}>
           <input type="date" name="start_date" defaultValue={defaultValues?.start_date ?? ''} className={inputClass} />
         </Field>
-        <Field label="Maturity Date">
+        <Field label={tr("Maturity Date")}>
           <input type="date" name="maturity_date" defaultValue={defaultValues?.maturity_date ?? ''} className={inputClass} />
         </Field>
-        <Field label="Payout Type">
-          <input name="interest_payout_type" defaultValue={defaultValues?.interest_payout_type ?? ''} placeholder="At maturity, monthly..." className={inputClass} />
+        <Field label={tr("Payout Type")}>
+          <input name="interest_payout_type" defaultValue={defaultValues?.interest_payout_type ?? ''} placeholder={tr("At maturity, monthly...")} className={inputClass} />
         </Field>
-        <Field label="Status">
+        <Field label={tr("Status")}>
           <select name="status" defaultValue={defaultValues?.status ?? 'active'} className={`${inputClass} appearance-none`}>
-            {BANK_DEPOSIT_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+            {BANK_DEPOSIT_STATUSES.map((status) => <option key={status} value={status}>{tr(status)}</option>)}
           </select>
         </Field>
       </div>
       <label className="inline-flex items-center gap-2 text-sm text-zinc-300">
         <input type="checkbox" name="auto_renew" defaultChecked={defaultValues?.auto_renew ?? false} className="h-4 w-4 accent-indigo-600" />
-        Auto renew
-      </label>
-      <Field label="Notes">
+        {tr("Auto renew")}</label>
+      <Field label={tr("Notes")}>
         <textarea name="notes" rows={4} defaultValue={defaultValues?.notes ?? ''} className={`${inputClass} resize-none`} />
       </Field>
       <Footer label={defaultValues ? 'Update Deposit' : 'Add Deposit'} cancelHref="/banking" />
@@ -215,40 +214,40 @@ export function CreditCardForm({
   return (
     <form action={action} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Bank">
-          <input name="bank_name" required defaultValue={defaultValues?.bank_name} placeholder="Techcombank" className={inputClass} />
+        <Field label={tr("Bank")}>
+          <input name="bank_name" required defaultValue={defaultValues?.bank_name} placeholder={tr("Techcombank")} className={inputClass} />
         </Field>
-        <Field label="Card Name">
-          <input name="card_name" required defaultValue={defaultValues?.card_name} placeholder="Visa Signature" className={inputClass} />
+        <Field label={tr("Card Name")}>
+          <input name="card_name" required defaultValue={defaultValues?.card_name} placeholder={tr("Visa Signature")} className={inputClass} />
         </Field>
-        <Field label="Network">
-          <input name="card_network" defaultValue={defaultValues?.card_network ?? ''} placeholder="Visa, Mastercard..." className={inputClass} />
+        <Field label={tr("Network")}>
+          <input name="card_network" defaultValue={defaultValues?.card_network ?? ''} placeholder={tr("Visa, Mastercard...")} className={inputClass} />
         </Field>
-        <Field label="Credit Limit">
+        <Field label={tr("Credit Limit")}>
           <CurrencyInput name="credit_limit" currency="VND" defaultValue={defaultValues?.credit_limit ?? 0} className={inputClass} />
         </Field>
-        <Field label="Current Used">
+        <Field label={tr("Current Used")}>
           <CurrencyInput name="current_used" currency="VND" defaultValue={defaultValues?.current_used ?? 0} className={inputClass} />
         </Field>
-        <Field label="Available Limit">
+        <Field label={tr("Available Limit")}>
           <CurrencyInput name="available_limit" currency="VND" defaultValue={defaultValues?.available_limit ?? 0} className={inputClass} />
         </Field>
-        <Field label="Statement Date">
+        <Field label={tr("Statement Date")}>
           <input type="date" name="statement_date" defaultValue={defaultValues?.statement_date ?? ''} className={inputClass} />
         </Field>
-        <Field label="Due Date">
+        <Field label={tr("Due Date")}>
           <input type="date" name="due_date" defaultValue={defaultValues?.due_date ?? ''} className={inputClass} />
         </Field>
-        <Field label="Annual Fee">
+        <Field label={tr("Annual Fee")}>
           <CurrencyInput name="annual_fee" currency="VND" defaultValue={defaultValues?.annual_fee ?? 0} className={inputClass} />
         </Field>
-        <Field label="Status">
+        <Field label={tr("Status")}>
           <select name="status" defaultValue={defaultValues?.status ?? 'active'} className={`${inputClass} appearance-none`}>
-            {BANK_CREDIT_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+            {BANK_CREDIT_STATUSES.map((status) => <option key={status} value={status}>{tr(status)}</option>)}
           </select>
         </Field>
       </div>
-      <Field label="Notes">
+      <Field label={tr("Notes")}>
         <textarea name="notes" rows={4} defaultValue={defaultValues?.notes ?? ''} className={`${inputClass} resize-none`} />
       </Field>
       <Footer label={defaultValues ? 'Update Card' : 'Add Card'} cancelHref="/banking" />
@@ -266,42 +265,42 @@ export function CreditFacilityForm({
   return (
     <form action={action} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Bank">
-          <input name="bank_name" required defaultValue={defaultValues?.bank_name} placeholder="Techcombank" className={inputClass} />
+        <Field label={tr("Bank")}>
+          <input name="bank_name" required defaultValue={defaultValues?.bank_name} placeholder={tr("Techcombank")} className={inputClass} />
         </Field>
-        <Field label="Facility Name">
-          <input name="facility_name" required defaultValue={defaultValues?.facility_name} placeholder="Techcombank ShopCash" className={inputClass} />
+        <Field label={tr("Facility Name")}>
+          <input name="facility_name" required defaultValue={defaultValues?.facility_name} placeholder={tr("Techcombank ShopCash")} className={inputClass} />
         </Field>
-        <Field label="Facility Type">
+        <Field label={tr("Facility Type")}>
           <select name="facility_type" defaultValue={defaultValues?.facility_type ?? 'Other'} className={`${inputClass} appearance-none`}>
-            {BANK_FACILITY_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+            {BANK_FACILITY_TYPES.map((type) => <option key={type} value={type}>{tr(type)}</option>)}
           </select>
         </Field>
-        <Field label="Limit Amount">
+        <Field label={tr("Limit Amount")}>
           <CurrencyInput name="limit_amount" currency="VND" defaultValue={defaultValues?.limit_amount ?? 0} className={inputClass} />
         </Field>
-        <Field label="Current Used">
+        <Field label={tr("Current Used")}>
           <CurrencyInput name="current_used" currency="VND" defaultValue={defaultValues?.current_used ?? 0} className={inputClass} />
         </Field>
-        <Field label="Available Amount">
+        <Field label={tr("Available Amount")}>
           <CurrencyInput name="available_amount" currency="VND" defaultValue={defaultValues?.available_amount ?? 0} className={inputClass} />
         </Field>
-        <Field label="Interest Rate">
+        <Field label={tr("Interest Rate")}>
           <input type="number" step="0.01" name="interest_rate" defaultValue={defaultValues?.interest_rate ?? 0} className={inputClass} />
         </Field>
-        <Field label="Status">
+        <Field label={tr("Status")}>
           <select name="status" defaultValue={defaultValues?.status ?? 'active'} className={`${inputClass} appearance-none`}>
             {BANK_CREDIT_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
           </select>
         </Field>
       </div>
-      <Field label="Fee Rule">
+      <Field label={tr("Fee Rule")}>
         <input name="fee_rule" defaultValue={defaultValues?.fee_rule ?? ''} className={inputClass} />
       </Field>
-      <Field label="Due Rule">
+      <Field label={tr("Due Rule")}>
         <input name="due_rule" defaultValue={defaultValues?.due_rule ?? ''} className={inputClass} />
       </Field>
-      <Field label="Notes">
+      <Field label={tr("Notes")}>
         <textarea name="notes" rows={4} defaultValue={defaultValues?.notes ?? ''} className={`${inputClass} resize-none`} />
       </Field>
       <Footer label={defaultValues ? 'Update Facility' : 'Add Facility'} cancelHref="/banking" />

@@ -4,7 +4,7 @@ const paths = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--
 const staged = new Set(execFileSync('git', ['diff', '--cached', '--name-only', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean));
 const bad = [];
 for (const path of paths) {
-  if (/(^|\/)(database|exports|backups|snapshots|logs|\.tnpa-wealth-os)(\/|$)|\.(db(?:-.*)?|sqlite3?(?:-.*)?|csv|tsv|jsonl|pem|key|bak|backup)$/i.test(path) || /(^|\/)\.env(?:\..*)?$/.test(path) && !path.endsWith('.env.example')) bad.push(path);
+  if (/(^|\/)(database|exports|backups|snapshots|logs|\.tnpa-wealth-os(?:-dev)?)(\/|$)|\.(db(?:-.*)?|sqlite3?(?:-.*)?|csv|tsv|jsonl|pem|key|bak|backup)$/i.test(path) || /(^|\/)\.env(?:\..*)?$/.test(path) && !path.endsWith('.env.example')) bad.push(path);
   if (path.endsWith('.json')) {
     try {
       const raw = staged.has(path)

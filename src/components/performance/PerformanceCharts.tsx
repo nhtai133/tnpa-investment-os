@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import {
   AreaChart,
@@ -63,8 +65,8 @@ export function PerformanceCharts({ data }: Props) {
   if (data.length < 2) {
     return (
       <div className="border border-[#26262B] rounded-xl bg-[#131316] px-5 py-10 text-center">
-        <p className="text-zinc-500 text-sm">Need at least 2 snapshots to show charts.</p>
-        <p className="text-zinc-700 text-xs mt-1">Create another snapshot after updating your portfolio.</p>
+        <p className="text-zinc-500 text-sm">{tr("Need at least 2 snapshots to show charts.")}</p>
+        <p className="text-zinc-700 text-xs mt-1">{tr("Create another snapshot after updating your portfolio.")}</p>
       </div>
     );
   }
@@ -75,7 +77,7 @@ export function PerformanceCharts({ data }: Props) {
     <div className="space-y-4">
       {/* Net Worth Over Time */}
       <div className="border border-[#26262B] rounded-xl bg-[#131316] px-5 py-4">
-        <p className="text-xs font-semibold text-zinc-300 mb-4">Net Worth Over Time</p>
+        <p className="text-xs font-semibold text-zinc-300 mb-4">{tr("Net Worth Over Time")}</p>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
             <defs>
@@ -131,7 +133,7 @@ export function PerformanceCharts({ data }: Props) {
       {/* Gain / Loss Over Time */}
       {gainData.length >= 2 && (
         <div className="border border-[#26262B] rounded-xl bg-[#131316] px-5 py-4">
-          <p className="text-xs font-semibold text-zinc-300 mb-4">Unrealized Gain / Loss Over Time</p>
+          <p className="text-xs font-semibold text-zinc-300 mb-4">{tr("Unrealized Gain / Loss Over Time")}</p>
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={gainData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <defs>

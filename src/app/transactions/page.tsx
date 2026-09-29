@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { accountRegistry, transactions, assets } from '@/db/schema';
@@ -33,7 +34,7 @@ function formatAmount(amount: number, currency: string): string {
       maximumFractionDigits: 0,
     }).format(amount);
   }
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
@@ -65,18 +66,15 @@ export default async function TransactionsPage() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-              Portfolio
-            </p>
+              {tr("Portfolio")}</p>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Transaction Ledger
-            </h1>
+              {tr("Transaction Ledger")}</h1>
           </div>
           <Link
             href="/transactions/new"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Transaction
-          </Link>
+            {tr("+ Add Transaction")}</Link>
         </div>
       </header>
 
@@ -86,26 +84,22 @@ export default async function TransactionsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Total Records
-            </p>
+              {tr("Total Records")}</p>
             <p className="text-xl font-bold text-zinc-100 mt-1.5 tabular-nums">{txns.length}</p>
           </Card>
           <Card className="p-4">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Buy
-            </p>
+              {tr("Buy")}</p>
             <p className="text-xl font-bold text-emerald-400 mt-1.5 tabular-nums">{buyCount}</p>
           </Card>
           <Card className="p-4">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Sell
-            </p>
+              {tr("Sell")}</p>
             <p className="text-xl font-bold text-red-400 mt-1.5 tabular-nums">{sellCount}</p>
           </Card>
           <Card className="p-4">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Income
-            </p>
+              {tr("Income")}</p>
             <p className="text-xl font-bold text-purple-400 mt-1.5 tabular-nums">{incomeCount}</p>
           </Card>
         </div>
@@ -113,16 +107,14 @@ export default async function TransactionsPage() {
         {/* Table */}
         {txns.length === 0 ? (
           <Card className="p-12 text-center">
-            <p className="text-sm text-zinc-600">No transactions yet.</p>
+            <p className="text-sm text-zinc-600">{tr("No transactions yet.")}</p>
             <p className="text-xs text-zinc-700 mt-1">
-              Add your first transaction to start tracking activity.
-            </p>
+              {tr("Add your first transaction to start tracking activity.")}</p>
             <Link
               href="/transactions/new"
               className="inline-block mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Add Transaction
-            </Link>
+              {tr("+ Add Transaction")}</Link>
           </Card>
         ) : (
           <Card>

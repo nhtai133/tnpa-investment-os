@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { assets } from '@/db/schema';
@@ -56,21 +57,18 @@ export default async function BucketsPage() {
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">Portfolio</p>
+            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("Portfolio")}</p>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Portfolio Buckets
-            </h1>
+              {tr("Portfolio Buckets")}</h1>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[11px] text-zinc-600">
-              {activeBuckets.length} active buckets · {allAssets.length} assets
-            </span>
+              {activeBuckets.length} {'' + tr("active buckets ·") + ' '}{allAssets.length} {tr("assets")}</span>
             <Link
               href="/holdings/new"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Add Asset
-            </Link>
+              {tr("+ Add Asset")}</Link>
           </div>
         </div>
       </header>
@@ -79,7 +77,7 @@ export default async function BucketsPage() {
 
         {/* What is a bucket */}
         <p className="text-[11px] text-zinc-700 px-1">
-          Asset Class answers <span className="text-zinc-500">what it is</span>. Bucket answers <span className="text-zinc-500">why you own it</span>.
+          {'' + tr("Asset Class answers") + ' '}<span className="text-zinc-500">{tr("what it is")}</span>{'' + tr(". Bucket answers") + ' '}<span className="text-zinc-500">{tr("why you own it")}</span>.
         </p>
 
         {/* Active buckets grid */}
@@ -100,7 +98,7 @@ export default async function BucketsPage() {
                         </span>
                       </div>
                       <span className="text-[10px] text-zinc-600">
-                        {s.count} asset{s.count !== 1 ? 's' : ''}
+                        {s.count} {tr("asset")}{s.count !== 1 ? 's' : ''}
                       </span>
                     </div>
 
@@ -109,19 +107,18 @@ export default async function BucketsPage() {
                       {formatCurrency(s.value)}
                     </p>
                     <p className="text-[11px] text-zinc-600 mb-4">
-                      {formatWeight(s.weight)} of portfolio
-                    </p>
+                      {formatWeight(s.weight)} {tr("of portfolio")}</p>
 
                     {/* P&L row */}
                     <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#26262B]">
                       <div>
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">Cost Basis</p>
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">{tr("Cost Basis")}</p>
                         <p className="text-xs text-zinc-400 tabular-nums">
                           {s.costBasis > 0 ? formatCurrency(s.costBasis) : '—'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">Gain / Loss</p>
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">{tr("Gain / Loss")}</p>
                         {s.costBasis > 0 ? (
                           <p className={`text-xs tabular-nums font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
                             {formatCurrency(s.gainLoss)}
@@ -145,8 +142,7 @@ export default async function BucketsPage() {
         {emptyBuckets.length > 0 && (
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-700 mb-2 px-1">
-              Unused Buckets
-            </p>
+              {tr("Unused Buckets")}</p>
             <Card>
               <div className="divide-y divide-[#1A1A1F]">
                 {emptyBuckets.map((s) => (
@@ -160,7 +156,7 @@ export default async function BucketsPage() {
                       style={{ backgroundColor: PURPOSE_COLORS[s.purpose] }}
                     />
                     <span className="text-sm text-zinc-600 flex-1">{PURPOSE_LABELS[s.purpose]}</span>
-                    <span className="text-[11px] text-zinc-700">0 assets</span>
+                    <span className="text-[11px] text-zinc-700">{tr("0 assets")}</span>
                   </Link>
                 ))}
               </div>
@@ -172,8 +168,7 @@ export default async function BucketsPage() {
         {activeBuckets.length > 0 && (
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-700 mb-2 px-1">
-              Summary
-            </p>
+              {tr("Summary")}</p>
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">

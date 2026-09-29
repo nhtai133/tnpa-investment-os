@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import type { AssetClass } from '@/db/schema';
 import { ASSET_CLASSES } from '@/db/schema';
@@ -96,19 +97,16 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
           <div className="flex items-center gap-4">
             <div>
               <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-                TNPA
-              </p>
+                {tr("TNPA")}</p>
               <h1 className="text-base font-semibold text-zinc-100 leading-tight">
-                Holdings Registry
-              </h1>
+                {tr("Holdings Registry")}</h1>
             </div>
             <div className="hidden md:flex items-center gap-4">
               <div className="w-px h-8 bg-[#26262B]" />
               <div>
-                <p className="text-sm text-zinc-300">Asset Registry</p>
+                <p className="text-sm text-zinc-300">{tr("Asset Registry")}</p>
                 <p className="text-[11px] text-zinc-600">
-                  {activeAssets.length} active · {classCount} classes
-                  {archivedAssets.length > 0 && ` · ${archivedAssets.length} archived`}
+                  {activeAssets.length} {'' + tr("active ·") + ' '}{classCount} {tr("classes")}{archivedAssets.length > 0 && ` · ${archivedAssets.length} archived`}
                 </p>
               </div>
             </div>
@@ -117,8 +115,7 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
             href="/holdings/new"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Asset
-          </Link>
+            {tr("+ Add Asset")}</Link>
         </div>
       </header>
 

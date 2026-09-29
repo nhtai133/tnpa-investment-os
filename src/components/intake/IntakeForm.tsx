@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 import { ASSET_CLASSES } from '@/db/schema';
@@ -45,7 +47,7 @@ export function IntakeForm({ action }: IntakeFormProps) {
   return (
     <form action={action} className="space-y-5">
       {/* Raw note — primary input */}
-      <Field label="Raw Signal">
+      <Field label={tr("Raw Signal")}>
         <textarea
           name="raw_note"
           required
@@ -56,7 +58,7 @@ export function IntakeForm({ action }: IntakeFormProps) {
       </Field>
 
       {/* Source */}
-      <Field label="Source">
+      <Field label={tr("Source")}>
         <select
           name="source"
           defaultValue="manual"
@@ -72,31 +74,31 @@ export function IntakeForm({ action }: IntakeFormProps) {
 
       {/* Optional overrides */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Name (optional — inferred if blank)">
+        <Field label={tr("Name (optional — inferred if blank)")}>
           <input
             type="text"
             name="name"
-            placeholder="e.g. NVIDIA Corp"
+            placeholder={tr("e.g. NVIDIA Corp")}
             className={inputClass}
           />
         </Field>
-        <Field label="Symbol (optional)">
+        <Field label={tr("Symbol (optional)")}>
           <input
             type="text"
             name="symbol"
-            placeholder="e.g. NVDA"
+            placeholder={tr("e.g. NVDA")}
             className={`${inputClass} uppercase`}
           />
         </Field>
       </div>
 
-      <Field label="Asset Class (optional — inferred if blank)">
+      <Field label={tr("Asset Class (optional — inferred if blank)")}>
         <select
           name="asset_class"
           defaultValue=""
           className={`${inputClass} appearance-none cursor-pointer`}
         >
-          <option value="">Auto-detect…</option>
+          <option value="">{tr("Auto-detect…")}</option>
           {ASSET_CLASSES.map((c) => (
             <option key={c} value={c}>
               {ASSET_CLASS_LABELS[c]}
@@ -105,11 +107,11 @@ export function IntakeForm({ action }: IntakeFormProps) {
         </select>
       </Field>
 
-      <Field label="Thesis Override (optional — auto-extracted if blank)">
+      <Field label={tr("Thesis Override (optional — auto-extracted if blank)")}>
         <textarea
           name="parsed_thesis"
           rows={2}
-          placeholder="Override the auto-extracted thesis…"
+          placeholder={tr("Override the auto-extracted thesis…")}
           className={`${inputClass} resize-none`}
         />
       </Field>

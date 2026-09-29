@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useMemo, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
@@ -96,7 +98,7 @@ export function TransactionForm({
         <option value="">{placeholder}</option>
         {options.map((account) => (
           <option key={account.id} value={account.id}>
-            {account.name} - {account.type.replaceAll('_', ' ')}
+            {account.name} - {tr(account.type.replaceAll('_', ' '))}
           </option>
         ))}
       </select>
@@ -110,13 +112,13 @@ export function TransactionForm({
 
       {state?.error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3">
-          <p className="text-sm text-red-400">{state.error}</p>
+          <p className="text-sm text-red-400">{tr(state.error)}</p>
         </div>
       )}
 
       {/* Date + Type */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Date">
+        <Field label={tr("Date")}>
           <input
             type="date"
             name="transaction_date"
@@ -125,7 +127,7 @@ export function TransactionForm({
             className={inputClass}
           />
         </Field>
-        <Field label="Type">
+        <Field label={tr("Type")}>
           <select
             name="type"
             required
@@ -133,7 +135,7 @@ export function TransactionForm({
             onChange={(event) => setType(event.target.value as TransactionType)}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="" disabled>Select type…</option>
+            <option value="" disabled>{tr("Select type…")}</option>
             {TRANSACTION_TYPES.map((t) => (
               <option key={t} value={t}>
                 {TRANSACTION_TYPE_LABELS[t]}
@@ -168,50 +170,50 @@ export function TransactionForm({
 
       {/* Amount + Currency */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Amount">
+        <Field label={tr("Amount")}>
           <input
             type="number"
             inputMode="decimal"
             name="amount"
             step="0.01"
             required
-            placeholder="e.g. 5000"
+            placeholder={tr("e.g. 5000")}
             className={inputClass}
           />
         </Field>
-        <Field label="Currency">
+        <Field label={tr("Currency")}>
           <select
             name="currency"
             defaultValue="USD"
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="USD">USD</option>
-            <option value="VND">VND</option>
+            <option value="USD">{tr("USD")}</option>
+            <option value="VND">{tr("VND")}</option>
           </select>
         </Field>
       </div>
 
       {/* Quantity + Price */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Quantity (optional)">
+        <Field label={tr("Quantity (optional)")}>
           <input
             type="number"
             inputMode="decimal"
             name="quantity"
             step="any"
-            placeholder="e.g. 0.05 BTC"
+            placeholder={tr("e.g. 0.05 BTC")}
             value={quantity}
             onChange={(event) => setQuantity(event.target.value)}
             className={inputClass}
           />
         </Field>
-        <Field label="Price per unit (optional)">
+        <Field label={tr("Price per unit (optional)")}>
           <input
             type="number"
             inputMode="decimal"
             name="price"
             step="0.01"
-            placeholder="e.g. 95000"
+            placeholder={tr("e.g. 95000")}
             value={price}
             onChange={(event) => setPrice(event.target.value)}
             className={inputClass}
@@ -224,25 +226,25 @@ export function TransactionForm({
 
       {/* Fees + Tax */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Fee">
+        <Field label={tr("Fee")}>
           <input
             type="number"
             inputMode="decimal"
             name="fees"
             step="0.01"
-            placeholder="e.g. 2.50"
+            placeholder={tr("e.g. 2.50")}
             value={fee}
             onChange={(event) => setFee(event.target.value)}
             className={inputClass}
           />
         </Field>
-        <Field label="Tax">
+        <Field label={tr("Tax")}>
           <input
             type="number"
             inputMode="decimal"
             name="tax"
             step="0.01"
-            placeholder="e.g. 0"
+            placeholder={tr("e.g. 0")}
             value={tax}
             onChange={(event) => setTax(event.target.value)}
             className={inputClass}
@@ -250,38 +252,38 @@ export function TransactionForm({
         </Field>
       </div>
 
-      <Field label="Settlement Date">
+      <Field label={tr("Settlement Date")}>
         <input type="date" name="settlement_date" className={inputClass} />
       </Field>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Funding Source">
-          <AccountSelect name="funding_account_id" accounts={fundingAccounts} placeholder="Select funding source..." />
+        <Field label={tr("Funding Source")}>
+          <AccountSelect name="funding_account_id" accounts={fundingAccounts} placeholder={tr("Select funding source...")} />
         </Field>
-        <Field label="Execution Venue">
-          <AccountSelect name="execution_account_id" accounts={executionAccounts} placeholder="Select broker / exchange..." />
+        <Field label={tr("Execution Venue")}>
+          <AccountSelect name="execution_account_id" accounts={executionAccounts} placeholder={tr("Select broker / exchange...")} />
         </Field>
-        <Field label="Custody Location">
-          <AccountSelect name="custody_account_id" accounts={custodyAccounts} placeholder="Select custody location..." />
+        <Field label={tr("Custody Location")}>
+          <AccountSelect name="custody_account_id" accounts={custodyAccounts} placeholder={tr("Select custody location...")} />
         </Field>
-        <Field label="Receive Destination">
-          <AccountSelect name="receive_account_id" accounts={receiveAccounts} placeholder="Select receive destination..." />
+        <Field label={tr("Receive Destination")}>
+          <AccountSelect name="receive_account_id" accounts={receiveAccounts} placeholder={tr("Select receive destination...")} />
         </Field>
-        <Field label="Transfer From">
-          <AccountSelect name="from_custody_account_id" accounts={custodyAccounts} placeholder="Select source custody..." />
+        <Field label={tr("Transfer From")}>
+          <AccountSelect name="from_custody_account_id" accounts={custodyAccounts} placeholder={tr("Select source custody...")} />
         </Field>
-        <Field label="Transfer To">
-          <AccountSelect name="to_custody_account_id" accounts={custodyAccounts} placeholder="Select destination custody..." />
+        <Field label={tr("Transfer To")}>
+          <AccountSelect name="to_custody_account_id" accounts={custodyAccounts} placeholder={tr("Select destination custody...")} />
         </Field>
       </div>
 
-      <Field label="Network / Transfer Fee">
+      <Field label={tr("Network / Transfer Fee")}>
         <input
           type="number"
           inputMode="decimal"
           name="transfer_fee"
           step="0.01"
-          placeholder="e.g. 8"
+          placeholder={tr("e.g. 8")}
           className={inputClass}
         />
       </Field>
@@ -289,8 +291,7 @@ export function TransactionForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="rounded-lg border border-[#26262B] bg-[#101014] p-4">
           <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-            Cash Movement Preview
-          </p>
+            {tr("Cash Movement Preview")}</p>
           <p className="mt-2 text-sm text-zinc-300 tabular-nums">
             {type === 'sell'
               ? `Estimated cash in: ${Math.max(computedTradeAmount - feeAmount - taxAmount, 0).toLocaleString()}`
@@ -303,8 +304,7 @@ export function TransactionForm({
         </div>
         <div className="rounded-lg border border-[#26262B] bg-[#101014] p-4">
           <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-            Asset Lifecycle Preview
-          </p>
+            {tr("Asset Lifecycle Preview")}</p>
           <p className="mt-2 text-sm text-zinc-300">
             {type === 'buy'
               ? 'Position increases and custody is assigned.'
@@ -318,11 +318,11 @@ export function TransactionForm({
       </div>
 
       {/* Notes */}
-      <Field label="Notes (optional)">
+      <Field label={tr("Notes (optional)")}>
         <textarea
           name="notes"
           rows={3}
-          placeholder="Order ID, broker, context…"
+          placeholder={tr("Order ID, broker, context…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
@@ -333,8 +333,7 @@ export function TransactionForm({
           href={cancelHref}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

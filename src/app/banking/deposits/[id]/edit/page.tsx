@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
 import { bankAccounts, bankSavingsDeposits } from '@/db/schema';
@@ -17,7 +18,7 @@ export default async function EditSavingsDepositPage({ params }: { params: { id:
   ]);
   if (!deposit) notFound();
   return (
-    <FormPageShell title="Edit Savings Deposit">
+    <FormPageShell title={tr("Edit Savings Deposit")}>
       <SavingsDepositForm action={updateBankSavingsDeposit.bind(null, deposit.id)} accounts={accounts} defaultValues={deposit} />
     </FormPageShell>
   );

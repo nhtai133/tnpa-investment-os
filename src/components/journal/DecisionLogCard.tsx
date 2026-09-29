@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 
@@ -27,12 +28,10 @@ export function DecisionLogCard({ decisions, addHref, allHref, title = 'Decision
           <div className="flex items-center gap-3">
             {allHref && decisions.length > 0 && (
               <Link href={allHref} className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-                All →
-              </Link>
+                {tr("All →")}</Link>
             )}
             <Link href={addHref} className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-              + Log Decision
-            </Link>
+              {tr("+ Log Decision")}</Link>
           </div>
         }
       />
@@ -74,13 +73,12 @@ export function DecisionLogCard({ decisions, addHref, allHref, title = 'Decision
         </div>
       ) : (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-zinc-700 mb-3">No decisions logged yet.</p>
+          <p className="text-sm text-zinc-700 mb-3">{tr("No decisions logged yet.")}</p>
           <Link
             href={addHref}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Log Decision
-          </Link>
+            {tr("+ Log Decision")}</Link>
         </div>
       )}
     </Card>

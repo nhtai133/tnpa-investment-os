@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
@@ -19,31 +20,27 @@ export default async function LocationsPage() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-              Portfolio · System Map
-            </p>
+              {tr("Portfolio · System Map")}</p>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Portfolio Locations
-            </h1>
+              {tr("Portfolio Locations")}</h1>
             <p className="text-xs text-zinc-600 mt-0.5">
-              System-wide map of where money and assets are stored.
-            </p>
+              {tr("System-wide map of where money and assets are stored.")}</p>
           </div>
           <Link
             href="/accounts"
             className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            Account Registry →
-          </Link>
+            {tr("Account Registry →")}</Link>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
         {/* Summary KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard label="Active Locations" value={String(activeCount)} sub={`${locations.length} total`} />
-          <KpiCard label="Total Cash" value={formatValue(totalCash, 'USD')} />
-          <KpiCard label="Asset / Custody Value" value={formatValue(totalCustody, 'USD')} />
-          <KpiCard label="Total Value Tracked" value={formatValue(totalValue, 'USD')} highlight />
+          <KpiCard label={tr("Active Locations")} value={String(activeCount)} sub={`${locations.length} total`} />
+          <KpiCard label={tr("Total Cash")} value={formatValue(totalCash, 'USD')} />
+          <KpiCard label={tr("Asset / Custody Value")} value={formatValue(totalCustody, 'USD')} />
+          <KpiCard label={tr("Total Value Tracked")} value={formatValue(totalValue, 'USD')} highlight />
         </div>
 
         {/* Grouped sections */}
@@ -68,9 +65,9 @@ export default async function LocationsPage() {
                 {/* Group totals strip */}
                 {hasActivity && (
                   <div className="flex flex-wrap gap-x-6 gap-y-1 px-1 pb-1 text-xs text-zinc-600">
-                    <span>Cash: <span className="text-zinc-400">{formatValue(groupCash, 'USD')}</span></span>
-                    <span>Assets: <span className="text-zinc-400">{formatValue(groupCustody, 'USD')}</span></span>
-                    <span>Total: <span className="text-zinc-300 font-medium">{formatValue(groupTotal, 'USD')}</span></span>
+                    <span>{'' + tr("Cash:") + ' '}<span className="text-zinc-400">{formatValue(groupCash, 'USD')}</span></span>
+                    <span>{'' + tr("Assets:") + ' '}<span className="text-zinc-400">{formatValue(groupCustody, 'USD')}</span></span>
+                    <span>{'' + tr("Total:") + ' '}<span className="text-zinc-300 font-medium">{formatValue(groupTotal, 'USD')}</span></span>
                   </div>
                 )}
 
@@ -111,7 +108,7 @@ export default async function LocationsPage() {
                             )}
                             <span className={`text-[11px] text-zinc-700 ${loc.account.institution ? 'before:content-["·"] before:mr-2' : ''}`}>
                               {loc.account.status !== 'active' && (
-                                <span className="text-amber-600 mr-1">{loc.account.status}</span>
+                                <span className="text-amber-600 mr-1">{tr(loc.account.status)}</span>
                               )}
                               {loc.account.currency}
                             </span>
@@ -123,7 +120,7 @@ export default async function LocationsPage() {
                           <p className="text-xs text-zinc-400 tabular-nums">
                             {formatValue(loc.cashBalance, 'USD')}
                           </p>
-                          <p className="text-[11px] text-zinc-700">cash</p>
+                          <p className="text-[11px] text-zinc-700">{tr("cash")}</p>
                         </div>
 
                         {/* Custody */}
@@ -133,7 +130,7 @@ export default async function LocationsPage() {
                               <p className="text-xs text-zinc-400 tabular-nums">
                                 {formatValue(loc.custodyValue, 'USD')}
                               </p>
-                              <p className="text-[11px] text-zinc-700">{loc.positionCount} position{loc.positionCount !== 1 ? 's' : ''}</p>
+                              <p className="text-[11px] text-zinc-700">{loc.positionCount} {tr("position")}{loc.positionCount !== 1 ? 's' : ''}</p>
                             </>
                           ) : (
                             <p className="text-xs text-zinc-700">—</p>
@@ -157,9 +154,9 @@ export default async function LocationsPage() {
                               {formatDate(loc.lastActivity)}
                             </p>
                           ) : (
-                            <p className="text-[11px] text-zinc-800">No activity</p>
+                            <p className="text-[11px] text-zinc-800">{tr("No activity")}</p>
                           )}
-                          <p className="text-[11px] text-zinc-700">{loc.transactionCount} txns</p>
+                          <p className="text-[11px] text-zinc-700">{loc.transactionCount} {tr("txns")}</p>
                         </div>
 
                         {/* View link */}
@@ -167,8 +164,7 @@ export default async function LocationsPage() {
                           href={`/locations/${loc.account.id}`}
                           className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors flex-shrink-0 whitespace-nowrap"
                         >
-                          View →
-                        </Link>
+                          {tr("View →")}</Link>
                       </div>
                     ))}
                   </div>
@@ -180,13 +176,11 @@ export default async function LocationsPage() {
 
         {locations.length === 0 && (
           <Card className="px-6 py-16 text-center">
-            <p className="text-sm text-zinc-600 mb-3">No accounts in the registry yet.</p>
+            <p className="text-sm text-zinc-600 mb-3">{tr("No accounts in the registry yet.")}</p>
             <p className="text-xs text-zinc-700 mb-4">
-              Accounts are created from their domain modules (Banking, Stocks, Crypto, etc.)
-            </p>
+              {tr("Accounts are created from their domain modules (Banking, Stocks, Crypto, etc.)")}</p>
             <Link href="/accounts" className="text-xs text-indigo-400 hover:text-indigo-300">
-              Go to Account Registry →
-            </Link>
+              {tr("Go to Account Registry →")}</Link>
           </Card>
         )}
       </main>

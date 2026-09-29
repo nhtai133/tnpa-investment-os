@@ -1,0 +1,16 @@
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
+const os = require('node:os');
+const tag = process.argv[2];
+if (!tag || process.argv.length !== 3 || !/^v\d+\.\d+\.\d+(?:[.-][A-Za-z0-9.-]+)?$/.test(tag)) throw new Error('Usage: npm run rollback:local -- <previous-release-tag>');
+const root = path.join(os.homedir(), 'Applications', 'TNPA-Wealth-OS');
+const release = path.join(root, 'releases', tag);
+const fs = require('node:fs');
+if (!fs.existsSync(path.join(root, '.tnpa-wealth-os-deployment'))) throw new Error('TNPA deployment marker missing; refusing to modify this directory.');
+if (!fs.existsSync(path.join(release, 'release-tag.txt'))) throw new Error('Previous deployed release not found.');
+if (fs.lstatSync(root).isSymbolicLink()) throw new Error('Unexpected production deployment symlink.');
+const temp = path.join(root, `.current-rollback-${process.pid}`);
+fs.symlinkSync(path.relative(root, release), temp, 'dir');
+const result = spawnSync('mv', ['-fh', temp, path.join(root, 'current')], { stdio: 'inherit' });
+if (result.status !== 0) throw new Error('Could not atomically switch production code.');
+console.log(`Production code pointer switched to ${tag}; production database was not changed.`);

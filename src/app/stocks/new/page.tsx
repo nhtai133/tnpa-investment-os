@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { createStockAsset } from '@/app/stocks/actions';
 import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
@@ -12,11 +13,9 @@ export default function NewStockAssetPage() {
             href="/stocks"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Stocks
-          </Link>
+            {tr("← Stocks")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Stock
-          </h1>
+            {tr("Add Stock")}</h1>
         </div>
       </header>
 

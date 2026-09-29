@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -105,8 +106,7 @@ export default async function BucketDetailPage({
               href="/buckets"
               className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
             >
-              ← Buckets
-            </Link>
+              {tr("← Buckets")}</Link>
             <div className="flex items-center gap-2 mt-0.5">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
               <h1 className="text-base font-semibold text-zinc-100 leading-tight">{label}</h1>
@@ -116,8 +116,7 @@ export default async function BucketDetailPage({
             href="/holdings/new"
             className="mt-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Asset
-          </Link>
+            {tr("+ Add Asset")}</Link>
         </div>
       </header>
 
@@ -126,28 +125,28 @@ export default async function BucketDetailPage({
         {/* KPI cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Total Value</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Total Value")}</p>
             <p className="text-xl font-bold tabular-nums text-zinc-100 mt-1.5">{formatCurrency(value)}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Cost Basis</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Cost Basis")}</p>
             <p className="text-xl font-bold tabular-nums text-zinc-100 mt-1.5">
               {costBasis > 0 ? formatCurrency(costBasis) : '—'}
             </p>
           </Card>
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Gain / Loss</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Gain / Loss")}</p>
             <p className={`text-xl font-bold tabular-nums mt-1.5 ${costBasis > 0 ? (gainLoss >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
               {costBasis > 0 ? formatCurrency(gainLoss) : '—'}
             </p>
           </Card>
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Return</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Return")}</p>
             <div className="mt-1.5">
               <p className={`text-xl font-bold tabular-nums ${returnPct !== null ? (returnPct >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
                 {returnPct !== null ? formatPercent(returnPct) : '—'}
               </p>
-              <p className="text-[10px] text-zinc-700 mt-0.5">{formatWeight(weight)} of portfolio</p>
+              <p className="text-[10px] text-zinc-700 mt-0.5">{formatWeight(weight)} {tr("of portfolio")}</p>
             </div>
           </Card>
         </div>
@@ -155,11 +154,9 @@ export default async function BucketDetailPage({
         {/* Retirement banner */}
         {purpose === 'retirement' && (
           <div className="rounded-lg border border-orange-900/40 bg-orange-950/20 px-4 py-3">
-            <p className="text-xs font-semibold text-orange-400 mb-1">Retirement Bucket</p>
+            <p className="text-xs font-semibold text-orange-400 mb-1">{tr("Retirement Bucket")}</p>
             <p className="text-[11px] text-orange-700 leading-relaxed">
-              Assets tagged as Retirement are long-horizon positions. Treat withdrawals and
-              archive actions with extra care.
-            </p>
+              {tr("Assets tagged as Retirement are long-horizon positions. Treat withdrawals and archive actions with extra care.")}</p>
           </div>
         )}
 
@@ -167,7 +164,7 @@ export default async function BucketDetailPage({
         <Card>
           <div className="px-5 pt-5 pb-4 border-b border-[#26262B] flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-              Assets · {bucket.length}
+              {'' + tr("Assets ·") + ' '}{bucket.length}
             </span>
           </div>
           {sortedBucket.length > 0 ? (
@@ -232,13 +229,12 @@ export default async function BucketDetailPage({
             </div>
           ) : (
             <div className="px-5 py-10 text-center">
-              <p className="text-sm text-zinc-700 mb-3">No assets in this bucket yet.</p>
+              <p className="text-sm text-zinc-700 mb-3">{tr("No assets in this bucket yet.")}</p>
               <Link
                 href="/holdings/new"
                 className="inline-block px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                + Add Asset
-              </Link>
+                {tr("+ Add Asset")}</Link>
             </div>
           )}
         </Card>
@@ -248,7 +244,7 @@ export default async function BucketDetailPage({
           <Card>
             <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
               <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-                Research Notes · {relatedNotes.length}
+                {'' + tr("Research Notes ·") + ' '}{relatedNotes.length}
               </span>
             </div>
             <div className="divide-y divide-[#1A1A1F]">
@@ -278,14 +274,14 @@ export default async function BucketDetailPage({
           <Card>
             <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
               <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-                Recent Transactions · {relatedTxns.length}
+                {'' + tr("Recent Transactions ·") + ' '}{relatedTxns.length}
               </span>
             </div>
             <div className="divide-y divide-[#1A1A1F]">
               {relatedTxns.map((txn) => (
                 <div key={txn.id} className="flex items-center justify-between px-5 py-3">
                   <div>
-                    <p className="text-xs text-zinc-400 uppercase font-semibold">{txn.type}</p>
+                    <p className="text-xs text-zinc-400 uppercase font-semibold">{tr(txn.type.charAt(0).toUpperCase() + txn.type.slice(1))}</p>
                     <p className="text-[11px] text-zinc-600">{formatDate(txn.transaction_date)}</p>
                   </div>
                   <p className="text-xs text-zinc-300 tabular-nums">{formatValue(txn.amount, txn.currency)}</p>
@@ -300,14 +296,13 @@ export default async function BucketDetailPage({
           <Card>
             <div className="px-5 pt-5 pb-4 border-b border-[#26262B] flex items-center justify-between">
               <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-                Decisions · {bucketDecisions.length}
+                {'' + tr("Decisions ·") + ' '}{bucketDecisions.length}
               </span>
               <Link
                 href={`/decisions/new?title=${encodeURIComponent(label)}&type=review`}
                 className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                + Log Decision →
-              </Link>
+                {tr("+ Log Decision →")}</Link>
             </div>
             <div className="divide-y divide-[#1A1A1F]">
               {bucketDecisions.map((d) => {
@@ -339,8 +334,7 @@ export default async function BucketDetailPage({
         <Card>
           <div className="px-5 pt-5 pb-4 border-b border-[#26262B] flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-              Review Schedule
-            </span>
+              {tr("Review Schedule")}</span>
             {bucketNextReview && (
               <span className={`text-[11px] font-medium ${isReviewOverdue ? 'text-red-400' : 'text-zinc-500'}`}>
                 {isReviewOverdue ? 'Overdue · ' : 'Next · '}{formatDate(bucketNextReview)}
@@ -355,8 +349,7 @@ export default async function BucketDetailPage({
                   type="submit"
                   className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
                 >
-                  Mark Reviewed
-                  {bucketCadence ? ` (advance ${REVIEW_CADENCE_LABELS[bucketCadence] ?? bucketCadence})` : ''}
+                  {tr("Mark Reviewed")}{bucketCadence ? ` (advance ${REVIEW_CADENCE_LABELS[bucketCadence] ?? bucketCadence})` : ''}
                 </button>
               </form>
             )}
@@ -364,8 +357,7 @@ export default async function BucketDetailPage({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">
-                    Next Review Date
-                  </label>
+                    {tr("Next Review Date")}</label>
                   <input
                     type="date"
                     name="nextDate"
@@ -375,14 +367,13 @@ export default async function BucketDetailPage({
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">
-                    Cadence
-                  </label>
+                    {tr("Cadence")}</label>
                   <select
                     name="cadence"
                     defaultValue={bucketCadence ?? ''}
                     className="w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2 text-sm text-zinc-100 appearance-none focus:outline-none focus:border-zinc-500 transition-colors"
                   >
-                    <option value="">No cadence</option>
+                    <option value="">{tr("No cadence")}</option>
                     {REVIEW_CADENCES.map((c) => (
                       <option key={c} value={c}>{REVIEW_CADENCE_LABELS[c]}</option>
                     ))}
@@ -393,8 +384,7 @@ export default async function BucketDetailPage({
                     type="submit"
                     className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
                   >
-                    Save Schedule
-                  </button>
+                    {tr("Save Schedule")}</button>
                 </div>
               </div>
             </form>
@@ -405,7 +395,7 @@ export default async function BucketDetailPage({
         {archivedBucket.length > 0 && (
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-700 mb-2 px-1">
-              Archived · {archivedBucket.length}
+              {'' + tr("Archived ·") + ' '}{archivedBucket.length}
             </p>
             <Card>
               <div className="divide-y divide-[#1A1A1F]">
@@ -419,7 +409,7 @@ export default async function BucketDetailPage({
                       <span className="text-sm text-zinc-400">{asset.name}</span>
                       {asset.symbol && <span className="text-xs text-zinc-600 font-mono">{asset.symbol}</span>}
                     </div>
-                    <span className="text-xs text-zinc-600">Archived</span>
+                    <span className="text-xs text-zinc-600">{tr("Archived")}</span>
                   </Link>
                 ))}
               </div>

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { Card, CardHeader } from '@/components/ui/Card';
 import type { Transaction } from '@/db/schema';
 import { formatDate, formatValue } from '@/lib/formatters';
@@ -42,15 +43,15 @@ export function LifecycleDashboard({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Stat label="Crypto Cold Storage" value={`${cryptoColdStoragePct.toFixed(1)}%`} />
-        <Stat label="Idle Cash" value={formatValue(idleCash, 'VND')} />
-        <Stat label="Invested Capital" value={formatValue(investedCapital)} />
-        <Stat label="Lifetime P&L" value={formatValue(lifetimePnl)} />
+        <Stat label={tr("Crypto Cold Storage")} value={`${cryptoColdStoragePct.toFixed(1)}%`} />
+        <Stat label={tr("Idle Cash")} value={formatValue(idleCash, 'VND')} />
+        <Stat label={tr("Invested Capital")} value={formatValue(investedCapital)} />
+        <Stat label={tr("Lifetime P&L")} value={formatValue(lifetimePnl)} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <Card>
-          <CardHeader label="Cash by Account" />
+          <CardHeader label={tr("Cash by Account")} />
           <List>
             {cashByAccount.slice(0, 6).map((row) => (
               <Row
@@ -63,7 +64,7 @@ export function LifecycleDashboard({
         </Card>
 
         <Card>
-          <CardHeader label="Assets by Custody" />
+          <CardHeader label={tr("Assets by Custody")} />
           <List>
             {assetsByCustody.slice(0, 6).map((row) => (
               <Row
@@ -76,7 +77,7 @@ export function LifecycleDashboard({
         </Card>
 
         <Card>
-          <CardHeader label="Crypto by Wallet" />
+          <CardHeader label={tr("Crypto by Wallet")} />
           <List>
             {cryptoByWallet.slice(0, 6).map((row) => (
               <Row
@@ -89,7 +90,7 @@ export function LifecycleDashboard({
         </Card>
 
         <Card>
-          <CardHeader label="Broker/Exchange Exposure" />
+          <CardHeader label={tr("Broker/Exchange Exposure")} />
           <List>
             {brokerExchangeExposure.slice(0, 6).map((row) => (
               <Row
@@ -102,7 +103,7 @@ export function LifecycleDashboard({
         </Card>
 
         <Card>
-          <CardHeader label="Idle Cash by Bank/Broker" />
+          <CardHeader label={tr("Idle Cash by Bank/Broker")} />
           <List>
             {idleCashByBankBroker.slice(0, 6).map((row) => (
               <Row
@@ -115,7 +116,7 @@ export function LifecycleDashboard({
         </Card>
 
         <Card>
-          <CardHeader label="Recent Money Flows" />
+          <CardHeader label={tr("Recent Money Flows")} />
           <List>
             {recentMoneyFlows.map((txn) => (
               <Row
@@ -128,7 +129,7 @@ export function LifecycleDashboard({
         </Card>
 
         <Card>
-          <CardHeader label="Recent Transfers" />
+          <CardHeader label={tr("Recent Transfers")} />
           <List>
             {recentTransfers.map((txn) => (
               <Row

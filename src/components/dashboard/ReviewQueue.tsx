@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 import {
@@ -34,16 +35,15 @@ export function ReviewQueue({
     return (
       <Card>
         <CardHeader
-          label="Review Queue"
+          label={tr("Review Queue")}
           action={
             <Link href="/calendar" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-              View Calendar →
-            </Link>
+              {tr("View Calendar →")}</Link>
           }
         />
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-emerald-400 font-medium">All clear</p>
-          <p className="text-xs text-zinc-600 mt-1">No items need immediate attention.</p>
+          <p className="text-sm text-emerald-400 font-medium">{tr("All clear")}</p>
+          <p className="text-xs text-zinc-600 mt-1">{tr("No items need immediate attention.")}</p>
         </div>
       </Card>
     );
@@ -55,8 +55,7 @@ export function ReviewQueue({
         label={`Review Queue · ${total} items`}
         action={
           <Link href="/calendar" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-            View Calendar →
-          </Link>
+            {tr("View Calendar →")}</Link>
         }
       />
       <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#26262B]">
@@ -64,10 +63,10 @@ export function ReviewQueue({
         {/* Decisions needing review */}
         <div className="p-4">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            Decisions to Review · {overdueDecisions.length}
+            {'' + tr("Decisions to Review ·") + ' '}{overdueDecisions.length}
           </p>
           {overdueDecisions.length === 0 ? (
-            <p className="text-xs text-zinc-700">All decisions reviewed</p>
+            <p className="text-xs text-zinc-700">{tr("All decisions reviewed")}</p>
           ) : (
             <div className="space-y-2.5">
               {overdueDecisions.slice(0, 4).map((d) => {
@@ -96,8 +95,7 @@ export function ReviewQueue({
               })}
               {overdueDecisions.length > 4 && (
                 <Link href="/decisions" className="text-[10px] text-zinc-600 hover:text-zinc-400 transition-colors">
-                  +{overdueDecisions.length - 4} more →
-                </Link>
+                  +{overdueDecisions.length - 4} {tr("more →")}</Link>
               )}
             </div>
           )}
@@ -106,10 +104,10 @@ export function ReviewQueue({
         {/* Watchlist overdue */}
         <div className="p-4">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            Watchlist Overdue · {overdueWatchlist.length}
+            {'' + tr("Watchlist Overdue ·") + ' '}{overdueWatchlist.length}
           </p>
           {overdueWatchlist.length === 0 ? (
-            <p className="text-xs text-zinc-700">No overdue watchlist reviews</p>
+            <p className="text-xs text-zinc-700">{tr("No overdue watchlist reviews")}</p>
           ) : (
             <div className="space-y-2.5">
               {overdueWatchlist.slice(0, 4).map((w) => (
@@ -133,10 +131,10 @@ export function ReviewQueue({
         {/* Underfunded buckets */}
         <div className="p-4">
           <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            Underfunded Buckets · {underfundedBuckets.length}
+            {'' + tr("Underfunded Buckets ·") + ' '}{underfundedBuckets.length}
           </p>
           {underfundedBuckets.length === 0 ? (
-            <p className="text-xs text-zinc-700">All buckets within target range</p>
+            <p className="text-xs text-zinc-700">{tr("All buckets within target range")}</p>
           ) : (
             <div className="space-y-2.5">
               {underfundedBuckets.map((b) => {
@@ -152,8 +150,7 @@ export function ReviewQueue({
                       {PURPOSE_LABELS[b.purpose as AssetPurpose] ?? b.purpose}
                     </span>
                     <span className="text-[10px] text-red-400 flex-shrink-0 tabular-nums">
-                      +{b.differencePct.toFixed(1)}pp
-                    </span>
+                      +{b.differencePct.toFixed(1)}{tr("pp")}</span>
                   </Link>
                 );
               })}

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { formatValue, formatWeight } from '@/lib/formatters';
@@ -16,8 +17,7 @@ export function BrokerAllocationSummary({ brokers }: Props) {
     <Card className="overflow-hidden">
       <div className="px-5 pt-4 pb-3 border-b border-[#26262B]">
         <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-          Broker Allocation
-        </span>
+          {tr("Broker Allocation")}</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

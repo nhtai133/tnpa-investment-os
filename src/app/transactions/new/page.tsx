@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { db } from '@/db';
 import { accountRegistry, assets } from '@/db/schema';
 import { asc, eq } from 'drizzle-orm';
@@ -35,18 +36,16 @@ export default async function NewTransactionPage({ searchParams }: Props) {
             href="/transactions"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Transactions
-          </a>
+            {tr("← Transactions")}</a>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Transaction
-          </h1>
+            {tr("Add Transaction")}</h1>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-lg">
           <Card>
-            <CardHeader label="New Transaction" />
+            <CardHeader label={tr("New Transaction")} />
             <div className="p-5">
               <TransactionForm
                 action={createTransaction}

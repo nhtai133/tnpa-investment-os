@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { db } from '@/db';
 import { assets } from '@/db/schema';
 import { eq, asc } from 'drizzle-orm';
@@ -30,15 +31,14 @@ export default async function NewDecisionPage({ searchParams }: Props) {
             ← {preselectedAssetId ? 'Holding' : 'Decisions'}
           </a>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Log Decision
-          </h1>
+            {tr("Log Decision")}</h1>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-2xl">
           <Card>
-            <CardHeader label="New Decision" />
+            <CardHeader label={tr("New Decision")} />
             <div className="p-5">
               <DecisionForm
                 action={createDecision}

@@ -1,21 +1,24 @@
 {
   "name": "tnpa-investment-os",
-  "version": "2.1.5",
+  "version": "2.1.5.1",
   "private": true,
   "scripts": {
     "dev": "node scripts/local-next.cjs dev",
     "build": "node scripts/local-next.cjs build",
-    "start": "node scripts/local-next.cjs start",
+    "start": "node scripts/start-production.cjs",
     "lint": "node scripts/local-next.cjs lint",
     "typecheck": "tsc --noEmit",
-    "db:push": "tsx src/db/init-local.ts",
-    "db:migrate": "tsx src/db/init-local.ts",
+    "db:push": "node scripts/local-environment.cjs development ./node_modules/.bin/tsx src/db/init-local.ts",
+    "db:migrate": "node scripts/local-environment.cjs development ./node_modules/.bin/tsx src/db/init-local.ts",
     "validate:account-integration": "tsx scripts/validate-account-integration.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "db:init-local": "tsx src/db/init-local.ts",
-    "test": "tsx --test tests/*.test.ts",
-    "security:check": "node scripts/check-source-only.cjs"
+    "db:init-local": "node scripts/local-environment.cjs development ./node_modules/.bin/tsx src/db/init-local.ts",
+    "test": "node scripts/local-environment.cjs development ./node_modules/.bin/tsx --test tests/*.test.ts",
+    "security:check": "node scripts/check-source-only.cjs",
+    "deploy:local": "node scripts/deploy-local.cjs",
+    "rollback:local": "node scripts/rollback-local.cjs",
+    "backup:production": "node scripts/local-environment.cjs production ./node_modules/.bin/tsx scripts/backup-production.ts"
   },
   "dependencies": {
     "next": "14.2.29",

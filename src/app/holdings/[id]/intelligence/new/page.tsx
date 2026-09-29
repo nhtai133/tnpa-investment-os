@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -43,8 +44,7 @@ export default async function NewIntelligencePage({ params }: Props) {
             </Link>
             <div className="flex items-center gap-2 mt-0.5">
               <h1 className="text-base font-semibold text-zinc-100 leading-tight">
-                Add Intelligence
-              </h1>
+                {tr("Add Intelligence")}</h1>
               <Badge
                 label={ASSET_CLASS_LABELS[asset.asset_class]}
                 color={ASSET_CLASS_COLORS[asset.asset_class]}

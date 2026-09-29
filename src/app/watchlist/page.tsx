@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { watchlistItems } from '@/db/schema';
@@ -32,7 +33,7 @@ function WatchlistRow({ item }: { item: WatchlistItem }) {
           )}
           <ConvictionBadge score={item.conviction_score} />
           {item.alert_flag && (
-            <span className="text-[11px] text-amber-400 font-medium">Flagged</span>
+            <span className="text-[11px] text-amber-400 font-medium">{tr("Flagged")}</span>
           )}
         </div>
 
@@ -46,17 +47,17 @@ function WatchlistRow({ item }: { item: WatchlistItem }) {
         <div className="flex items-center gap-4 mt-1.5 flex-wrap">
           {item.target_entry && (
             <span className="text-[11px] text-zinc-600">
-              Entry: <span className="text-zinc-500">{item.target_entry}</span>
+              {'' + tr("Entry:") + ' '}<span className="text-zinc-500">{item.target_entry}</span>
             </span>
           )}
           {item.next_action && (
             <span className="text-[11px] text-zinc-600">
-              Next: <span className="text-zinc-500">{item.next_action}</span>
+              {'' + tr("Next:") + ' '}<span className="text-zinc-500">{item.next_action}</span>
             </span>
           )}
           {item.review_date && (
             <span className="text-[11px] text-zinc-600">
-              Review: <span className="text-zinc-500">{formatDate(item.review_date)}</span>
+              {'' + tr("Review:") + ' '}<span className="text-zinc-500">{formatDate(item.review_date)}</span>
             </span>
           )}
           {item.opportunity_id && (
@@ -64,8 +65,7 @@ function WatchlistRow({ item }: { item: WatchlistItem }) {
               href={`/opportunities/${item.opportunity_id}`}
               className="text-[11px] text-indigo-600 hover:text-indigo-400 transition-colors"
             >
-              View Opportunity →
-            </Link>
+              {tr("View Opportunity →")}</Link>
           )}
         </div>
       </div>
@@ -75,16 +75,14 @@ function WatchlistRow({ item }: { item: WatchlistItem }) {
           href={`/watchlist/${item.id}`}
           className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors"
         >
-          Edit
-        </Link>
+          {tr("Edit")}</Link>
         {item.status === 'active' && (
           <form action={archive}>
             <button
               type="submit"
               className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
             >
-              Archive
-            </button>
+              {tr("Archive")}</button>
           </form>
         )}
         {item.status !== 'active' && (
@@ -114,17 +112,16 @@ export default async function WatchlistPage() {
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
-            <h1 className="text-base font-semibold text-zinc-100 leading-tight">Watchlist</h1>
+            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("TNPA")}</p>
+            <h1 className="text-base font-semibold text-zinc-100 leading-tight">{tr("Watchlist")}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-zinc-600">{active.length} active · {flagged.length} flagged</span>
+            <span className="text-[11px] text-zinc-600">{active.length} {'' + tr("active ·") + ' '}{flagged.length} {tr("flagged")}</span>
             <Link
               href="/watchlist/new"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Add to Watchlist
-            </Link>
+              {tr("+ Add to Watchlist")}</Link>
           </div>
         </div>
       </header>
@@ -139,13 +136,12 @@ export default async function WatchlistPage() {
             <div>{sorted.map((item) => <WatchlistRow key={item.id} item={item} />)}</div>
           ) : (
             <div className="px-5 py-10 text-center">
-              <p className="text-sm text-zinc-700 mb-3">Nothing on the watchlist yet.</p>
+              <p className="text-sm text-zinc-700 mb-3">{tr("Nothing on the watchlist yet.")}</p>
               <Link
                 href="/watchlist/new"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                + Add to Watchlist
-              </Link>
+                {tr("+ Add to Watchlist")}</Link>
             </div>
           )}
         </Card>
@@ -153,7 +149,7 @@ export default async function WatchlistPage() {
         {archived.length > 0 && (
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-700 mb-2 px-1">
-              Archive · {archived.length}
+              {'' + tr("Archive ·") + ' '}{archived.length}
             </p>
             <Card>
               <div>{archived.map((item) => <WatchlistRow key={item.id} item={item} />)}</div>

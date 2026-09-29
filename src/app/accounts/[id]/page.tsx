@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -22,13 +23,12 @@ export default async function AccountDetailPage({ params }: { params: { id: stri
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <Link href="/accounts" className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold">
-              Back to Accounts
-            </Link>
+              {tr("Back to Accounts")}</Link>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
               {account.name}
             </h1>
             <p className="text-xs text-zinc-600 mt-0.5">
-              {account.type.replaceAll('_', ' ')} - {account.status}
+              {tr(account.type.replaceAll('_', ' '))} - {tr(account.status)}
             </p>
           </div>
           <form action={archiveAccount.bind(null, account.id)}>
@@ -41,19 +41,19 @@ export default async function AccountDetailPage({ params }: { params: { id: stri
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Metric label="Current Balance" value={formatValue(account.current_balance, account.currency)} />
-          <Metric label="Transactions" value={String(summary.linkedTransactions.length)} />
-          <Metric label="Custody Value" value={formatValue(summary.custodiedAssets.reduce((sum, row) => sum + row.costBasis, 0), account.currency)} />
-          <Metric label="Realized P&L" value={formatValue(summary.realizedPnl, account.currency)} />
+          <Metric label={tr("Current Balance")} value={formatValue(account.current_balance, account.currency)} />
+          <Metric label={tr("Transactions")} value={String(summary.linkedTransactions.length)} />
+          <Metric label={tr("Custody Value")} value={formatValue(summary.custodiedAssets.reduce((sum, row) => sum + row.costBasis, 0), account.currency)} />
+          <Metric label={tr("Realized P&L")} value={formatValue(summary.realizedPnl, account.currency)} />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <AssetList title="Assets Funded From This Account" assets={summary.fundedAssets} />
-          <AssetList title="Assets Executed Through This Account" assets={summary.executedAssets} />
+          <AssetList title={tr("Assets Funded From This Account")} assets={summary.fundedAssets} />
+          <AssetList title={tr("Assets Executed Through This Account")} assets={summary.executedAssets} />
         </div>
 
         <Card>
-          <CardHeader label="Assets Custodied In This Account" />
+          <CardHeader label={tr("Assets Custodied In This Account")} />
           <div className="divide-y divide-[#1A1A1F]">
             {summary.custodiedAssets.length === 0 ? (
               <Empty />
@@ -64,7 +64,7 @@ export default async function AccountDetailPage({ params }: { params: { id: stri
                     {row.asset.name}{row.asset.symbol ? ` (${row.asset.symbol})` : ''}
                   </Link>
                   <div className="text-right">
-                    <p className="text-sm text-zinc-100 tabular-nums">{row.quantity.toLocaleString()} units</p>
+                    <p className="text-sm text-zinc-100 tabular-nums">{row.quantity.toLocaleString()} {tr("units")}</p>
                     <p className="text-xs text-zinc-600 tabular-nums">{formatValue(row.costBasis, row.asset.currency)}</p>
                   </div>
                 </div>
@@ -74,12 +74,12 @@ export default async function AccountDetailPage({ params }: { params: { id: stri
         </Card>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <TransactionList title="Transfers In" transactions={summary.transfersIn} accountCurrency={account.currency} />
-          <TransactionList title="Transfers Out" transactions={summary.transfersOut} accountCurrency={account.currency} />
+          <TransactionList title={tr("Transfers In")} transactions={summary.transfersIn} accountCurrency={account.currency} />
+          <TransactionList title={tr("Transfers Out")} transactions={summary.transfersOut} accountCurrency={account.currency} />
         </div>
 
         <TransactionList
-          title="Linked Transactions"
+          title={tr("Linked Transactions")}
           transactions={summary.linkedTransactions}
           accountCurrency={account.currency}
         />
@@ -134,7 +134,7 @@ function TransactionList({
           transactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center justify-between gap-4 px-5 py-3">
               <div>
-                <p className="text-sm text-zinc-300 uppercase">{transaction.type}</p>
+                <p className="text-sm text-zinc-300 uppercase">{tr(transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1))}</p>
                 <p className="text-xs text-zinc-600">{formatDate(transaction.transaction_date)}</p>
               </div>
               <div className="text-right">
@@ -152,5 +152,5 @@ function TransactionList({
 }
 
 function Empty() {
-  return <div className="px-5 py-6 text-sm text-zinc-700">No records.</div>;
+  return <div className="px-5 py-6 text-sm text-zinc-700">{tr("No records.")}</div>;
 }

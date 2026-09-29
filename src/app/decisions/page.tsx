@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { decisionLogs } from '@/db/schema';
@@ -39,15 +40,14 @@ export default async function DecisionsPage() {
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
-            <h1 className="text-base font-semibold text-zinc-100 leading-tight">Decision Journal</h1>
+            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("TNPA")}</p>
+            <h1 className="text-base font-semibold text-zinc-100 leading-tight">{tr("Decision Journal")}</h1>
           </div>
           <Link
             href="/decisions/new"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Log Decision
-          </Link>
+            {tr("+ Log Decision")}</Link>
         </div>
       </header>
 
@@ -56,23 +56,23 @@ export default async function DecisionsPage() {
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Total</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Total")}</p>
             <p className="text-2xl font-bold tabular-nums text-zinc-100 mt-1.5">{total}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Open</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Open")}</p>
             <p className="text-2xl font-bold tabular-nums mt-1.5" style={{ color: open > 0 ? '#FBBF24' : '#52525B' }}>{open}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Reviewed</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Reviewed")}</p>
             <p className="text-2xl font-bold tabular-nums text-emerald-400 mt-1.5">{reviewed}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Review Rate</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Review Rate")}</p>
             <p className="text-2xl font-bold tabular-nums mt-1.5" style={{ color: winRate != null ? '#818CF8' : '#52525B' }}>
               {winRate != null ? `${winRate}%` : '—'}
             </p>
-            <p className="text-[10px] text-zinc-700 mt-0.5">of decisions reviewed</p>
+            <p className="text-[10px] text-zinc-700 mt-0.5">{tr("of decisions reviewed")}</p>
           </Card>
         </div>
 
@@ -82,8 +82,7 @@ export default async function DecisionsPage() {
             label={`All Decisions · ${total}`}
             action={
               <Link href="/decisions/new" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-                + New →
-              </Link>
+                {tr("+ New →")}</Link>
             }
           />
           {decisions.length > 0 ? (
@@ -126,12 +125,12 @@ export default async function DecisionsPage() {
                           </span>
                         )}
                         {d.is_reviewed && (
-                          <span className="text-[10px] text-emerald-600 font-semibold">Reviewed</span>
+                          <span className="text-[10px] text-emerald-600 font-semibold">{tr("Reviewed")}</span>
                         )}
                       </div>
                       <p className="text-xs text-zinc-600 leading-relaxed line-clamp-1">{d.rationale}</p>
                       {d.confidence != null && (
-                        <p className="text-[10px] text-zinc-700 mt-0.5">Confidence: {d.confidence}/10</p>
+                        <p className="text-[10px] text-zinc-700 mt-0.5">{'' + tr("Confidence:") + ' '}{d.confidence}/10</p>
                       )}
                     </div>
                     <div className="flex-shrink-0 text-right space-y-0.5">
@@ -146,13 +145,12 @@ export default async function DecisionsPage() {
             </div>
           ) : (
             <div className="px-5 py-16 text-center">
-              <p className="text-sm text-zinc-700 mb-4">No decisions logged yet.</p>
+              <p className="text-sm text-zinc-700 mb-4">{tr("No decisions logged yet.")}</p>
               <Link
                 href="/decisions/new"
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                + Log First Decision
-              </Link>
+                {tr("+ Log First Decision")}</Link>
             </div>
           )}
         </Card>

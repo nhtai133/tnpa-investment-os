@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { assets, assetIntelligence, decisionLogs, watchlistItems, appSettings } from '@/db/schema';
@@ -53,7 +54,7 @@ function BandSection({
         <h2 className="text-[11px] font-semibold tracking-widest uppercase" style={{ color }}>
           {label}
         </h2>
-        <span className="text-[10px] text-zinc-700">{items.length} item{items.length !== 1 ? 's' : ''}</span>
+        <span className="text-[10px] text-zinc-700">{items.length} {tr("item")}{items.length !== 1 ? 's' : ''}</span>
       </div>
       <div className="border border-[#26262B] rounded-xl overflow-hidden">
         {items.map((item, idx) => (
@@ -240,7 +241,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: { f
     cadence: settingsMap.get(`bucket_review_cadence_${purpose}`) ?? null,
   }));
 
-  const todayLabel = new Date().toLocaleDateString('en-US', {
+  const todayLabel = new Date().toLocaleDateString('vi-VN', {
     weekday: 'short',
     month: 'long',
     day: 'numeric',
@@ -252,14 +253,13 @@ export default async function CalendarPage({ searchParams }: { searchParams: { f
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">Portfolio</p>
-            <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">Wealth Calendar</h1>
+            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("Portfolio")}</p>
+            <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">{tr("Wealth Calendar")}</h1>
           </div>
           <div className="flex items-center gap-3">
             {overdueCount > 0 && (
               <span className="text-[11px] font-semibold text-red-400 bg-red-400/10 px-2 py-1 rounded">
-                {overdueCount} overdue
-              </span>
+                {overdueCount} {tr("overdue")}</span>
             )}
             <span className="text-[11px] text-zinc-600 hidden sm:inline">{todayLabel}</span>
           </div>
@@ -286,23 +286,18 @@ export default async function CalendarPage({ searchParams }: { searchParams: { f
         {/* Empty state */}
         {totalCount === 0 && (
           <div className="border border-[#26262B] rounded-xl px-6 py-12 text-center bg-[#131316]">
-            <p className="text-sm font-medium text-emerald-400">All caught up!</p>
+            <p className="text-sm font-medium text-emerald-400">{tr("All caught up!")}</p>
             <p className="text-xs text-zinc-600 mt-2 max-w-sm mx-auto">
-              No scheduled reviews. Set review dates on decisions, watchlist items, assets, or buckets to see them here.
-            </p>
+              {tr("No scheduled reviews. Set review dates on decisions, watchlist items, assets, or buckets to see them here.")}</p>
             <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
               <Link href="/decisions" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
-                Decisions →
-              </Link>
+                {tr("Decisions →")}</Link>
               <Link href="/watchlist" className="text-xs text-pink-400 hover:text-pink-300 transition-colors">
-                Watchlist →
-              </Link>
+                {tr("Watchlist →")}</Link>
               <Link href="/holdings" className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
-                Assets →
-              </Link>
+                {tr("Assets →")}</Link>
               <Link href="/buckets" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">
-                Buckets →
-              </Link>
+                {tr("Buckets →")}</Link>
             </div>
           </div>
         )}
@@ -317,8 +312,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: { f
           <div className="flex items-center gap-3 mb-3">
             <div className="w-2 h-2 rounded-full flex-shrink-0 bg-amber-400" />
             <h2 className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-              Bucket Review Schedule
-            </h2>
+              {tr("Bucket Review Schedule")}</h2>
           </div>
           <div className="border border-[#26262B] rounded-xl overflow-hidden bg-[#131316]">
             {bucketSchedule.map(({ purpose, nextReview, cadence }, idx) => {
@@ -355,16 +349,14 @@ export default async function CalendarPage({ searchParams }: { searchParams: { f
                       href={`/buckets/${purpose}`}
                       className="text-[10px] text-zinc-700 hover:text-zinc-500 transition-colors flex-shrink-0"
                     >
-                      Set date →
-                    </Link>
+                      {tr("Set date →")}</Link>
                   )}
                 </div>
               );
             })}
           </div>
           <p className="text-[10px] text-zinc-700 mt-2">
-            Schedule bucket reviews from each bucket&apos;s detail page.
-          </p>
+            {tr("Schedule bucket reviews from each bucket's detail page.")}</p>
         </section>
 
         {/* Type legend */}

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { researchNotes, decisionLogs, assets, opportunities } from '@/db/schema';
@@ -41,23 +42,21 @@ export default async function JournalPage() {
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
-            <h1 className="text-base font-semibold text-zinc-100 leading-tight">Research & Decision Journal</h1>
+            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("TNPA")}</p>
+            <h1 className="text-base font-semibold text-zinc-100 leading-tight">{tr("Research & Decision Journal")}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-zinc-600">{notes.length} notes · {decisions.length} decisions</span>
+            <span className="text-[11px] text-zinc-600">{notes.length} {'' + tr("notes ·") + ' '}{decisions.length} {tr("decisions")}</span>
             <Link
               href="/notes/new"
               className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-300 hover:text-zinc-100 rounded-lg transition-colors"
             >
-              + Note
-            </Link>
+              {tr("+ Note")}</Link>
             <Link
               href="/decisions/new"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Decision
-            </Link>
+              {tr("+ Decision")}</Link>
           </div>
         </div>
       </header>
@@ -92,7 +91,7 @@ export default async function JournalPage() {
                             {asset?.asset_class && (
                               <Badge label={ASSET_CLASS_LABELS[asset.asset_class]} color={ASSET_CLASS_COLORS[asset.asset_class]} />
                             )}
-                            {opp && <span className="text-[11px] text-indigo-500">Opportunity</span>}
+                            {opp && <span className="text-[11px] text-indigo-500">{tr("Opportunity")}</span>}
                           </div>
                           <p className="text-sm text-zinc-400 leading-relaxed line-clamp-3 whitespace-pre-wrap">
                             {note.body}
@@ -153,14 +152,12 @@ export default async function JournalPage() {
             </div>
           ) : (
             <div className="px-5 py-16 text-center">
-              <p className="text-sm text-zinc-700 mb-4">No journal entries yet.</p>
+              <p className="text-sm text-zinc-700 mb-4">{tr("No journal entries yet.")}</p>
               <div className="flex items-center justify-center gap-3">
                 <Link href="/notes/new" className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-400 rounded-lg transition-colors">
-                  + Add Note
-                </Link>
+                  {tr("+ Add Note")}</Link>
                 <Link href="/decisions/new" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors">
-                  + Log Decision
-                </Link>
+                  {tr("+ Log Decision")}</Link>
               </div>
             </div>
           )}

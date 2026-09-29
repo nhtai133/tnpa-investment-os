@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { PURPOSE_LABELS, PURPOSE_COLORS } from '@/lib/formatters';
@@ -21,11 +22,10 @@ export function PurposeHealth({ rows }: PurposeHealthProps) {
   return (
     <Card className="flex flex-col h-full">
       <CardHeader
-        label="Purpose Health"
+        label={tr("Purpose Health")}
         action={
           <Link href="/rebalancing" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-            Rebalance →
-          </Link>
+            {tr("Rebalance →")}</Link>
         }
       />
       <div className="p-5 space-y-4 flex-1">
@@ -87,8 +87,7 @@ export function PurposeHealth({ rows }: PurposeHealthProps) {
         })}
 
         <p className="text-[10px] text-zinc-700 pt-2 border-t border-[#26262B]">
-          Current % / Target % · Drift = Target − Current · ±5pp threshold
-        </p>
+          {tr("Current % / Target % · Drift = Target − Current · ±5pp threshold")}</p>
       </div>
     </Card>
   );

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { accountRegistry } from '@/db/schema';
@@ -73,25 +74,21 @@ export default async function StocksPage() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-              Portfolio
-            </p>
+              {tr("Portfolio")}</p>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Stocks
-            </h1>
+              {tr("Stocks")}</h1>
           </div>
           <div className="flex items-center gap-2">
             <Link
               href="/stocks/new"
               className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors"
             >
-              Add Existing Holding
-            </Link>
+              {tr("Add Existing Holding")}</Link>
             <Link
               href="/transactions/new"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              Record Buy
-            </Link>
+              {tr("Record Buy")}</Link>
           </div>
         </div>
       </header>
@@ -100,22 +97,22 @@ export default async function StocksPage() {
         {/* Top-level KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
-            label="Stock Market Value"
+            label={tr("Stock Market Value")}
             value={formatValue(classValueUsd, 'USD')}
             sub={classValueUsd ? `≈ ${formatValue(classValueUsd, 'USD')}` : undefined}
           />
           <KpiCard
-            label="Broker Cash"
+            label={tr("Broker Cash")}
             value={formatValue(brokerCash, 'USD')}
             sub={`${brokerBreakdown.length} broker${brokerBreakdown.length !== 1 ? 's' : ''}`}
           />
           <KpiCard
-            label="Total Workspace"
+            label={tr("Total Workspace")}
             value={formatValue(totalWorkspaceValue, 'USD')}
             highlight
           />
           <KpiCard
-            label="Holdings"
+            label={tr("Holdings")}
             value={String(classAssets.length)}
             sub="active positions"
           />
@@ -123,7 +120,7 @@ export default async function StocksPage() {
 
         {/* Broker-first view — primary, default open */}
         <CollapsibleSection
-          title="By Broker"
+          title={tr("By Broker")}
           summary={brokerSummary}
           defaultOpen
         >
@@ -132,7 +129,7 @@ export default async function StocksPage() {
 
         {/* Allocation — default open */}
         <CollapsibleSection
-          title="Allocation"
+          title={tr("Allocation")}
           summary={holdingsSummary}
           defaultOpen
         >
@@ -140,7 +137,7 @@ export default async function StocksPage() {
             <WorkspaceAllocationChart
               assets={classAssets}
               usdVndRate={usdVndRate}
-              label="Stock Allocation"
+              label={tr("Stock Allocation")}
             />
             <BrokerAllocationSummary brokers={brokerBreakdown} />
           </div>
@@ -148,7 +145,7 @@ export default async function StocksPage() {
 
         {/* Flat holdings table — secondary, collapsed */}
         <CollapsibleSection
-          title="All Holdings"
+          title={tr("All Holdings")}
           summary={holdingsSummary}
           defaultOpen={false}
         >
@@ -162,38 +159,33 @@ export default async function StocksPage() {
 
         {/* Broker Accounts admin card — default collapsed */}
         <CollapsibleSection
-          title="Broker Accounts"
+          title={tr("Broker Accounts")}
           summary={brokerAccounts.length > 0 ? `${brokerAccounts.length} registered` : undefined}
           defaultOpen={false}
         >
           <Card>
             <div className="flex items-center justify-between px-5 py-3 border-b border-[#26262B]">
               <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-                Registered Brokers
-              </span>
+                {tr("Registered Brokers")}</span>
               <div className="flex items-center gap-3">
                 <Link
                   href="/stocks/accounts/new"
                   className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
-                  + Add Broker Account
-                </Link>
+                  {tr("+ Add Broker Account")}</Link>
                 <Link
                   href="/stocks/accounts"
                   className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
-                  Manage →
-                </Link>
+                  {tr("Manage →")}</Link>
               </div>
             </div>
             {brokerAccounts.length === 0 ? (
               <div className="px-5 py-6 text-sm text-zinc-600">
-                No broker accounts registered.{' '}
+                {tr("No broker accounts registered.")}{' '}
                 <Link href="/stocks/accounts/new" className="text-indigo-400 hover:text-indigo-300">
-                  Add one
-                </Link>{' '}
-                to enable lifecycle tracking for stock purchases.
-              </div>
+                  {tr("Add one")}</Link>{' '}
+                {tr("to enable lifecycle tracking for stock purchases.")}</div>
             ) : (
               <div className="divide-y divide-[#1A1A1F]">
                 {brokerAccounts.map((account) => (
@@ -209,14 +201,12 @@ export default async function StocksPage() {
                         href={`/stocks/accounts/${account.id}`}
                         className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
                       >
-                        Detail
-                      </Link>
+                        {tr("Detail")}</Link>
                       <Link
                         href={`/accounts/${account.id}`}
                         className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
                       >
-                        Registry
-                      </Link>
+                        {tr("Registry")}</Link>
                     </div>
                   </div>
                 ))}
@@ -227,29 +217,29 @@ export default async function StocksPage() {
 
         {/* Archived — default collapsed */}
         <CollapsibleSection
-          title="Archived Stocks"
+          title={tr("Archived Stocks")}
           summary={archivedSummary}
           defaultOpen={false}
         >
           <ArchivedSection
             assets={archivedClassAssets}
-            label="Archived Stocks"
+            label={tr("Archived Stocks")}
             usdVndRate={usdVndRate}
           />
         </CollapsibleSection>
 
         {/* Watchlist — default collapsed */}
-        <CollapsibleSection title="Watchlist" defaultOpen={false}>
+        <CollapsibleSection title={tr("Watchlist")} defaultOpen={false}>
           <SectionPlaceholder
-            label="Watchlist"
+            label={tr("Watchlist")}
             note="Stock watchlist — coming in a future sprint."
           />
         </CollapsibleSection>
 
         {/* Research Notes — default collapsed */}
-        <CollapsibleSection title="Research Notes" defaultOpen={false}>
+        <CollapsibleSection title={tr("Research Notes")} defaultOpen={false}>
           <SectionPlaceholder
-            label="Research Notes"
+            label={tr("Research Notes")}
             note="Research notes — coming in a future sprint."
           />
         </CollapsibleSection>

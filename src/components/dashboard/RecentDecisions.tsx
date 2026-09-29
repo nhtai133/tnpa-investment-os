@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import {
@@ -18,29 +19,26 @@ export function RecentDecisions({ decisions }: RecentDecisionsProps) {
   return (
     <Card className="flex flex-col">
       <CardHeader
-        label="Recent Decisions"
+        label={tr("Recent Decisions")}
         action={
           <div className="flex items-center gap-3">
             {decisions.length > 0 && (
               <Link href="/decisions" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-                All →
-              </Link>
+                {tr("All →")}</Link>
             )}
             <Link href="/decisions/new" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-              + Log
-            </Link>
+              {tr("+ Log")}</Link>
           </div>
         }
       />
       {decisions.length === 0 ? (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-zinc-700 mb-3">No decisions logged yet.</p>
+          <p className="text-sm text-zinc-700 mb-3">{tr("No decisions logged yet.")}</p>
           <Link
             href="/decisions/new"
             className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Log Decision
-          </Link>
+            {tr("+ Log Decision")}</Link>
         </div>
       ) : (
       <div className="divide-y divide-[#1C1C21]">

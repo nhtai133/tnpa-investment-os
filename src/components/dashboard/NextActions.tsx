@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import { formatDate, ASSET_CLASS_LABELS, ASSET_CLASS_COLORS } from '@/lib/formatters';
@@ -29,11 +30,10 @@ export function NextActions({ items }: NextActionsProps) {
   return (
     <Card>
       <CardHeader
-        label="Next Actions"
+        label={tr("Next Actions")}
         action={
           <Link href="/watchlist" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-            Watchlist →
-          </Link>
+            {tr("Watchlist →")}</Link>
         }
       />
       {actionable.length > 0 ? (
@@ -60,7 +60,7 @@ export function NextActions({ items }: NextActionsProps) {
                       )}
                       {item.conviction_score != null && (
                         <span className="text-[11px] text-zinc-600">
-                          C{item.conviction_score}
+                          {tr("C")}{item.conviction_score}
                         </span>
                       )}
                     </div>
@@ -72,7 +72,7 @@ export function NextActions({ items }: NextActionsProps) {
                   </div>
                   {item.review_date && (
                     <div className="flex-shrink-0 text-right">
-                      <p className="text-[10px] text-zinc-600">Review</p>
+                      <p className="text-[10px] text-zinc-600">{tr("Review")}</p>
                       <p className="text-xs tabular-nums font-medium" style={{ color: reviewColor }}>
                         {isToday ? 'Today' : isOverdue ? 'Overdue' : formatDate(item.review_date)}
                       </p>
@@ -85,10 +85,9 @@ export function NextActions({ items }: NextActionsProps) {
         </div>
       ) : (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-zinc-700">No pending actions.</p>
+          <p className="text-sm text-zinc-700">{tr("No pending actions.")}</p>
           <p className="text-xs text-zinc-800 mt-1">
-            Set review dates on watchlist items to track them here.
-          </p>
+            {tr("Set review dates on watchlist items to track them here.")}</p>
         </div>
       )}
     </Card>

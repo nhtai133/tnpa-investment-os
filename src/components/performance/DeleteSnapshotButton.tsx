@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 interface Props {
   action: () => Promise<void>;
@@ -18,8 +20,7 @@ export function DeleteSnapshotButton({ action }: Props) {
         type="submit"
         className="text-xs text-red-600 hover:text-red-400 border border-red-900 hover:border-red-700 px-3 py-1.5 rounded-lg transition-colors"
       >
-        Delete
-      </button>
+        {tr("Delete")}</button>
     </form>
   );
 }

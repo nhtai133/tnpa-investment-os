@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -178,8 +180,7 @@ export function WorkspaceAssetForm({ config, action }: WorkspaceAssetFormProps) 
           href={config.route}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </Link>
+          {tr("Cancel")}</Link>
       </div>
     </form>
   );

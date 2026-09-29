@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 
@@ -24,12 +26,9 @@ export function ArchiveAssetForm({ action, assetName }: ArchiveAssetFormProps) {
   return (
     <div className="mt-8 pt-6 border-t border-[#26262B]">
       <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-2">
-        Archive
-      </p>
+        {tr("Archive")}</p>
       <p className="text-xs text-zinc-600 mb-4">
-        Archive <span className="text-zinc-400">{assetName}</span> to remove it from portfolio
-        totals. All related records are preserved and no data is deleted.
-      </p>
+        {'' + tr("Archive") + ' '}<span className="text-zinc-400">{assetName}</span> {tr("to remove it from portfolio totals. All related records are preserved and no data is deleted.")}</p>
       <form action={action}>
         <ArchiveButton />
       </form>

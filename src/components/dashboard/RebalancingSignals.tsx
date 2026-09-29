@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 
@@ -34,8 +35,7 @@ function SignalRow({ signal, domain }: { signal: DriftSignal; domain: string }) 
           </span>
         </div>
         <span className="text-xs tabular-nums font-medium" style={{ color: statusColor }}>
-          {signal.differencePct >= 0 ? '+' : ''}{signal.differencePct.toFixed(1)}pp
-        </span>
+          {signal.differencePct >= 0 ? '+' : ''}{signal.differencePct.toFixed(1)}{tr("pp")}</span>
       </div>
       <div className="relative h-1.5 bg-[#1C1C21] rounded-full overflow-hidden">
         <div
@@ -48,8 +48,8 @@ function SignalRow({ signal, domain }: { signal: DriftSignal; domain: string }) 
         />
       </div>
       <div className="flex items-center justify-between text-[10px] text-zinc-600">
-        <span>Current: {signal.currentPct.toFixed(1)}%</span>
-        <span>Target: {signal.targetPct.toFixed(1)}%</span>
+        <span>{'' + tr("Current:") + ' '}{signal.currentPct.toFixed(1)}%</span>
+        <span>{'' + tr("Target:") + ' '}{signal.targetPct.toFixed(1)}%</span>
       </div>
       <p className="text-[10px] text-zinc-700">{domain} · {signal.action}</p>
     </div>
@@ -67,18 +67,17 @@ export function RebalancingSignals({
   return (
     <Card className="flex flex-col">
       <CardHeader
-        label="Rebalancing Signals"
+        label={tr("Rebalancing Signals")}
         action={
           <Link href="/rebalancing" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-            Full analysis →
-          </Link>
+            {tr("Full analysis →")}</Link>
         }
       />
       <div className="p-5 space-y-5 flex-1">
         {!hasSignals ? (
           <div className="text-center py-6">
-            <p className="text-sm text-emerald-400">All allocations on target</p>
-            <p className="text-xs text-zinc-600 mt-1">Class drift: {classDriftScore.toFixed(1)}pp · Purpose drift: {purposeDriftScore.toFixed(1)}pp</p>
+            <p className="text-sm text-emerald-400">{tr("All allocations on target")}</p>
+            <p className="text-xs text-zinc-600 mt-1">{'' + tr("Class drift:") + ' '}{classDriftScore.toFixed(1)}{'' + tr("pp · Purpose drift:") + ' '}{purposeDriftScore.toFixed(1)}{tr("pp")}</p>
           </div>
         ) : (
           <>
@@ -95,8 +94,8 @@ export function RebalancingSignals({
         )}
         <div className="border-t border-[#26262B] pt-3">
           <div className="flex items-center justify-between text-[10px] text-zinc-600">
-            <span>Class drift score: {classDriftScore.toFixed(1)}pp</span>
-            <span>Purpose drift: {purposeDriftScore.toFixed(1)}pp</span>
+            <span>{'' + tr("Class drift score:") + ' '}{classDriftScore.toFixed(1)}{tr("pp")}</span>
+            <span>{'' + tr("Purpose drift:") + ' '}{purposeDriftScore.toFixed(1)}{tr("pp")}</span>
           </div>
         </div>
       </div>

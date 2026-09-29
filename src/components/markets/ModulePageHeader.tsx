@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, Badge } from '@/components/ui/Card';
 import {
@@ -47,8 +48,7 @@ export function ModulePageHeader({
           <div className="flex items-center gap-4">
             <div>
               <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-                Markets
-              </p>
+                {tr("Markets")}</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <h1 className="text-base font-semibold text-zinc-100 leading-tight">
                   {title ?? ASSET_CLASS_LABELS[assetClass]}
@@ -73,8 +73,7 @@ export function ModulePageHeader({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="p-5">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">
-              Total Value
-            </p>
+              {tr("Total Value")}</p>
             <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">
               {formatValue(totalValue, currency)}
             </p>
@@ -82,8 +81,7 @@ export function ModulePageHeader({
 
           <Card className="p-5">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">
-              Holdings
-            </p>
+              {tr("Holdings")}</p>
             <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">
               {count}
             </p>
@@ -94,24 +92,21 @@ export function ModulePageHeader({
 
           <Card className="p-5">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">
-              Allocation
-            </p>
+              {tr("Allocation")}</p>
             {showAllocation ? (
               <>
                 <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">
                   {formatWeight(inwPct)}
                 </p>
-                <p className="mt-1.5 text-xs text-zinc-600">of Investment Net Worth</p>
+                <p className="mt-1.5 text-xs text-zinc-600">{tr("of Investment Net Worth")}</p>
                 <p className="mt-0.5 text-xs text-zinc-700 tabular-nums">
-                  {formatWeight(tnwPct)} of Total Net Worth
-                </p>
+                  {formatWeight(tnwPct)} {tr("of Total Net Worth")}</p>
               </>
             ) : (
               <>
                 <p className="text-3xl font-light text-zinc-600 tracking-tight">—</p>
                 <p className="mt-1.5 text-[10px] text-amber-500/80 leading-relaxed">
-                  Multi-currency normalization pending
-                </p>
+                  {tr("Multi-currency normalization pending")}</p>
               </>
             )}
           </Card>

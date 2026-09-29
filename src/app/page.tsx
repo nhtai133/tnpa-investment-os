@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { db } from '@/db';
 import {
   appSettings,
@@ -235,7 +236,7 @@ export default async function CommandCenter() {
   const wealthScore = allocationScore + decisionScore + reviewScore + configScore;
 
   // ── Date ─────────────────────────────────────────────────────────────────────
-  const todayLabel = new Date().toLocaleDateString('en-US', {
+  const todayLabel = new Date().toLocaleDateString('vi-VN', {
     weekday: 'short',
     month: 'long',
     day: 'numeric',
@@ -249,17 +250,17 @@ export default async function CommandCenter() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
-              <h1 className="text-base font-semibold text-zinc-100 leading-tight">Wealth Command Center</h1>
+              <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("TNPA")}</p>
+              <h1 className="text-base font-semibold text-zinc-100 leading-tight">{tr("Wealth Command Center")}</h1>
             </div>
             <div className="hidden md:flex items-center gap-4">
               <div className="w-px h-6 bg-[#26262B]" />
-              <p className="text-[11px] text-zinc-600">v2.0 · Personal Family Office</p>
+              <p className="text-[11px] text-zinc-600">Quản lý gia sản cá nhân · v2.1.5.1</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-xs text-zinc-500">{todayLabel}</p>
-            <p className="text-[11px] text-zinc-700 mt-0.5">Manual data · No live prices · No investment advice</p>
+            <p className="text-[11px] text-zinc-700 mt-0.5">{tr("Manual data · No live prices · No investment advice")}</p>
           </div>
         </div>
       </header>
@@ -277,7 +278,7 @@ export default async function CommandCenter() {
 
         {/* 2. Assets by Location — near top for instant custody visibility */}
         <CollapsibleSection
-          title="Assets by Location"
+          title={tr("Assets by Location")}
           summary={`${locationsData.locations.filter((l) => !l.isEmpty).length} active locations`}
           defaultOpen
         >
@@ -293,14 +294,14 @@ export default async function CommandCenter() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="p-5">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">Upcoming Maturities</p>
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">{tr("Upcoming Maturities")}</p>
             <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">{bankingEvents.upcomingMaturities}</p>
-            <p className="mt-1.5 text-xs text-zinc-600">Deposits maturing within 30 days</p>
+            <p className="mt-1.5 text-xs text-zinc-600">{tr("Deposits maturing within 30 days")}</p>
           </Card>
           <Card className="p-5">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">Maturing Capital</p>
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">{tr("Maturing Capital")}</p>
             <p className="text-3xl font-light text-zinc-50 tracking-tight tabular-nums">{formatValue(bankingEvents.maturingCapital, 'VND')}</p>
-            <p className="mt-1.5 text-xs text-zinc-600">Principal maturing within 30 days</p>
+            <p className="mt-1.5 text-xs text-zinc-600">{tr("Principal maturing within 30 days")}</p>
           </Card>
         </div>
 
@@ -358,16 +359,13 @@ export default async function CommandCenter() {
 
         {/* Safety Footer */}
         <div className="border border-[#26262B] rounded-xl px-5 py-4 bg-[#131316]">
-          <p className="text-[11px] font-semibold text-zinc-500 mb-1">Disclaimer</p>
+          <p className="text-[11px] font-semibold text-zinc-500 mb-1">{tr("Disclaimer")}</p>
           <p className="text-[11px] text-zinc-700 leading-relaxed">
-            This dashboard is a personal tracking tool. It does not provide investment advice, performance
-            guarantees, or automated trading. All decisions are manual and your own responsibility.
-            No data leaves this device.
-          </p>
+            {tr("This dashboard is a personal tracking tool. It does not provide investment advice, performance guarantees, or automated trading. All decisions are manual and your own responsibility. No data leaves this device.")}</p>
         </div>
 
         <div className="pb-4 text-center">
-          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v2.0 · {todayLabel}</p>
+          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v2.1.5.1 · {todayLabel}</p>
         </div>
       </main>
     </div>

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { researchNotes, assets } from '@/db/schema';
@@ -111,16 +112,14 @@ function NoteRow({
           href={`/research/${note.id}`}
           className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors"
         >
-          Edit
-        </Link>
+          {tr("Edit")}</Link>
         {!isArchived ? (
           <form action={archive}>
             <button
               type="submit"
               className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
             >
-              Archive
-            </button>
+              {tr("Archive")}</button>
           </form>
         ) : (
           <form action={unarchive}>
@@ -128,8 +127,7 @@ function NoteRow({
               type="submit"
               className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
             >
-              Restore
-            </button>
+              {tr("Restore")}</button>
           </form>
         )}
       </div>
@@ -155,22 +153,18 @@ export default async function ResearchPage() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-              Research
-            </p>
+              {tr("Research")}</p>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Research Notes
-            </h1>
+              {tr("Research Notes")}</h1>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[11px] text-zinc-600">
-              {active.length} active · {highConviction.length} high conviction
-            </span>
+              {active.length} {'' + tr("active ·") + ' '}{highConviction.length} {tr("high conviction")}</span>
             <Link
               href="/research/new"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Add Research Note
-            </Link>
+              {tr("+ Add Research Note")}</Link>
           </div>
         </div>
       </header>
@@ -201,7 +195,7 @@ export default async function ResearchPage() {
         <Card>
           <div className="px-5 pt-5 pb-4 border-b border-[#26262B] flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-              Active · {active.length}
+              {'' + tr("Active ·") + ' '}{active.length}
             </span>
           </div>
           {active.length > 0 ? (
@@ -212,13 +206,12 @@ export default async function ResearchPage() {
             </div>
           ) : (
             <div className="px-5 py-10 text-center">
-              <p className="text-sm text-zinc-700 mb-3">No research notes yet.</p>
+              <p className="text-sm text-zinc-700 mb-3">{tr("No research notes yet.")}</p>
               <Link
                 href="/research/new"
                 className="inline-block px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                + Add Research Note
-              </Link>
+                {tr("+ Add Research Note")}</Link>
             </div>
           )}
         </Card>
@@ -227,7 +220,7 @@ export default async function ResearchPage() {
         {archived.length > 0 && (
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-700 mb-2 px-1">
-              Archived · {archived.length}
+              {'' + tr("Archived ·") + ' '}{archived.length}
             </p>
             <Card>
               {archived.map((note) => (

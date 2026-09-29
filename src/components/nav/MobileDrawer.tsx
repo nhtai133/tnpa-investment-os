@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -52,7 +54,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Navigation menu"
+        aria-label={tr("Navigation menu")}
         className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-[#0C0C0E] border-r border-[#26262B] flex flex-col transform transition-transform duration-200 ease-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
@@ -60,12 +62,12 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-[#26262B] flex-shrink-0">
           <div>
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">TNPA</p>
-            <p className="text-sm font-semibold text-zinc-200 mt-0.5">Wealth OS</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("TNPA")}</p>
+            <p className="text-sm font-semibold text-zinc-200 mt-0.5">{tr("Wealth OS")}</p>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close menu"
+            aria-label={tr("Close menu")}
             className="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21] transition-colors"
           >
             <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
@@ -87,8 +89,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
               }`}
             >
-              Dashboard
-            </Link>
+              {tr("Dashboard")}</Link>
           </div>
 
           {/* Nav groups */}
@@ -96,7 +97,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             <div key={group.label}>
               <div className="pt-5 pb-1 px-3">
                 <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700">
-                  {group.label}
+                  {tr(group.label)}
                 </p>
               </div>
               <div className="space-y-0.5">
@@ -111,7 +112,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                         : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
                     }`}
                   >
-                    {label}
+                    {tr(label)}
                   </Link>
                 ))}
               </div>

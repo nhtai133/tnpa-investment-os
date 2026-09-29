@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -46,8 +47,7 @@ export default async function ResearchNoteDetailPage({
               href="/research"
               className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
             >
-              ← Research
-            </Link>
+              {tr("← Research")}</Link>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
               {title}
             </h1>
@@ -87,8 +87,7 @@ export default async function ResearchNoteDetailPage({
                   type="submit"
                   className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors px-3 py-1.5 rounded border border-[#26262B] hover:border-zinc-600"
                 >
-                  Archive
-                </button>
+                  {tr("Archive")}</button>
               </form>
             ) : (
               <form action={unarchive}>
@@ -96,8 +95,7 @@ export default async function ResearchNoteDetailPage({
                   type="submit"
                   className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors px-3 py-1.5 rounded border border-[#26262B] hover:border-zinc-600"
                 >
-                  Restore
-                </button>
+                  {tr("Restore")}</button>
               </form>
             )}
           </div>

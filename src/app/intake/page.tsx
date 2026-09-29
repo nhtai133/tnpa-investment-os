@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { opportunities } from '@/db/schema';
@@ -23,17 +24,16 @@ export default async function IntakePage() {
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
-            <h1 className="text-base font-semibold text-zinc-100 leading-tight">Signal Intake</h1>
+            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("TNPA")}</p>
+            <h1 className="text-base font-semibold text-zinc-100 leading-tight">{tr("Signal Intake")}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-zinc-600">{recent.length} recent signals</span>
+            <span className="text-[11px] text-zinc-600">{recent.length} {tr("recent signals")}</span>
             <Link
               href="/pipeline"
               className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-300 hover:text-zinc-100 rounded-lg transition-colors"
             >
-              Pipeline →
-            </Link>
+              {tr("Pipeline →")}</Link>
           </div>
         </div>
       </header>
@@ -43,7 +43,7 @@ export default async function IntakePage() {
           {/* Intake form — 3 cols */}
           <div className="lg:col-span-3">
             <Card>
-              <CardHeader label="New Signal" />
+              <CardHeader label={tr("New Signal")} />
               <div className="p-5">
                 <IntakeForm action={createIntake} />
               </div>
@@ -52,12 +52,9 @@ export default async function IntakePage() {
             {/* API info callout */}
             <div className="mt-4 bg-[#131316] border border-[#26262B] rounded-xl px-5 py-4">
               <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-2">
-                Programmatic Intake
-              </p>
+                {tr("Programmatic Intake")}</p>
               <p className="text-xs text-zinc-500 leading-relaxed mb-3">
-                POST to <code className="text-zinc-400 bg-[#1C1C21] px-1.5 py-0.5 rounded">/api/intake</code> to
-                create signals programmatically — from Telegram bots, automations, or scripts.
-              </p>
+                {'' + tr("POST to") + ' '}<code className="text-zinc-400 bg-[#1C1C21] px-1.5 py-0.5 rounded">{tr("/api/intake")}</code> {tr("to create signals programmatically — from Telegram bots, automations, or scripts.")}</p>
               <pre className="text-[11px] text-zinc-500 bg-[#1C1C21] rounded-lg p-3 overflow-x-auto leading-relaxed">{`POST /api/intake
 Content-Type: application/json
 
@@ -75,11 +72,10 @@ Content-Type: application/json
           <div className="lg:col-span-2">
             <Card>
               <CardHeader
-                label="Recent Signals"
+                label={tr("Recent Signals")}
                 action={
                   <Link href="/pipeline" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-                    All →
-                  </Link>
+                    {tr("All →")}</Link>
                 }
               />
               {recent.length > 0 ? (
@@ -125,10 +121,9 @@ Content-Type: application/json
                 </div>
               ) : (
                 <div className="px-5 py-10 text-center">
-                  <p className="text-sm text-zinc-700">No signals yet.</p>
+                  <p className="text-sm text-zinc-700">{tr("No signals yet.")}</p>
                   <p className="text-xs text-zinc-800 mt-1">
-                    Submit a signal using the form to get started.
-                  </p>
+                    {tr("Submit a signal using the form to get started.")}</p>
                 </div>
               )}
             </Card>

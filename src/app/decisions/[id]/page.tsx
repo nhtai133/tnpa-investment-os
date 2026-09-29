@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -52,8 +53,7 @@ export default async function DecisionDetailPage({ params }: Props) {
               href="/decisions"
               className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
             >
-              ← Decisions
-            </Link>
+              {tr("← Decisions")}</Link>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               <span
                 className="px-2 py-0.5 rounded text-[11px] font-bold uppercase"
@@ -69,14 +69,12 @@ export default async function DecisionDetailPage({ params }: Props) {
               href={`/decisions/${id}/review`}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Add Review
-            </Link>
+              {tr("+ Add Review")}</Link>
             <Link
               href={`/decisions/${id}/edit`}
               className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-300 hover:text-zinc-100 rounded-lg transition-colors"
             >
-              Edit
-            </Link>
+              {tr("Edit")}</Link>
           </div>
         </div>
       </header>
@@ -86,29 +84,29 @@ export default async function DecisionDetailPage({ params }: Props) {
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Date</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Date")}</p>
             <p className="text-sm font-medium text-zinc-100 mt-1.5">{formatDate(decision.decision_date)}</p>
           </Card>
           {decision.confidence != null && (
             <Card className="p-4">
-              <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Confidence</p>
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Confidence")}</p>
               <p className="text-xl font-bold tabular-nums text-zinc-100 mt-1.5">{decision.confidence}<span className="text-sm text-zinc-600">/10</span></p>
             </Card>
           )}
           {decision.expected_return && (
             <Card className="p-4">
-              <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Expected Return</p>
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Expected Return")}</p>
               <p className="text-sm font-medium text-emerald-400 mt-1.5">{decision.expected_return}</p>
             </Card>
           )}
           {decision.time_horizon && (
             <Card className="p-4">
-              <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Time Horizon</p>
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Time Horizon")}</p>
               <p className="text-sm font-medium text-zinc-100 mt-1.5">{decision.time_horizon}</p>
             </Card>
           )}
           <Card className="p-4">
-            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Reviews</p>
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Reviews")}</p>
             <p className="text-xl font-bold tabular-nums mt-1.5" style={{ color: reviews.length > 0 ? '#34D399' : '#52525B' }}>
               {reviews.length}
             </p>
@@ -117,7 +115,7 @@ export default async function DecisionDetailPage({ params }: Props) {
 
         {/* Detail */}
         <Card>
-          <CardHeader label="Decision Detail" />
+          <CardHeader label={tr("Decision Detail")} />
           <div className="p-5 space-y-5">
 
             {/* Asset + Purpose row */}
@@ -125,7 +123,7 @@ export default async function DecisionDetailPage({ params }: Props) {
               <div className="flex flex-wrap gap-6">
                 {asset && (
                   <div>
-                    <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1">Asset</p>
+                    <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1">{tr("Asset")}</p>
                     <Link
                       href={`/holdings/${asset.id}`}
                       className="flex items-center gap-2 hover:text-indigo-400 transition-colors"
@@ -148,7 +146,7 @@ export default async function DecisionDetailPage({ params }: Props) {
                 )}
                 {decision.purpose && (
                   <div>
-                    <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1">Purpose Bucket</p>
+                    <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1">{tr("Purpose Bucket")}</p>
                     <Link
                       href={`/buckets/${decision.purpose}`}
                       className="flex items-center gap-1.5 hover:text-indigo-400 transition-colors"
@@ -168,14 +166,14 @@ export default async function DecisionDetailPage({ params }: Props) {
 
             {/* Thesis */}
             <div>
-              <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">Thesis</p>
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">{tr("Thesis")}</p>
               <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">{decision.rationale}</p>
             </div>
 
             {/* Risks */}
             {decision.risks && (
               <div>
-                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">Risks</p>
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">{tr("Risks")}</p>
                 <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap">{decision.risks}</p>
               </div>
             )}
@@ -183,7 +181,7 @@ export default async function DecisionDetailPage({ params }: Props) {
             {/* Invalidation Conditions */}
             {decision.invalidation_conditions && (
               <div>
-                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">Invalidation Conditions</p>
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">{tr("Invalidation Conditions")}</p>
                 <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap">{decision.invalidation_conditions}</p>
               </div>
             )}
@@ -191,16 +189,16 @@ export default async function DecisionDetailPage({ params }: Props) {
             {/* Notes */}
             {decision.extended_notes && (
               <div>
-                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">Notes</p>
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">{tr("Notes")}</p>
                 <p className="text-sm text-zinc-500 leading-relaxed whitespace-pre-wrap">{decision.extended_notes}</p>
               </div>
             )}
 
             {decision.amount != null && (
               <div>
-                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">Amount</p>
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-1.5">{tr("Amount")}</p>
                 <p className="text-sm font-medium tabular-nums" style={{ color: decision.amount >= 0 ? '#34D399' : '#F87171' }}>
-                  {decision.amount >= 0 ? '+' : ''}{decision.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                  {decision.amount >= 0 ? '+' : ''}{decision.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'USD' })}
                 </p>
               </div>
             )}
@@ -213,8 +211,7 @@ export default async function DecisionDetailPage({ params }: Props) {
             label={`Reviews · ${reviews.length}`}
             action={
               <Link href={`/decisions/${id}/review`} className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-                + Add Review
-              </Link>
+                {tr("+ Add Review")}</Link>
             }
           />
           {reviews.length > 0 ? (
@@ -236,14 +233,14 @@ export default async function DecisionDetailPage({ params }: Props) {
 
                     {r.current_result && (
                       <div>
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">Current Result</p>
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">{tr("Current Result")}</p>
                         <p className="text-sm text-zinc-300">{r.current_result}</p>
                       </div>
                     )}
 
                     {r.thesis_still_valid != null && (
                       <div>
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">Thesis Still Valid?</p>
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">{tr("Thesis Still Valid?")}</p>
                         <p className={`text-sm font-medium ${r.thesis_still_valid ? 'text-emerald-400' : 'text-red-400'}`}>
                           {r.thesis_still_valid ? 'Yes' : 'No'}
                         </p>
@@ -252,14 +249,14 @@ export default async function DecisionDetailPage({ params }: Props) {
 
                     {r.lessons_learned && (
                       <div>
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">Lessons Learned</p>
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">{tr("Lessons Learned")}</p>
                         <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap">{r.lessons_learned}</p>
                       </div>
                     )}
 
                     {r.next_action && (
                       <div>
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">Next Action</p>
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold mb-0.5">{tr("Next Action")}</p>
                         <p className="text-sm text-indigo-400">{r.next_action}</p>
                       </div>
                     )}
@@ -269,13 +266,12 @@ export default async function DecisionDetailPage({ params }: Props) {
             </div>
           ) : (
             <div className="px-5 py-10 text-center">
-              <p className="text-sm text-zinc-700 mb-3">No reviews yet. Come back to evaluate this decision.</p>
+              <p className="text-sm text-zinc-700 mb-3">{tr("No reviews yet. Come back to evaluate this decision.")}</p>
               <Link
                 href={`/decisions/${id}/review`}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                + Add First Review
-              </Link>
+                {tr("+ Add First Review")}</Link>
             </div>
           )}
         </Card>

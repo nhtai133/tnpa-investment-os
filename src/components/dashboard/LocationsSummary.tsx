@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { formatValue, formatWeight } from '@/lib/formatters';
@@ -25,10 +26,9 @@ export function LocationsSummary({ locations, totalValue }: Props) {
   if (active.length === 0) {
     return (
       <Card className="px-6 py-10 text-center">
-        <p className="text-sm text-zinc-600 mb-2">No locations registered yet.</p>
+        <p className="text-sm text-zinc-600 mb-2">{tr("No locations registered yet.")}</p>
         <Link href="/accounts/new" className="text-xs text-indigo-400 hover:text-indigo-300">
-          + Add your first account →
-        </Link>
+          {tr("+ Add your first account →")}</Link>
       </Card>
     );
   }
@@ -45,18 +45,15 @@ export function LocationsSummary({ locations, totalValue }: Props) {
       <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#26262B]">
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-            Assets by Location
-          </span>
+            {tr("Assets by Location")}</span>
           <span className="text-[11px] text-zinc-700">
-            {active.length} active · {formatValue(totalValue, 'USD')} tracked
-          </span>
+            {active.length} {'' + tr("active ·") + ' '}{formatValue(totalValue, 'USD')} {tr("tracked")}</span>
         </div>
         <Link
           href="/locations"
           className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          View all →
-        </Link>
+          {tr("View all →")}</Link>
       </div>
 
       {/* Group sections */}
@@ -76,7 +73,7 @@ export function LocationsSummary({ locations, totalValue }: Props) {
                 <div className="flex items-center gap-3">
                   {totalAssets > 0 && (
                     <span className="text-[11px] text-zinc-700">
-                      {totalAssets} asset{totalAssets !== 1 ? 's' : ''}
+                      {totalAssets} {tr("asset")}{totalAssets !== 1 ? 's' : ''}
                     </span>
                   )}
                   <span className="text-[11px] text-zinc-500 tabular-nums">
@@ -113,7 +110,7 @@ export function LocationsSummary({ locations, totalValue }: Props) {
                   {loc.positionCount > 0 && (
                     <div className="hidden md:block text-right">
                       <p className="text-[11px] text-zinc-600 tabular-nums">
-                        {loc.positionCount} holding{loc.positionCount !== 1 ? 's' : ''}
+                        {loc.positionCount} {tr("holding")}{loc.positionCount !== 1 ? 's' : ''}
                       </p>
                     </div>
                   )}
@@ -154,11 +151,9 @@ export function LocationsSummary({ locations, totalValue }: Props) {
       {/* Footer */}
       <div className="px-5 py-3 border-t border-[#1A1A1F] flex items-center justify-between">
         <span className="text-[11px] text-zinc-700">
-          {locations.filter((l) => l.isEmpty).length} empty locations hidden
-        </span>
+          {locations.filter((l) => l.isEmpty).length} {tr("empty locations hidden")}</span>
         <Link href="/locations" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-          Full map →
-        </Link>
+          {tr("Full map →")}</Link>
       </div>
     </Card>
   );

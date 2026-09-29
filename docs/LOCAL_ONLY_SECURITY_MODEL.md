@@ -6,7 +6,7 @@ This release is intended for one trusted macOS user on one Mac mini. It protects
 
 ## Data locations and GitHub boundary
 
-Private application data lives under `~/.tnpa-wealth-os/`: `database/wealth.db`, plus `snapshots/`, `exports/`, `backups/`, and `logs/`. Directories are created with mode `0700`, database files with mode `0600`, and symlinked paths are rejected. The repository at `~/Developer/tnpa-investment-os` is source code only. Git ignore rules and the pre-commit source-only check block common private data, export, database, and secret artifacts. GitHub may receive reviewed source code; it must never receive real financial records, secrets, backups, exports, or snapshots.
+Development data lives under `~/.tnpa-wealth-os-dev/` and must contain synthetic records only. Production data lives under `~/.tnpa-wealth-os/`; its database is `database/wealth.db`, with `snapshots/`, `exports/`, `backups/`, and `logs/` alongside it. The runtime requires explicit `TNPA_ENV=development` or `TNPA_ENV=production`; the chosen root is derived from that value, mismatches are rejected, and there is no fallback between roots. Directories are created with mode `0700`, database files with mode `0600`, and symlinked paths are rejected. The repository at `~/Developer/tnpa-investment-os` is source code only. Git ignore rules and the pre-commit source-only check block common private data, export, database, and secret artifacts. GitHub may receive reviewed source code; it must never receive real financial records, secrets, backups, exports, or snapshots.
 
 ## Database handling
 
@@ -16,7 +16,7 @@ Exports and backups are written under the private root. They are not sent to a b
 
 ## Network behavior
 
-The supported `npm run dev` and `npm start` commands bind to `127.0.0.1:3001`. Requests reject foreign hosts, origins, forwarded hosts, and cross-site mutations. The application contains no required external API, analytics, telemetry, webhook, cloud database, remote authentication, or sync connection. Next.js telemetry is disabled by the supported command wrapper. User-entered research URLs are stored as text and are not fetched by the application. Browser navigation to such links can contact their destination; that is an explicit user action and is outside automatic wealth-data processing.
+The supported `npm run dev` command uses the development root and binds to `127.0.0.1:3002`. The production launcher uses only the production root and binds to `127.0.0.1:3001`. Requests reject foreign hosts, origins, forwarded hosts, and cross-site mutations. The application contains no required external API, analytics, telemetry, webhook, cloud database, remote authentication, or sync connection. Next.js telemetry is disabled by the supported command wrapper. User-entered research URLs are stored as text and are not fetched by the application. Browser navigation to such links can contact their destination; that is an explicit user action and is outside automatic wealth-data processing.
 
 The local-only assumption covers the supported local commands. Do not expose the development server through a reverse proxy, tunnel, port forward, or alternate host binding. Dependencies may contact package registries during manual installation/update, and Git commands may contact GitHub; these are development operations, not runtime data services.
 

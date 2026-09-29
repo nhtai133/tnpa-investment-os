@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getCashSourceOptions } from '@/lib/cash-balances';
 import Link from 'next/link';
 import { createAsset } from '@/app/holdings/actions';
@@ -15,11 +16,9 @@ export default async function NewAssetPage() {
               href="/holdings"
               className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
             >
-              ← Holdings
-            </Link>
+              {tr("← Holdings")}</Link>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Add Asset
-            </h1>
+              {tr("Add Asset")}</h1>
           </div>
         </div>
       </header>

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { Card, CardHeader } from '@/components/ui/Card';
 import type { AssetLifecycleSummary } from '@/lib/asset-lifecycle';
 import { formatDate, formatValue } from '@/lib/formatters';
@@ -11,30 +12,29 @@ export function AssetLifecycleCard({
 }) {
   return (
     <Card>
-      <CardHeader label="Lifecycle" />
+      <CardHeader label={tr("Lifecycle")} />
       <div className="p-5 space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Metric label="Bought From" value={lifecycle.firstFundingAccount?.name ?? '-'} />
-          <Metric label="Bought Through" value={lifecycle.firstExecutionAccount?.name ?? '-'} />
+          <Metric label={tr("Bought From")} value={lifecycle.firstFundingAccount?.name ?? '-'} />
+          <Metric label={tr("Bought Through")} value={lifecycle.firstExecutionAccount?.name ?? '-'} />
           <Metric
-            label="Current Custody"
+            label={tr("Current Custody")}
             value={lifecycle.currentCustody.map((row) => row.account.name).join(', ') || '-'}
           />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Metric label="Lifetime Cash In" value={formatValue(lifecycle.lifetimeCashIn, currency)} />
-          <Metric label="Lifetime Cash Out" value={formatValue(lifecycle.lifetimeCashOut, currency)} />
-          <Metric label="Realized P&L" value={formatValue(lifecycle.realizedPnl, currency)} />
-          <Metric label="Unrealized P&L" value={formatValue(lifecycle.unrealizedPnl, currency)} />
-          <Metric label="Total Return" value={formatValue(lifecycle.totalReturn, currency)} />
+          <Metric label={tr("Lifetime Cash In")} value={formatValue(lifecycle.lifetimeCashIn, currency)} />
+          <Metric label={tr("Lifetime Cash Out")} value={formatValue(lifecycle.lifetimeCashOut, currency)} />
+          <Metric label={tr("Realized P&L")} value={formatValue(lifecycle.realizedPnl, currency)} />
+          <Metric label={tr("Unrealized P&L")} value={formatValue(lifecycle.unrealizedPnl, currency)} />
+          <Metric label={tr("Total Return")} value={formatValue(lifecycle.totalReturn, currency)} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-2">
-              Custody Positions
-            </p>
+              {tr("Custody Positions")}</p>
             <div className="space-y-2">
               {lifecycle.currentCustody.length === 0 ? (
                 <EmptyRow />
@@ -43,8 +43,7 @@ export function AssetLifecycleCard({
                   <div key={row.account.id} className="rounded-lg border border-[#26262B] px-3 py-2">
                     <p className="text-sm text-zinc-200">{row.account.name}</p>
                     <p className="text-xs text-zinc-600 tabular-nums">
-                      {row.quantity.toLocaleString()} units - {formatValue(row.costBasis, currency)} cost
-                    </p>
+                      {row.quantity.toLocaleString()} {'' + tr("units -") + ' '}{formatValue(row.costBasis, currency)} {tr("cost")}</p>
                   </div>
                 ))
               )}
@@ -53,8 +52,7 @@ export function AssetLifecycleCard({
 
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-2">
-              Transfer History
-            </p>
+              {tr("Transfer History")}</p>
             <div className="space-y-2">
               {lifecycle.transferHistory.length === 0 ? (
                 <EmptyRow />
@@ -65,8 +63,7 @@ export function AssetLifecycleCard({
                       {transfer.from?.name ?? '-'} {'->'} {transfer.to?.name ?? '-'}
                     </p>
                     <p className="text-xs text-zinc-600 tabular-nums">
-                      {formatDate(transfer.date)} - {transfer.quantity?.toLocaleString() ?? '-'} units
-                    </p>
+                      {formatDate(transfer.date)} - {transfer.quantity?.toLocaleString() ?? '-'} {tr("units")}</p>
                   </div>
                 ))
               )}
@@ -75,8 +72,7 @@ export function AssetLifecycleCard({
 
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-2">
-              Sell History
-            </p>
+              {tr("Sell History")}</p>
             <div className="space-y-2">
               {lifecycle.sellHistory.length === 0 ? (
                 <EmptyRow />
@@ -84,10 +80,10 @@ export function AssetLifecycleCard({
                 lifecycle.sellHistory.map((sale) => (
                   <div key={sale.id} className="rounded-lg border border-[#26262B] px-3 py-2">
                     <p className="text-sm text-zinc-200">
-                      To {sale.receiveAccount?.name ?? '-'}
+                      {'' + tr("To") + ' '}{sale.receiveAccount?.name ?? '-'}
                     </p>
                     <p className="text-xs text-zinc-600 tabular-nums">
-                      {formatDate(sale.date)} - P&L {formatValue(sale.realizedPnl ?? 0, currency)}
+                      {formatDate(sale.date)} {'' + tr("- P&L") + ' '}{formatValue(sale.realizedPnl ?? 0, currency)}
                     </p>
                   </div>
                 ))
@@ -114,7 +110,6 @@ function Metric({ label, value }: { label: string; value: string }) {
 function EmptyRow() {
   return (
     <div className="rounded-lg border border-dashed border-[#26262B] px-3 py-2 text-xs text-zinc-700">
-      No records.
-    </div>
+      {tr("No records.")}</div>
   );
 }

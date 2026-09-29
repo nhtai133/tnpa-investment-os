@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getModuleData } from '@/lib/moduleData';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
@@ -14,7 +15,7 @@ export default async function FundsPage() {
     <div className="min-h-screen bg-[#0C0C0E]">
       <ModulePageHeader
         assetClass="funds"
-        title="Funds & ETFs"
+        title={tr("Funds & ETFs")}
         addHref="/funds/new"
         addLabel="+ Add Fund"
         currency="VND"
@@ -29,9 +30,9 @@ export default async function FundsPage() {
         <WorkspaceAllocationChart
           assets={classAssets}
           usdVndRate={usdVndRate}
-          label="Funds & ETFs Allocation"
+          label={tr("Funds & ETFs Allocation")}
         />
-        <ArchivedSection assets={archivedClassAssets} label="Archived Funds & ETFs" usdVndRate={usdVndRate} />
+        <ArchivedSection assets={archivedClassAssets} label={tr("Archived Funds & ETFs")} usdVndRate={usdVndRate} />
       </main>
     </div>
   );

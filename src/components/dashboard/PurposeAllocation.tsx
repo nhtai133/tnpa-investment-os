@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { Card, CardHeader } from '@/components/ui/Card';
 import { PURPOSE_LABELS, PURPOSE_COLORS, formatCurrency, formatWeight } from '@/lib/formatters';
@@ -26,10 +28,9 @@ export function PurposeAllocation({ data, isMixedCurrency = false, label }: Purp
       <Card className="flex flex-col">
         <CardHeader label={label ?? 'Asset Purpose'} />
         <div className="p-5 flex flex-col items-center justify-center flex-1 min-h-[160px] gap-2">
-          <p className="text-sm text-zinc-600">Purpose weights unavailable</p>
+          <p className="text-sm text-zinc-600">{tr("Purpose weights unavailable")}</p>
           <p className="text-[10px] text-amber-500/80 text-center px-6">
-            Multi-currency normalization pending
-          </p>
+            {tr("Multi-currency normalization pending")}</p>
         </div>
       </Card>
     );
@@ -37,7 +38,7 @@ export function PurposeAllocation({ data, isMixedCurrency = false, label }: Purp
 
   return (
     <Card className="flex flex-col">
-      <CardHeader label="Asset Purpose" />
+      <CardHeader label={tr("Asset Purpose")} />
       <div className="p-5 flex flex-col gap-3 flex-1">
         {sorted.map((item) => {
           const color = PURPOSE_COLORS[item.purpose];
@@ -80,8 +81,7 @@ export function PurposeAllocation({ data, isMixedCurrency = false, label }: Purp
           );
         })}
         <p className="text-[11px] text-zinc-600 pt-2 border-t border-[#26262B]">
-          As % of Total Net Worth
-        </p>
+          {tr("As % of Total Net Worth")}</p>
       </div>
     </Card>
   );

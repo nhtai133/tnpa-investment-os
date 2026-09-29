@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -40,7 +41,7 @@ export default async function HoldingNotesPage({ params }: Props) {
               ← {asset.name}
             </Link>
             <div className="flex items-center gap-2 mt-0.5">
-              <h1 className="text-base font-semibold text-zinc-100 leading-tight">Research Notes</h1>
+              <h1 className="text-base font-semibold text-zinc-100 leading-tight">{tr("Research Notes")}</h1>
               <Badge
                 label={ASSET_CLASS_LABELS[asset.asset_class]}
                 color={ASSET_CLASS_COLORS[asset.asset_class]}
@@ -51,8 +52,7 @@ export default async function HoldingNotesPage({ params }: Props) {
             href={`/holdings/${id}/notes/new`}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Note
-          </Link>
+            {tr("+ Add Note")}</Link>
         </div>
       </header>
 
@@ -91,13 +91,12 @@ export default async function HoldingNotesPage({ params }: Props) {
             </div>
           ) : (
             <div className="px-5 py-16 text-center">
-              <p className="text-sm text-zinc-700 mb-4">No notes for this holding yet.</p>
+              <p className="text-sm text-zinc-700 mb-4">{tr("No notes for this holding yet.")}</p>
               <Link
                 href={`/holdings/${id}/notes/new`}
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                + Add First Note
-              </Link>
+                {tr("+ Add First Note")}</Link>
             </div>
           )}
         </Card>

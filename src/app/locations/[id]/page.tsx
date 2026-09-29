@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { convertCurrency } from '@/lib/fx';
 import { getUsdVndRate } from '@/lib/settings';
 import Link from 'next/link';
@@ -66,8 +67,7 @@ export default async function LocationDetailPage({ params }: { params: { id: str
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-[11px] font-semibold tracking-widest uppercase">
               <Link href="/locations" className="text-zinc-600 hover:text-zinc-400 transition-colors">
-                Locations
-              </Link>
+                {tr("Locations")}</Link>
               <span className="text-zinc-800">›</span>
               <span className="text-zinc-500">{account.name}</span>
             </nav>
@@ -75,7 +75,7 @@ export default async function LocationDetailPage({ params }: { params: { id: str
               {account.name}
             </h1>
             <p className="text-xs text-zinc-600 mt-0.5">
-              {group} · {moduleName}{account.institution ? ` · ${account.institution}` : ''} · {account.status}
+              {tr(group)} · {tr(moduleName)}{account.institution ? ` · ${account.institution}` : ''} · {tr(account.status)}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -84,21 +84,19 @@ export default async function LocationDetailPage({ params }: { params: { id: str
                 href={moduleDetailHref}
                 className="px-3 py-1.5 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors"
               >
-                Open in {moduleName}
+                {'' + tr("Open in") + ' '}{moduleName}
               </Link>
             )}
             <Link
               href={`/accounts/${account.id}`}
               className="px-3 py-1.5 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors"
             >
-              Registry View
-            </Link>
+              {tr("Registry View")}</Link>
             <Link
               href={`/transactions/new`}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + New Transaction
-            </Link>
+              {tr("+ New Transaction")}</Link>
           </div>
         </div>
       </header>
@@ -106,15 +104,15 @@ export default async function LocationDetailPage({ params }: { params: { id: str
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Metric label="Cash Balance" value={formatValue(account.current_balance, account.currency)} />
-          <Metric label="Asset / Custody Value" value={formatValue(custodyValue, account.currency)} />
+          <Metric label={tr("Cash Balance")} value={formatValue(account.current_balance, account.currency)} />
+          <Metric label={tr("Asset / Custody Value")} value={formatValue(custodyValue, account.currency)} />
           <Metric
-            label="Realized P&L"
+            label={tr("Realized P&L")}
             value={formatValue(realizedPnl, account.currency)}
             colored={realizedPnl}
           />
           <Metric
-            label="Unrealized P&L"
+            label={tr("Unrealized P&L")}
             value={formatValue(unrealizedPnl, account.currency)}
             colored={unrealizedPnl}
           />
@@ -122,19 +120,17 @@ export default async function LocationDetailPage({ params }: { params: { id: str
 
         {/* Custody positions — collapsed by default */}
         <CollapsibleSection
-          title="Holdings"
+          title={tr("Holdings")}
           summary={enrichedPositions.length > 0 ? `${enrichedPositions.length} asset${enrichedPositions.length !== 1 ? 's' : ''}` : undefined}
           defaultOpen={false}
         >
           {enrichedPositions.length === 0 ? (
             <Card className="px-6 py-8 text-center">
               <p className="text-sm text-zinc-700">
-                No assets custodied here yet.{' '}
+                {tr("No assets custodied here yet.")}{' '}
                 <Link href="/transactions/new" className="text-indigo-400 hover:text-indigo-300">
-                  Record a transaction
-                </Link>{' '}
-                to assign assets to this location.
-              </p>
+                  {tr("Record a transaction")}</Link>{' '}
+                {tr("to assign assets to this location.")}</p>
             </Card>
           ) : (
             <Card className="overflow-hidden">
@@ -209,15 +205,15 @@ export default async function LocationDetailPage({ params }: { params: { id: str
         {/* Transfers */}
         {(transfersIn.length > 0 || transfersOut.length > 0) && (
           <CollapsibleSection
-            title="Transfers"
+            title={tr("Transfers")}
             summary={`${transfersIn.length} in · ${transfersOut.length} out`}
             defaultOpen={false}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
-                <CardHeader label="Transfers In" action={`${transfersIn.length}`} />
+                <CardHeader label={tr("Transfers In")} action={`${transfersIn.length}`} />
                 {transfersIn.length === 0 ? (
-                  <div className="px-5 py-6 text-sm text-zinc-700">None.</div>
+                  <div className="px-5 py-6 text-sm text-zinc-700">{tr("None.")}</div>
                 ) : (
                   <div className="divide-y divide-[#1A1A1F]">
                     {transfersIn.slice(0, 10).map((txn) => (
@@ -232,9 +228,9 @@ export default async function LocationDetailPage({ params }: { params: { id: str
                 )}
               </Card>
               <Card>
-                <CardHeader label="Transfers Out" action={`${transfersOut.length}`} />
+                <CardHeader label={tr("Transfers Out")} action={`${transfersOut.length}`} />
                 {transfersOut.length === 0 ? (
-                  <div className="px-5 py-6 text-sm text-zinc-700">None.</div>
+                  <div className="px-5 py-6 text-sm text-zinc-700">{tr("None.")}</div>
                 ) : (
                   <div className="divide-y divide-[#1A1A1F]">
                     {transfersOut.slice(0, 10).map((txn) => (
@@ -254,17 +250,17 @@ export default async function LocationDetailPage({ params }: { params: { id: str
 
         {/* Transactions */}
         <CollapsibleSection
-          title="Transactions"
+          title={tr("Transactions")}
           summary={`${linkedTransactions.length} total`}
           defaultOpen={enrichedPositions.length === 0}
         >
           <Card>
             <CardHeader
-              label="Linked Transactions"
+              label={tr("Linked Transactions")}
               action={`${linkedTransactions.length} total`}
             />
             {linkedTransactions.length === 0 ? (
-              <div className="px-5 py-8 text-sm text-zinc-700">No transactions linked.</div>
+              <div className="px-5 py-8 text-sm text-zinc-700">{tr("No transactions linked.")}</div>
             ) : (
               <div className="divide-y divide-[#1A1A1F]">
                 {recentTxns.map((txn) => (
@@ -273,7 +269,7 @@ export default async function LocationDetailPage({ params }: { params: { id: str
                     className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-[#101014] transition-colors"
                   >
                     <div>
-                      <p className="text-sm text-zinc-300 uppercase font-medium">{txn.type}</p>
+                      <p className="text-sm text-zinc-300 uppercase font-medium">{tr(txn.type.charAt(0).toUpperCase() + txn.type.slice(1))}</p>
                       <p className="text-xs text-zinc-600">{formatDate(txn.transaction_date)}</p>
                     </div>
                     <div className="text-right">
@@ -282,21 +278,19 @@ export default async function LocationDetailPage({ params }: { params: { id: str
                       </p>
                       {txn.quantity != null && (
                         <p className="text-xs text-zinc-600 tabular-nums">
-                          {txn.quantity.toLocaleString()} units
-                        </p>
+                          {txn.quantity.toLocaleString()} {tr("units")}</p>
                       )}
                     </div>
                   </div>
                 ))}
                 {linkedTransactions.length > 25 && (
                   <div className="px-5 py-3 text-xs text-zinc-600">
-                    Showing 25 of {linkedTransactions.length}.{' '}
+                    {'' + tr("Showing 25 of") + ' '}{linkedTransactions.length}.{' '}
                     <Link
                       href={`/accounts/${account.id}`}
                       className="text-indigo-400 hover:text-indigo-300"
                     >
-                      View all in Registry →
-                    </Link>
+                      {tr("View all in Registry →")}</Link>
                   </div>
                 )}
               </div>
@@ -310,15 +304,13 @@ export default async function LocationDetailPage({ params }: { params: { id: str
             href={moduleHref}
             className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
           >
-            Open {moduleName} module →
-          </Link>
+            {'' + tr("Open") + ' '}{moduleName} {tr("module →")}</Link>
           <span className="text-zinc-800">·</span>
           <Link
             href={`/accounts/${account.id}`}
             className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
           >
-            View in Account Registry →
-          </Link>
+            {tr("View in Account Registry →")}</Link>
         </div>
       </main>
     </div>

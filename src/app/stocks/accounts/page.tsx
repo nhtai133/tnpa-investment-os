@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { accountRegistry } from '@/db/schema';
@@ -23,36 +24,31 @@ export default async function StocksBrokerAccountsPage() {
               href="/stocks"
               className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
             >
-              ← Stocks
-            </Link>
+              {tr("← Stocks")}</Link>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Broker Accounts
-            </h1>
+              {tr("Broker Accounts")}</h1>
             <p className="text-xs text-zinc-600 mt-0.5">
-              Execution venues and custody locations for stock transactions.
-            </p>
+              {tr("Execution venues and custody locations for stock transactions.")}</p>
           </div>
           <Link
             href="/stocks/accounts/new"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Broker Account
-          </Link>
+            {tr("+ Add Broker Account")}</Link>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <Card>
-          <CardHeader label="Broker Accounts" action={`${accounts.length} registered`} />
+          <CardHeader label={tr("Broker Accounts")} action={`${accounts.length} registered`} />
           {accounts.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-sm text-zinc-600 mb-3">No broker accounts registered yet.</p>
+              <p className="text-sm text-zinc-600 mb-3">{tr("No broker accounts registered yet.")}</p>
               <Link
                 href="/stocks/accounts/new"
                 className="inline-block text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
               >
-                + Add your first broker account
-              </Link>
+                {tr("+ Add your first broker account")}</Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -93,7 +89,7 @@ export default async function StocksBrokerAccountsPage() {
                         {formatValue(account.current_balance, account.currency)}
                       </td>
                       <td className="px-5 py-3 text-zinc-500 whitespace-nowrap">
-                        {account.status}
+                        {tr(account.status)}
                       </td>
                     </tr>
                   ))}

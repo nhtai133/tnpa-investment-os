@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import {
   formatCurrency,
@@ -30,29 +31,23 @@ interface TopHoldingsProps {
 export function TopHoldings({ holdings }: TopHoldingsProps) {
   return (
     <Card>
-      <CardHeader label="Top Holdings" action={`${holdings.length} positions`} />
+      <CardHeader label={tr("Top Holdings")} action={`${holdings.length} positions`} />
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#26262B]">
               <th className="text-left px-5 py-3 text-[11px] font-semibold tracking-wide text-zinc-600 uppercase">
-                Asset
-              </th>
+                {tr("Asset")}</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide text-zinc-600 uppercase">
-                Class
-              </th>
+                {tr("Class")}</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide text-zinc-600 uppercase hidden lg:table-cell">
-                Purpose
-              </th>
+                {tr("Purpose")}</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold tracking-wide text-zinc-600 uppercase">
-                Value
-              </th>
+                {tr("Value")}</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold tracking-wide text-zinc-600 uppercase hidden md:table-cell">
-                Weight
-              </th>
+                {tr("Weight")}</th>
               <th className="text-right px-5 py-3 text-[11px] font-semibold tracking-wide text-zinc-600 uppercase hidden md:table-cell">
-                Gain / Loss
-              </th>
+                {tr("Gain / Loss")}</th>
             </tr>
           </thead>
           <tbody>

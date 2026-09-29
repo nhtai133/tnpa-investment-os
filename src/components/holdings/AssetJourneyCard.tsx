@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { formatValue, formatPercent } from '@/lib/formatters';
@@ -27,11 +28,9 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
     <Card>
       <div className="px-5 pt-4 pb-1">
         <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-          Asset Journey
-        </p>
+          {tr("Asset Journey")}</p>
         <p className="text-[11px] text-zinc-700 mt-0.5">
-          Where money came from · where it went · what it&apos;s worth
-        </p>
+          {tr("Where money came from · where it went · what it's worth")}</p>
       </div>
 
       <div className="px-5 py-4">
@@ -39,7 +38,7 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
 
           {/* Step 1: Funding Source */}
           <JourneyStep
-            label="Funding Source"
+            label={tr("Funding Source")}
             value={fundingAccount?.name ?? '—'}
             sub={fundingAccount ? 'Bank / Cash Account' : 'Not recorded'}
             href={fundingAccount ? `/locations/${fundingAccount.id}` : undefined}
@@ -50,7 +49,7 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
 
           {/* Step 2: Execution Venue */}
           <JourneyStep
-            label="Execution Venue"
+            label={tr("Execution Venue")}
             value={executionAccount?.name ?? '—'}
             sub={executionAccount ? 'Broker / Exchange' : 'Not recorded'}
             href={executionAccount ? `/locations/${executionAccount.id}` : undefined}
@@ -61,7 +60,7 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
 
           {/* Step 3: Custody Location(s) */}
           <JourneyStep
-            label="Custody Location"
+            label={tr("Custody Location")}
             value={
               custodyPositions.length === 0
                 ? '—'
@@ -86,7 +85,7 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
 
           {/* Step 4: Current Value */}
           <JourneyStep
-            label="Current Value"
+            label={tr("Current Value")}
             value={formatValue(asset.current_value, asset.currency)}
             sub={asset.quantity != null ? `${asset.quantity.toLocaleString()} units` : undefined}
             accent="text-zinc-200"
@@ -96,7 +95,7 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
 
           {/* Step 5: Gain / Loss */}
           <JourneyStep
-            label="Total Return"
+            label={tr("Total Return")}
             value={`${totalGainLoss >= 0 ? '+' : ''}${formatValue(totalGainLoss, asset.currency)}`}
             sub={gainLossPct != null ? formatPercent(gainLossPct) : undefined}
             accent={totalGainLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}
@@ -117,8 +116,7 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
                 {pos.account.name}
               </span>
               <span className="text-[11px] text-zinc-600 tabular-nums">
-                {pos.quantity.toLocaleString()} units
-              </span>
+                {pos.quantity.toLocaleString()} {tr("units")}</span>
             </Link>
           ))}
         </div>

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import {
@@ -22,48 +23,39 @@ export function HoldingsTable({ assets, totalNetWorth, usdVndRate = DEFAULT_USD_
   if (assets.length === 0) {
     return (
       <Card className="px-6 py-16 text-center">
-        <p className="text-sm text-zinc-500">No assets match this filter.</p>
+        <p className="text-sm text-zinc-500">{tr("No assets match this filter.")}</p>
         <Link
           href="/holdings/new"
           className="mt-3 inline-block text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
         >
-          + Add your first asset
-        </Link>
+          {tr("+ Add your first asset")}</Link>
       </Card>
     );
   }
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader label="Holdings" action={`${assets.length} positions`} />
+      <CardHeader label={tr("Holdings")} action={`${assets.length} positions`} />
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#26262B]">
               <th className="text-left px-5 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">
-                Asset
-              </th>
+                {tr("Asset")}</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">
-                Class
-              </th>
+                {tr("Class")}</th>
               <th className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600 hidden lg:table-cell">
-                Purpose
-              </th>
+                {tr("Purpose")}</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">
-                Value
-              </th>
+                {tr("Value")}</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600 hidden md:table-cell">
-                Weight
-              </th>
+                {tr("Weight")}</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600 hidden md:table-cell">
-                Cost Basis
-              </th>
+                {tr("Cost Basis")}</th>
               <th className="text-right px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600 hidden lg:table-cell">
-                Gain / Loss
-              </th>
+                {tr("Gain / Loss")}</th>
               <th className="px-5 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600 text-right">
-                Actions
-              </th>
+                {tr("Actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -176,14 +168,12 @@ export function HoldingsTable({ assets, totalNetWorth, usdVndRate = DEFAULT_USD_
                         href={`/holdings/${asset.id}`}
                         className="text-xs text-zinc-500 hover:text-zinc-200 transition-colors"
                       >
-                        View
-                      </Link>
+                        {tr("View")}</Link>
                       <Link
                         href={`/holdings/${asset.id}/edit`}
                         className="text-xs text-zinc-500 hover:text-zinc-200 transition-colors"
                       >
-                        Edit
-                      </Link>
+                        {tr("Edit")}</Link>
                     </div>
                   </td>
                 </tr>

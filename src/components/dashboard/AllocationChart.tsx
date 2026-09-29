@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -24,7 +26,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
     <div className="bg-[#1C1C21] border border-[#303037] rounded-lg px-3 py-2 text-sm shadow-xl">
       <p className="font-medium text-zinc-100">{item.label}</p>
       <p className="text-zinc-400">{formatCurrency(item.value)}</p>
-      <p className="text-zinc-500">{formatWeight(item.weight)} of investable</p>
+      <p className="text-zinc-500">{formatWeight(item.weight)} {tr("of investable")}</p>
     </div>
   );
 }
@@ -56,7 +58,7 @@ export function AllocationChart({ data, label }: AllocationChartProps) {
       <Card className="flex flex-col">
         <CardHeader label={label ?? 'Asset Allocation'} />
         <div className="p-5 h-48 flex items-center justify-center">
-          <p className="text-sm text-zinc-600">No holdings to display.</p>
+          <p className="text-sm text-zinc-600">{tr("No holdings to display.")}</p>
         </div>
       </Card>
     );

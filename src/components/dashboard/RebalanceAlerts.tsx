@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { Card, CardHeader } from '@/components/ui/Card';
 import {
   ASSET_CLASS_LABELS,
@@ -60,14 +61,14 @@ function AlertRow({ alert }: { alert: RebalanceAlert }) {
             >
               {formatWeight(alert.actual_weight)}
             </span>
-            <span className="text-xs text-zinc-500">actual</span>
+            <span className="text-xs text-zinc-500">{tr("actual")}</span>
           </div>
           <span className="text-zinc-700">→</span>
           <div className="flex items-baseline gap-1">
             <span className="text-sm text-zinc-400 tabular-nums">
               {formatWeight(alert.target_weight)}
             </span>
-            <span className="text-xs text-zinc-600">target</span>
+            <span className="text-xs text-zinc-600">{tr("target")}</span>
           </div>
           <span
             className="text-xs tabular-nums font-medium ml-1"
@@ -98,11 +99,9 @@ function AlertRow({ alert }: { alert: RebalanceAlert }) {
         </div>
         <div className="flex justify-between mt-0.5">
           <span className="text-[10px] text-zinc-700">
-            {formatWeight(alert.lower_band)} floor
-          </span>
+            {formatWeight(alert.lower_band)} {tr("floor")}</span>
           <span className="text-[10px] text-zinc-700">
-            {formatWeight(alert.upper_band)} ceiling
-          </span>
+            {formatWeight(alert.upper_band)} {tr("ceiling")}</span>
         </div>
       </div>
 
@@ -126,9 +125,9 @@ export function RebalanceAlerts({ alerts }: RebalanceAlertsProps) {
   if (open.length === 0) {
     return (
       <Card>
-        <CardHeader label="Rebalance Alerts" />
+        <CardHeader label={tr("Rebalance Alerts")} />
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-zinc-500">All allocations within target bands</p>
+          <p className="text-sm text-zinc-500">{tr("All allocations within target bands")}</p>
         </div>
       </Card>
     );
@@ -137,7 +136,7 @@ export function RebalanceAlerts({ alerts }: RebalanceAlertsProps) {
   return (
     <Card>
       <CardHeader
-        label="Rebalance Alerts"
+        label={tr("Rebalance Alerts")}
         action={`${open.length} open`}
       />
       <div>

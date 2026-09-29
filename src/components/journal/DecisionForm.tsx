@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 import type { Asset } from '@/db/schema';
@@ -80,33 +82,33 @@ export function DecisionForm({
       {redirectTo && <input type="hidden" name="redirect_to" value={redirectTo} />}
 
       {/* Title */}
-      <Field label="Title">
+      <Field label={tr("Title")}>
         <input
           type="text"
           name="title"
           required
           defaultValue={defaultValues?.title ?? preselectedTitle ?? ''}
-          placeholder="e.g. Initiated BTC position ahead of halving"
+          placeholder={tr("e.g. Initiated BTC position ahead of halving")}
           className={inputClass}
         />
       </Field>
 
       {/* Decision Type + Date */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Decision Type">
+        <Field label={tr("Decision Type")}>
           <select
             name="decision_type"
             required
             defaultValue={defaultValues?.decision_type ?? preselectedType ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="" disabled>Select type…</option>
+            <option value="" disabled>{tr("Select type…")}</option>
             {DECISION_TYPES.map((t) => (
               <option key={t} value={t}>{DECISION_TYPE_LABELS[t]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Decision Date">
+        <Field label={tr("Decision Date")}>
           <input
             type="date"
             name="decision_date"
@@ -121,13 +123,13 @@ export function DecisionForm({
       {preselectedAssetId ? (
         <input type="hidden" name="asset_id" value={preselectedAssetId} />
       ) : assets && assets.length > 0 ? (
-        <Field label="Asset (optional)">
+        <Field label={tr("Asset (optional)")}>
           <select
             name="asset_id"
             defaultValue=""
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">No specific asset…</option>
+            <option value="">{tr("No specific asset…")}</option>
             {assets.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name}{a.symbol ? ` (${a.symbol})` : ''}
@@ -138,13 +140,13 @@ export function DecisionForm({
       ) : null}
 
       {/* Purpose Bucket */}
-      <Field label="Purpose Bucket (optional)">
+      <Field label={tr("Purpose Bucket (optional)")}>
         <select
           name="purpose"
           defaultValue={defaultValues?.purpose ?? ''}
           className={`${inputClass} appearance-none cursor-pointer`}
         >
-          <option value="">No bucket…</option>
+          <option value="">{tr("No bucket…")}</option>
           {ASSET_PURPOSES.map((p) => (
             <option key={p} value={p}>{PURPOSE_LABELS[p]}</option>
           ))}
@@ -152,76 +154,76 @@ export function DecisionForm({
       </Field>
 
       {/* Thesis / Rationale */}
-      <Field label="Thesis" hint="Why are you making this decision? What conviction drives it?">
+      <Field label={tr("Thesis")} hint="Why are you making this decision? What conviction drives it?">
         <textarea
           name="rationale"
           required
           rows={4}
           defaultValue={defaultValues?.rationale ?? ''}
-          placeholder="The investment thesis behind this decision…"
+          placeholder={tr("The investment thesis behind this decision…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* Expected Return + Time Horizon */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Expected Return (optional)">
+        <Field label={tr("Expected Return (optional)")}>
           <input
             type="text"
             name="expected_return"
             defaultValue={defaultValues?.expected_return ?? ''}
-            placeholder="e.g. 20-30% over 12 months"
+            placeholder={tr("e.g. 20-30% over 12 months")}
             className={inputClass}
           />
         </Field>
-        <Field label="Time Horizon (optional)">
+        <Field label={tr("Time Horizon (optional)")}>
           <input
             type="text"
             name="time_horizon"
             defaultValue={defaultValues?.time_horizon ?? ''}
-            placeholder="e.g. 12–18 months"
+            placeholder={tr("e.g. 12–18 months")}
             className={inputClass}
           />
         </Field>
       </div>
 
       {/* Risks */}
-      <Field label="Risks (optional)" hint="Key risks that could invalidate the thesis.">
+      <Field label={tr("Risks (optional)")} hint="Key risks that could invalidate the thesis.">
         <textarea
           name="risks"
           rows={3}
           defaultValue={defaultValues?.risks ?? ''}
-          placeholder="What could go wrong?"
+          placeholder={tr("What could go wrong?")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* Invalidation Conditions */}
-      <Field label="Invalidation Conditions (optional)" hint="What specific events or signals would prove this decision wrong?">
+      <Field label={tr("Invalidation Conditions (optional)")} hint="What specific events or signals would prove this decision wrong?">
         <textarea
           name="invalidation_conditions"
           rows={2}
           defaultValue={defaultValues?.invalidation_conditions ?? ''}
-          placeholder="e.g. Price breaks below $X, fundamentals deteriorate…"
+          placeholder={tr("e.g. Price breaks below $X, fundamentals deteriorate…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* Review Cadence + Next Review Date */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Review Cadence (optional)">
+        <Field label={tr("Review Cadence (optional)")}>
           <select
             name="review_cadence"
             defaultValue={defaultValues?.review_cadence ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">No scheduled review</option>
+            <option value="">{tr("No scheduled review")}</option>
             {REVIEW_CADENCES.map((c) => (
               <option key={c} value={c}>{REVIEW_CADENCE_LABELS[c]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Next Review Date (optional)">
+        <Field label={tr("Next Review Date (optional)")}>
           <input
             type="date"
             name="next_review_date"
@@ -233,7 +235,7 @@ export function DecisionForm({
 
       {/* Confidence + Amount */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Confidence (1–10, optional)">
+        <Field label={tr("Confidence (1–10, optional)")}>
           <input
             type="number"
             inputMode="decimal"
@@ -246,26 +248,26 @@ export function DecisionForm({
             className={inputClass}
           />
         </Field>
-        <Field label="Amount (optional)">
+        <Field label={tr("Amount (optional)")}>
           <input
             type="number"
             inputMode="decimal"
             name="amount"
             step="0.01"
             defaultValue={defaultValues?.amount ?? ''}
-            placeholder="e.g. 5000"
+            placeholder={tr("e.g. 5000")}
             className={inputClass}
           />
         </Field>
       </div>
 
       {/* Notes */}
-      <Field label="Notes (optional)">
+      <Field label={tr("Notes (optional)")}>
         <textarea
           name="extended_notes"
           rows={2}
           defaultValue={defaultValues?.extended_notes ?? ''}
-          placeholder="Additional context, links, or follow-ups…"
+          placeholder={tr("Additional context, links, or follow-ups…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
@@ -273,8 +275,7 @@ export function DecisionForm({
       <div className="flex items-center gap-3 pt-1">
         <SubmitButton label={submitLabel} />
         <a href={cancelHref} className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { createWatchlistItem } from '@/app/watchlist/actions';
 import { WatchlistForm } from '@/components/watchlist/WatchlistForm';
@@ -14,11 +15,9 @@ export default function NewWatchlistItemPage() {
             href="/watchlist"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Watchlist
-          </Link>
+            {tr("← Watchlist")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add to Watchlist
-          </h1>
+            {tr("Add to Watchlist")}</h1>
         </div>
       </header>
       <main className="max-w-screen-xl mx-auto px-6 py-6">

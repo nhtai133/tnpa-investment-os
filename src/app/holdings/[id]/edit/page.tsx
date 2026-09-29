@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getCashSourceOptions } from '@/lib/cash-balances';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -42,8 +43,7 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
             ← {asset.name}
           </Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Edit Asset
-          </h1>
+            {tr("Edit Asset")}</h1>
         </div>
       </header>
 
@@ -51,10 +51,9 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
         <div className="max-w-2xl space-y-4">
           {asset.purpose === 'retirement' && (
             <div className="rounded-lg border border-orange-900/40 bg-orange-950/20 px-4 py-3">
-              <p className="text-xs font-semibold text-orange-400 mb-1">Retirement Asset</p>
+              <p className="text-xs font-semibold text-orange-400 mb-1">{tr("Retirement Asset")}</p>
               <p className="text-[11px] text-orange-700 leading-relaxed">
-                This asset is tagged as Retirement. Review carefully before selling or archiving.
-              </p>
+                {tr("This asset is tagged as Retirement. Review carefully before selling or archiving.")}</p>
             </div>
           )}
           <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
@@ -65,11 +64,9 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
             {asset.is_archived && (
               <div className="mt-8 pt-6 border-t border-[#26262B]">
                 <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-2">
-                  Archive
-                </p>
+                  {tr("Archive")}</p>
                 <p className="text-xs text-amber-500/70">
-                  This asset is archived and excluded from portfolio totals.
-                </p>
+                  {tr("This asset is archived and excluded from portfolio totals.")}</p>
               </div>
             )}
           </div>

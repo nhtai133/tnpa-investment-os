@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -34,11 +35,9 @@ export default async function NewHoldingNotePage({ params }: Props) {
             href={`/holdings/${id}/notes`}
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← {asset.name} Notes
-          </Link>
+            ← {asset.name} {tr("Notes")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Note
-          </h1>
+            {tr("Add Note")}</h1>
         </div>
       </header>
 

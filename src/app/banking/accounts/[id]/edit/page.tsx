@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
 import { bankAccounts } from '@/db/schema';
@@ -14,7 +15,7 @@ export default async function EditBankAccountPage({ params }: { params: { id: st
   const account = await db.select().from(bankAccounts).where(eq(bankAccounts.id, id)).limit(1).then((rows) => rows[0]);
   if (!account) notFound();
   return (
-    <FormPageShell title="Edit Bank Account">
+    <FormPageShell title={tr("Edit Bank Account")}>
       <BankAccountForm action={updateBankAccount.bind(null, account.id)} defaultValues={account} />
     </FormPageShell>
   );

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { ASSET_CLASS_COLORS } from '@/lib/formatters';
 
@@ -93,8 +94,7 @@ export function QuickNav() {
   return (
     <div>
       <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-        Quick Access
-      </p>
+        {tr("Quick Access")}</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {CARDS.map(({ title, description, cta, href, color }) => (
           <Link

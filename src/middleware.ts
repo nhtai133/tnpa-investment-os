@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isLocalRequest } from './lib/local-request';
 export function middleware(request: NextRequest) {
-  if (!isLocalRequest(request.headers, !['GET', 'HEAD', 'OPTIONS'].includes(request.method))) {
+  if (!isLocalRequest(request.headers, !['GET', 'HEAD', 'OPTIONS'].includes(request.method), process.env.TNPA_ENV === 'development' ? 'development' : 'production')) {
     return new NextResponse('Local same-origin access only.', { status: 403 });
   }
   const response = NextResponse.next();

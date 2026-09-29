@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 
@@ -31,24 +33,24 @@ function SubmitButton() {
 export function BrokerAccountForm({ action }: { action: (formData: FormData) => Promise<void> }) {
   return (
     <form action={action} className="space-y-5">
-      <Field label="Account Name">
+      <Field label={tr("Account Name")}>
         <input
           name="name"
           required
-          placeholder="VCBS Main, SSI Flexi..."
+          placeholder={tr("VCBS Main, SSI Flexi...")}
           className={inputClass}
         />
       </Field>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Broker / Institution">
+        <Field label={tr("Broker / Institution")}>
           <input
             name="institution"
-            placeholder="VCBS, SSI, VPS..."
+            placeholder={tr("VCBS, SSI, VPS...")}
             className={inputClass}
           />
         </Field>
-        <Field label="Masked Account Number">
+        <Field label={tr("Masked Account Number")}>
           <input
             name="account_number_masked"
             placeholder="****1234"
@@ -58,13 +60,13 @@ export function BrokerAccountForm({ action }: { action: (formData: FormData) => 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Currency">
+        <Field label={tr("Currency")}>
           <select name="currency" defaultValue="VND" className={`${inputClass} appearance-none cursor-pointer`}>
-            <option value="VND">VND</option>
-            <option value="USD">USD</option>
+            <option value="VND">{tr("VND")}</option>
+            <option value="USD">{tr("USD")}</option>
           </select>
         </Field>
-        <Field label="Current Balance">
+        <Field label={tr("Current Balance")}>
           <input
             name="current_balance"
             type="number"
@@ -76,11 +78,11 @@ export function BrokerAccountForm({ action }: { action: (formData: FormData) => 
         </Field>
       </div>
 
-      <Field label="Notes (optional)">
+      <Field label={tr("Notes (optional)")}>
         <textarea
           name="notes"
           rows={3}
-          placeholder="Margin enabled, linked bank account..."
+          placeholder={tr("Margin enabled, linked bank account...")}
           className={`${inputClass} resize-none`}
         />
       </Field>
@@ -91,8 +93,7 @@ export function BrokerAccountForm({ action }: { action: (formData: FormData) => 
           href="/stocks/accounts"
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

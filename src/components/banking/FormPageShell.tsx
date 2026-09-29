@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 
 export function FormPageShell({ title, children }: { title: string; children: React.ReactNode }) {
@@ -6,8 +7,7 @@ export function FormPageShell({ title, children }: { title: string; children: Re
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto">
           <Link href="/banking" className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold">
-            Back to Banking
-          </Link>
+            {tr("Back to Banking")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">{title}</h1>
         </div>
       </header>

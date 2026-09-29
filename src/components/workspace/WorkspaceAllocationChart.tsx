@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -39,7 +41,7 @@ function CustomTooltip({
       {item.currency !== 'USD' && (
         <p className="text-zinc-600 text-[11px]">≈ {formatCurrency(item.usdValue)}</p>
       )}
-      <p className="text-zinc-500 text-xs">{formatWeight(item.weight)} of workspace</p>
+      <p className="text-zinc-500 text-xs">{formatWeight(item.weight)} {tr("of workspace")}</p>
     </div>
   );
 }
@@ -60,7 +62,7 @@ export function WorkspaceAllocationChart({
       <Card className="flex flex-col">
         <CardHeader label={label} />
         <div className="p-5 h-24 flex items-center justify-center">
-          <p className="text-sm text-zinc-600">No holdings to display.</p>
+          <p className="text-sm text-zinc-600">{tr("No holdings to display.")}</p>
         </div>
       </Card>
     );
@@ -136,8 +138,7 @@ export function WorkspaceAllocationChart({
         </div>
 
         <p className="text-[11px] text-zinc-600 pt-2 border-t border-[#26262B]">
-          As % of workspace total · USD-normalized
-        </p>
+          {tr("As % of workspace total · USD-normalized")}</p>
       </div>
     </Card>
   );

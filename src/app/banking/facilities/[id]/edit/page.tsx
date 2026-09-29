@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
 import { bankCreditFacilities } from '@/db/schema';
@@ -14,7 +15,7 @@ export default async function EditCreditFacilityPage({ params }: { params: { id:
   const facility = await db.select().from(bankCreditFacilities).where(eq(bankCreditFacilities.id, id)).limit(1).then((rows) => rows[0]);
   if (!facility) notFound();
   return (
-    <FormPageShell title="Edit Credit Facility">
+    <FormPageShell title={tr("Edit Credit Facility")}>
       <CreditFacilityForm action={updateBankCreditFacility.bind(null, facility.id)} defaultValues={facility} />
     </FormPageShell>
   );

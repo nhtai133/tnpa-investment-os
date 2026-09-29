@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -60,15 +62,12 @@ function ComparisonBarChart({
     <Card>
       <div className="px-5 pt-5 pb-4 border-b border-[#26262B] flex items-center justify-between">
         <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-          Allocation Comparison
-        </span>
+          {tr("Allocation Comparison")}</span>
         <div className="flex items-center gap-4 text-[11px] text-zinc-500">
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block bg-indigo-400" /> Current
-          </span>
+            <span className="w-2.5 h-2.5 rounded-sm inline-block bg-indigo-400" /> {tr("Current")}</span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm inline-block bg-zinc-600" /> Target
-          </span>
+            <span className="w-2.5 h-2.5 rounded-sm inline-block bg-zinc-600" /> {tr("Target")}</span>
         </div>
       </div>
       <div className="p-5" style={{ height: 320 }}>
@@ -220,11 +219,9 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto">
           <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-            Portfolio
-          </p>
+            {tr("Portfolio")}</p>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Rebalancing
-          </h1>
+            {tr("Rebalancing")}</h1>
         </div>
       </header>
 
@@ -259,33 +256,33 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
-                label="Portfolio Value"
+                label={tr("Portfolio Value")}
                 value={<p className="text-xl font-bold text-zinc-100 tabular-nums">{formatCurrency(portfolioValue)}</p>}
                 sub="Investable · USD-normalized"
               />
               <KpiCard
-                label="Drift Score"
+                label={tr("Drift Score")}
                 value={<p className={`text-xl font-bold tabular-nums ${classDriftColor}`}>{driftScore.toFixed(1)}</p>}
                 sub="Sum of |deviations| in %"
               />
               <KpiCard
-                label="Largest Overweight"
+                label={tr("Largest Overweight")}
                 value={
                   largestOverweight ? (
                     <p className="text-sm font-semibold text-red-400">{largestOverweight.label}</p>
                   ) : (
-                    <p className="text-sm font-medium text-zinc-600">None</p>
+                    <p className="text-sm font-medium text-zinc-600">{tr("None")}</p>
                   )
                 }
                 sub={largestOverweight ? `${largestOverweight.currentPct.toFixed(1)}% vs ${largestOverweight.targetPct}% target` : undefined}
               />
               <KpiCard
-                label="Largest Underweight"
+                label={tr("Largest Underweight")}
                 value={
                   largestUnderweight ? (
                     <p className="text-sm font-semibold text-emerald-400">{largestUnderweight.label}</p>
                   ) : (
-                    <p className="text-sm font-medium text-zinc-600">None</p>
+                    <p className="text-sm font-medium text-zinc-600">{tr("None")}</p>
                   )
                 }
                 sub={largestUnderweight ? `${largestUnderweight.currentPct.toFixed(1)}% vs ${largestUnderweight.targetPct}% target` : undefined}
@@ -299,16 +296,15 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
               <Card>
                 <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
                   <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">
-                    Current vs Target
-                  </span>
+                    {tr("Current vs Target")}</span>
                 </div>
                 <div>
                   <div className="px-5 py-2 flex items-center gap-3 border-b border-[#26262B]">
-                    <span className="flex-1 text-[10px] font-semibold tracking-widest uppercase text-zinc-700">Asset Class</span>
+                    <span className="flex-1 text-[10px] font-semibold tracking-widest uppercase text-zinc-700">{tr("Asset Class")}</span>
                     <div className="flex items-center gap-4">
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">Current</span>
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">Target</span>
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-14 text-right">Diff</span>
+                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">{tr("Current")}</span>
+                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">{tr("Target")}</span>
+                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-14 text-right">{tr("Diff")}</span>
                     </div>
                   </div>
                   {rows.map((row) => {
@@ -333,7 +329,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
               {/* Suggested Actions */}
               <Card>
                 <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">Suggested Actions</span>
+                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Suggested Actions")}</span>
                 </div>
                 <div>
                   {rows.map((row) => {
@@ -354,7 +350,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
                     );
                   })}
                   <div className="px-5 py-3 border-t border-[#26262B]">
-                    <p className="text-[10px] text-zinc-700">Threshold ±1% · Decision support only · No trades executed</p>
+                    <p className="text-[10px] text-zinc-700">{tr("Threshold ±1% · Decision support only · No trades executed")}</p>
                   </div>
                 </div>
               </Card>
@@ -363,7 +359,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
             {/* Target Editor */}
             <Card>
               <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">Target Allocation</span>
+                <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Target Allocation")}</span>
               </div>
               <div className="p-5">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-5">
@@ -401,7 +397,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
                   </button>
                 </div>
                 {classError && <p className="text-xs text-red-400 mt-3">{classError}</p>}
-                {classSuccess && <p className="text-xs text-emerald-400 mt-3">Targets saved — analysis updated.</p>}
+                {classSuccess && <p className="text-xs text-emerald-400 mt-3">{tr("Targets saved — analysis updated.")}</p>}
               </div>
             </Card>
           </>
@@ -414,33 +410,33 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
-                label="Portfolio Value"
+                label={tr("Portfolio Value")}
                 value={<p className="text-xl font-bold text-zinc-100 tabular-nums">{formatCurrency(purposeRebalancing.portfolioValue)}</p>}
                 sub="All active assets · USD-normalized"
               />
               <KpiCard
-                label="Purpose Drift Score"
+                label={tr("Purpose Drift Score")}
                 value={<p className={`text-xl font-bold tabular-nums ${purposeDriftColor}`}>{pDrift.toFixed(1)}</p>}
                 sub="Sum of |deviations| in %"
               />
               <KpiCard
-                label="Largest Overweight"
+                label={tr("Largest Overweight")}
                 value={
                   pOver ? (
                     <p className="text-sm font-semibold text-red-400">{pOver.label}</p>
                   ) : (
-                    <p className="text-sm font-medium text-zinc-600">None</p>
+                    <p className="text-sm font-medium text-zinc-600">{tr("None")}</p>
                   )
                 }
                 sub={pOver ? `${pOver.currentPct.toFixed(1)}% vs ${pOver.targetPct}% target` : undefined}
               />
               <KpiCard
-                label="Largest Underweight"
+                label={tr("Largest Underweight")}
                 value={
                   pUnder ? (
                     <p className="text-sm font-semibold text-emerald-400">{pUnder.label}</p>
                   ) : (
-                    <p className="text-sm font-medium text-zinc-600">None</p>
+                    <p className="text-sm font-medium text-zinc-600">{tr("None")}</p>
                   )
                 }
                 sub={pUnder ? `${pUnder.currentPct.toFixed(1)}% vs ${pUnder.targetPct}% target` : undefined}
@@ -453,15 +449,15 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
               {/* Current vs Target */}
               <Card>
                 <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">Current vs Target</span>
+                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Current vs Target")}</span>
                 </div>
                 <div>
                   <div className="px-5 py-2 flex items-center gap-3 border-b border-[#26262B]">
-                    <span className="flex-1 text-[10px] font-semibold tracking-widest uppercase text-zinc-700">Purpose</span>
+                    <span className="flex-1 text-[10px] font-semibold tracking-widest uppercase text-zinc-700">{tr("Purpose")}</span>
                     <div className="flex items-center gap-4">
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">Current</span>
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">Target</span>
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-14 text-right">Diff</span>
+                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">{tr("Current")}</span>
+                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">{tr("Target")}</span>
+                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-14 text-right">{tr("Diff")}</span>
                     </div>
                   </div>
                   {pRows.map((row) => {
@@ -491,7 +487,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
               {/* Suggested Actions */}
               <Card>
                 <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">Suggested Actions</span>
+                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Suggested Actions")}</span>
                 </div>
                 <div>
                   {pRows.map((row) => {
@@ -518,8 +514,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
                   })}
                   <div className="px-5 py-3 border-t border-[#26262B]">
                     <p className="text-[10px] text-zinc-700">
-                      Purpose rebalancing is a planning tool. It does not execute transactions.
-                    </p>
+                      {tr("Purpose rebalancing is a planning tool. It does not execute transactions.")}</p>
                   </div>
                 </div>
               </Card>
@@ -528,7 +523,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
             {/* Purpose Target Editor */}
             <Card>
               <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">Purpose Target Allocation</span>
+                <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Purpose Target Allocation")}</span>
               </div>
               <div className="p-5">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-5">
@@ -569,7 +564,7 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
                   </button>
                 </div>
                 {purposeError && <p className="text-xs text-red-400 mt-3">{purposeError}</p>}
-                {purposeSuccess && <p className="text-xs text-emerald-400 mt-3">Purpose targets saved — analysis updated.</p>}
+                {purposeSuccess && <p className="text-xs text-emerald-400 mt-3">{tr("Purpose targets saved — analysis updated.")}</p>}
               </div>
             </Card>
           </>

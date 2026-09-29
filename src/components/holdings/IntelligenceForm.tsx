@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 import type { AssetClass, AssetIntelligence } from '@/db/schema';
@@ -74,75 +76,75 @@ export function IntelligenceForm({ action, defaultValues, assetClass, cancelHref
     <form action={action} className="space-y-5 divide-y divide-[#1C1C21]">
       {/* A. Core Thesis */}
       <div className={sectionClass}>
-        <p className={sectionTitleClass}>A · Core Thesis</p>
-        <Field label="Investment Thesis">
+        <p className={sectionTitleClass}>{tr("A · Core Thesis")}</p>
+        <Field label={tr("Investment Thesis")}>
           <TextArea
             name="investment_thesis"
             defaultValue={d?.investment_thesis}
-            placeholder="Why do you own this? What's the core belief?"
+            placeholder={tr("Why do you own this? What's the core belief?")}
             rows={4}
           />
         </Field>
-        <Field label="Risk Notes">
+        <Field label={tr("Risk Notes")}>
           <TextArea
             name="risk_notes"
             defaultValue={d?.risk_notes}
-            placeholder="Key risks, red flags, things to monitor…"
+            placeholder={tr("Key risks, red flags, things to monitor…")}
           />
         </Field>
       </div>
 
       {/* B. Strategy Zones */}
       <div className={sectionClass}>
-        <p className={sectionTitleClass}>B · Strategy Zones</p>
+        <p className={sectionTitleClass}>{tr("B · Strategy Zones")}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Buy Zone">
+          <Field label={tr("Buy Zone")}>
             <TextArea
               name="buy_zone"
               defaultValue={d?.buy_zone}
-              placeholder="Price levels or conditions to add more…"
+              placeholder={tr("Price levels or conditions to add more…")}
               rows={2}
             />
           </Field>
-          <Field label="Sell Zone">
+          <Field label={tr("Sell Zone")}>
             <TextArea
               name="sell_zone"
               defaultValue={d?.sell_zone}
-              placeholder="Price levels or conditions to exit or trim…"
+              placeholder={tr("Price levels or conditions to exit or trim…")}
               rows={2}
             />
           </Field>
         </div>
-        <Field label="Accumulation Plan">
+        <Field label={tr("Accumulation Plan")}>
           <TextArea
             name="accumulation_plan"
             defaultValue={d?.accumulation_plan}
-            placeholder="How and when to build up the position…"
+            placeholder={tr("How and when to build up the position…")}
           />
         </Field>
-        <Field label="Exit Plan">
+        <Field label={tr("Exit Plan")}>
           <TextArea
             name="exit_plan"
             defaultValue={d?.exit_plan}
-            placeholder="Under what conditions would you fully exit?"
+            placeholder={tr("Under what conditions would you fully exit?")}
           />
         </Field>
       </div>
 
       {/* C. Review System */}
       <div className={sectionClass}>
-        <p className={sectionTitleClass}>C · Review System</p>
+        <p className={sectionTitleClass}>{tr("C · Review System")}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Review Cadence">
+          <Field label={tr("Review Cadence")}>
             <input
               type="text"
               name="review_cadence"
               defaultValue={d?.review_cadence ?? ''}
-              placeholder="e.g. Monthly, Quarterly, After earnings…"
+              placeholder={tr("e.g. Monthly, Quarterly, After earnings…")}
               className={inputClass}
             />
           </Field>
-          <Field label="Next Review Date">
+          <Field label={tr("Next Review Date")}>
             <input
               type="date"
               name="next_review_date"
@@ -156,22 +158,22 @@ export function IntelligenceForm({ action, defaultValues, assetClass, cancelHref
       {/* D. Asset-Class Specific */}
       {hasClassSpecific && (
         <div className={sectionClass}>
-          <p className={sectionTitleClass}>D · Asset-Class Notes</p>
+          <p className={sectionTitleClass}>{tr("D · Asset-Class Notes")}</p>
 
           {isStock && (
             <>
-              <Field label="Dividend / Income Notes">
+              <Field label={tr("Dividend / Income Notes")}>
                 <TextArea
                   name="dividend_notes"
                   defaultValue={d?.dividend_notes}
-                  placeholder="Dividend yield, payout history, reinvestment plan…"
+                  placeholder={tr("Dividend yield, payout history, reinvestment plan…")}
                 />
               </Field>
-              <Field label="Valuation Notes">
+              <Field label={tr("Valuation Notes")}>
                 <TextArea
                   name="valuation_notes"
                   defaultValue={d?.valuation_notes}
-                  placeholder="P/E, EV/EBITDA, DCF assumptions, comparable analysis…"
+                  placeholder={tr("P/E, EV/EBITDA, DCF assumptions, comparable analysis…")}
                 />
               </Field>
             </>
@@ -179,18 +181,18 @@ export function IntelligenceForm({ action, defaultValues, assetClass, cancelHref
 
           {isCrypto && (
             <>
-              <Field label="Cycle Thesis">
+              <Field label={tr("Cycle Thesis")}>
                 <TextArea
                   name="cycle_thesis"
                   defaultValue={d?.cycle_thesis}
-                  placeholder="Market cycle positioning, halving thesis, macro triggers…"
+                  placeholder={tr("Market cycle positioning, halving thesis, macro triggers…")}
                 />
               </Field>
-              <Field label="DCA Plan">
+              <Field label={tr("DCA Plan")}>
                 <TextArea
                   name="dca_plan"
                   defaultValue={d?.dca_plan}
-                  placeholder="Dollar-cost averaging schedule, frequency, amounts…"
+                  placeholder={tr("Dollar-cost averaging schedule, frequency, amounts…")}
                 />
               </Field>
             </>
@@ -198,57 +200,57 @@ export function IntelligenceForm({ action, defaultValues, assetClass, cancelHref
 
           {isRealEstate && (
             <>
-              <Field label="Legal Status">
+              <Field label={tr("Legal Status")}>
                 <TextArea
                   name="legal_status"
                   defaultValue={d?.legal_status}
-                  placeholder="Ownership structure, title, encumbrances, tenant status…"
+                  placeholder={tr("Ownership structure, title, encumbrances, tenant status…")}
                 />
               </Field>
-              <Field label="Yield Notes">
+              <Field label={tr("Yield Notes")}>
                 <TextArea
                   name="yield_notes"
                   defaultValue={d?.yield_notes}
-                  placeholder="Rental yield, cap rate, occupancy, cash-on-cash return…"
+                  placeholder={tr("Rental yield, cap rate, occupancy, cash-on-cash return…")}
                 />
               </Field>
             </>
           )}
 
           {isGold && (
-            <Field label="Accumulation Plan (Gold)">
+            <Field label={tr("Accumulation Plan (Gold)")}>
               <TextArea
                 name="accumulation_plan"
                 defaultValue={d?.accumulation_plan}
-                placeholder="Target grams/oz, storage location, buy triggers…"
+                placeholder={tr("Target grams/oz, storage location, buy triggers…")}
               />
             </Field>
           )}
 
           {isCash && (
-            <Field label="Yield Notes">
+            <Field label={tr("Yield Notes")}>
               <TextArea
                 name="yield_notes"
                 defaultValue={d?.yield_notes}
-                placeholder="Interest rate, maturity, fund yield, purpose allocation…"
+                placeholder={tr("Interest rate, maturity, fund yield, purpose allocation…")}
               />
             </Field>
           )}
 
           {isPrivateLoan && (
             <>
-              <Field label="Loan Terms">
+              <Field label={tr("Loan Terms")}>
                 <TextArea
                   name="loan_terms"
                   defaultValue={d?.loan_terms}
-                  placeholder="Interest rate, duration, repayment schedule, collateral…"
+                  placeholder={tr("Interest rate, duration, repayment schedule, collateral…")}
                 />
               </Field>
-              <Field label="Counterparty Notes">
+              <Field label={tr("Counterparty Notes")}>
                 <TextArea
                   name="counterparty_notes"
                   defaultValue={d?.counterparty_notes}
-                  placeholder="Borrower details, relationship, creditworthiness assessment…"
+                  placeholder={tr("Borrower details, relationship, creditworthiness assessment…")}
                 />
               </Field>
             </>
@@ -263,8 +265,7 @@ export function IntelligenceForm({ action, defaultValues, assetClass, cancelHref
           href={cancelHref}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

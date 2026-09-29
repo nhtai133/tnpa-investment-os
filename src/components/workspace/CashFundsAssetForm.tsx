@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -67,13 +69,13 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="md:col-span-2">
           <label className={labelClass}>
-            Asset Name <span className="text-zinc-700">*</span>
+            {'' + tr("Asset Name") + ' '}<span className="text-zinc-700">*</span>
           </label>
           <input
             type="text"
             name="name"
             required
-            placeholder="Emergency Fund, VFMVF4, Fixed Deposit…"
+            placeholder={tr("Emergency Fund, VFMVF4, Fixed Deposit…")}
             maxLength={200}
             className={inputClass}
           />
@@ -81,7 +83,7 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
 
         <div>
           <label className={labelClass}>
-            Type <span className="text-zinc-700">*</span>
+            {'' + tr("Type") + ' '}<span className="text-zinc-700">*</span>
           </label>
           <select
             name="account_type"
@@ -101,11 +103,11 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
         </div>
 
         <div>
-          <label className={labelClass}>Institution / Bank / Broker</label>
+          <label className={labelClass}>{tr("Institution / Bank / Broker")}</label>
           <input
             type="text"
             name="institution"
-            placeholder="Vietcombank, Techcombank, VCBS…"
+            placeholder={tr("Vietcombank, Techcombank, VCBS…")}
             maxLength={200}
             className={inputClass}
           />
@@ -113,7 +115,7 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
 
         <div>
           <label className={labelClass}>
-            Balance / Current Value <span className="text-zinc-700">*</span>
+            {'' + tr("Balance / Current Value") + ' '}<span className="text-zinc-700">*</span>
           </label>
           <CurrencyInput
             name="current_value"
@@ -125,17 +127,17 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
         </div>
 
         <div>
-          <label className={labelClass}>Cost Basis (optional)</label>
+          <label className={labelClass}>{tr("Cost Basis (optional)")}</label>
           <CurrencyInput
             name="cost_basis"
             currency={currency}
-            placeholder="Initial deposit / NAV cost"
+            placeholder={tr("Initial deposit / NAV cost")}
             className={inputClass}
           />
         </div>
 
         <div>
-          <label className={labelClass}>Interest / Return Rate (% p.a.)</label>
+          <label className={labelClass}>{tr("Interest / Return Rate (% p.a.)")}</label>
           <input
             type="number"
             inputMode="decimal"
@@ -148,7 +150,7 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
         </div>
 
         <div>
-          <label className={labelClass}>Maturity Date</label>
+          <label className={labelClass}>{tr("Maturity Date")}</label>
           <input
             type="date"
             name="maturity_date"
@@ -157,21 +159,21 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
         </div>
 
         <div>
-          <label className={labelClass}>Currency</label>
+          <label className={labelClass}>{tr("Currency")}</label>
           <select
             name="currency"
             value={currency}
             onChange={(event) => setCurrency(event.target.value)}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="VND">VND</option>
-            <option value="USD">USD</option>
+            <option value="VND">{tr("VND")}</option>
+            <option value="USD">{tr("USD")}</option>
           </select>
         </div>
 
         <div>
           <label className={labelClass}>
-            Purpose <span className="text-zinc-700">*</span>
+            {'' + tr("Purpose") + ' '}<span className="text-zinc-700">*</span>
           </label>
           <select
             name="purpose"
@@ -189,11 +191,11 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
         </div>
 
         <div className="md:col-span-2">
-          <label className={labelClass}>Notes</label>
+          <label className={labelClass}>{tr("Notes")}</label>
           <textarea
             name="notes"
             rows={3}
-            placeholder="Account details, renewal strategy, withdrawal conditions…"
+            placeholder={tr("Account details, renewal strategy, withdrawal conditions…")}
             className={`${inputClass} resize-none`}
           />
         </div>
@@ -205,8 +207,7 @@ export function CashFundsAssetForm({ action }: CashFundsAssetFormProps) {
           href="/cash-funds"
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </Link>
+          {tr("Cancel")}</Link>
       </div>
     </form>
   );

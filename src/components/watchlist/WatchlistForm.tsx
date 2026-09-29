@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 import { ASSET_CLASSES, CONVICTION_LEVELS, REVIEW_CADENCES, type WatchlistItem } from '@/db/schema';
@@ -61,25 +63,25 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
       {/* Name + Symbol */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Field label="Name">
+          <Field label={tr("Name")}>
             <input
               type="text"
               name="name"
               required
               maxLength={200}
               defaultValue={d?.name ?? ''}
-              placeholder="e.g. Nvidia Corp"
+              placeholder={tr("e.g. Nvidia Corp")}
               className={inputClass}
             />
           </Field>
         </div>
-        <Field label="Symbol (optional)">
+        <Field label={tr("Symbol (optional)")}>
           <input
             type="text"
             name="symbol"
             maxLength={20}
             defaultValue={d?.symbol ?? ''}
-            placeholder="e.g. NVDA"
+            placeholder={tr("e.g. NVDA")}
             className={`${inputClass} uppercase`}
           />
         </Field>
@@ -87,25 +89,25 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
 
       {/* Asset Class + Priority */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Asset Class">
+        <Field label={tr("Asset Class")}>
           <select
             name="asset_class"
             defaultValue={d?.asset_class ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">Select class… (optional)</option>
+            <option value="">{tr("Select class… (optional)")}</option>
             {ASSET_CLASSES.map((c) => (
               <option key={c} value={c}>{ASSET_CLASS_LABELS[c]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Priority">
+        <Field label={tr("Priority")}>
           <select
             name="priority"
             defaultValue={d?.priority ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">— not set —</option>
+            <option value="">{tr("— not set —")}</option>
             {CONVICTION_LEVELS.map((p) => (
               <option key={p} value={p}>{PRIORITY_LABELS[p]}</option>
             ))}
@@ -115,38 +117,38 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
 
       {/* Current Price + Fair Value + Currency */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Field label="Current Price (optional)">
+        <Field label={tr("Current Price (optional)")}>
           <input
             type="text"
             name="current_price"
             defaultValue={d?.current_price ?? ''}
-            placeholder="e.g. $182.50"
+            placeholder={tr("e.g. $182.50")}
             className={inputClass}
           />
         </Field>
-        <Field label="Fair Value (optional)">
+        <Field label={tr("Fair Value (optional)")}>
           <input
             type="text"
             name="fair_value"
             defaultValue={d?.fair_value ?? ''}
-            placeholder="e.g. $220"
+            placeholder={tr("e.g. $220")}
             className={inputClass}
           />
         </Field>
-        <Field label="Currency">
+        <Field label={tr("Currency")}>
           <select
             name="currency"
             defaultValue={d?.currency ?? 'USD'}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="USD">USD</option>
-            <option value="VND">VND</option>
+            <option value="USD">{tr("USD")}</option>
+            <option value="VND">{tr("VND")}</option>
           </select>
         </Field>
       </div>
 
       {/* Conviction Score */}
-      <Field label="Conviction Score (1–10, optional)">
+      <Field label={tr("Conviction Score (1–10, optional)")}>
         <input
           type="number"
           inputMode="decimal"
@@ -154,81 +156,81 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
           min="1"
           max="10"
           defaultValue={d?.conviction_score ?? ''}
-          placeholder="e.g. 7"
+          placeholder={tr("e.g. 7")}
           className={inputClass}
         />
       </Field>
 
       {/* Thesis */}
-      <Field label="Thesis">
+      <Field label={tr("Thesis")}>
         <textarea
           name="thesis"
           rows={3}
           defaultValue={d?.thesis ?? ''}
-          placeholder="Why are you watching this? Core investment case…"
+          placeholder={tr("Why are you watching this? Core investment case…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* Conviction Rationale */}
-      <Field label="Conviction Rationale (optional)">
+      <Field label={tr("Conviction Rationale (optional)")}>
         <textarea
           name="conviction_rationale"
           rows={2}
           defaultValue={d?.conviction_rationale ?? ''}
-          placeholder="Why this score? What would increase or decrease it?"
+          placeholder={tr("Why this score? What would increase or decrease it?")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* Target Entry + Next Action */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Target Entry (optional)">
+        <Field label={tr("Target Entry (optional)")}>
           <input
             type="text"
             name="target_entry"
             defaultValue={d?.target_entry ?? ''}
-            placeholder="e.g. $180–$200, below 20x P/E"
+            placeholder={tr("e.g. $180–$200, below 20x P/E")}
             className={inputClass}
           />
         </Field>
-        <Field label="Next Action (optional)">
+        <Field label={tr("Next Action (optional)")}>
           <input
             type="text"
             name="next_action"
             defaultValue={d?.next_action ?? ''}
-            placeholder="e.g. Wait for Q3 earnings"
+            placeholder={tr("e.g. Wait for Q3 earnings")}
             className={inputClass}
           />
         </Field>
       </div>
 
       {/* Note */}
-      <Field label="Short Note (optional)">
+      <Field label={tr("Short Note (optional)")}>
         <input
           type="text"
           name="note"
           defaultValue={d?.note ?? ''}
-          placeholder="Quick label or flag note"
+          placeholder={tr("Quick label or flag note")}
           className={inputClass}
         />
       </Field>
 
       {/* Review Cadence + Review Date */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Review Cadence (optional)">
+        <Field label={tr("Review Cadence (optional)")}>
           <select
             name="review_cadence"
             defaultValue={d?.review_cadence ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">No scheduled review</option>
+            <option value="">{tr("No scheduled review")}</option>
             {REVIEW_CADENCES.map((c) => (
               <option key={c} value={c}>{REVIEW_CADENCE_LABELS[c]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Next Review Date (optional)">
+        <Field label={tr("Next Review Date (optional)")}>
           <input
             type="date"
             name="review_date"
@@ -241,7 +243,7 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
       {/* Status (edit only) + Alert flag */}
       <div className="flex items-center gap-6 flex-wrap">
         {isEdit && (
-          <Field label="Status">
+          <Field label={tr("Status")}>
             <select
               name="status"
               defaultValue={d?.status ?? 'active'}
@@ -262,8 +264,7 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
             className="w-4 h-4 rounded bg-[#1C1C21] border border-[#26262B] text-indigo-600"
           />
           <label htmlFor="alert_flag" className="text-sm text-zinc-400 cursor-pointer">
-            Flag for alert
-          </label>
+            {tr("Flag for alert")}</label>
         </div>
       </div>
 
@@ -274,8 +275,7 @@ export function WatchlistForm({ action, defaultValues, cancelHref }: WatchlistFo
           href={cancelHref}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

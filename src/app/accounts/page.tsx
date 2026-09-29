@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { db } from '@/db';
 import { accountRegistry, ACCOUNT_TYPES, type AccountType } from '@/db/schema';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -35,21 +36,17 @@ export default async function AccountsPage() {
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-              Lifecycle · System Account Map
-            </p>
+              {tr("Lifecycle · System Account Map")}</p>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              Account Registry
-            </h1>
+              {tr("Account Registry")}</h1>
             <p className="text-xs text-zinc-600 mt-0.5">
-              Admin view — accounts are created from their domain modules.
-            </p>
+              {tr("Admin view — accounts are created from their domain modules.")}</p>
           </div>
           <Link
             href="/accounts/new"
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            + Add Account
-          </Link>
+            {tr("+ Add Account")}</Link>
         </div>
       </header>
 
@@ -61,8 +58,7 @@ export default async function AccountsPage() {
               <CardHeader label={ACCOUNT_TYPE_LABELS[type]} />
               {rows.length === 0 ? (
                 <div className="px-5 py-6 text-sm text-zinc-600">
-                  No accounts registered.
-                </div>
+                  {tr("No accounts registered.")}</div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -95,7 +91,7 @@ export default async function AccountsPage() {
                             {account.account_number_masked ?? '-'}
                           </td>
                           <td className="px-5 py-3 text-zinc-500 whitespace-nowrap">
-                            {account.status}
+                            {tr(account.status)}
                           </td>
                           <td className="px-5 py-3 text-zinc-200 tabular-nums whitespace-nowrap">
                             {formatValue(account.current_balance, account.currency)}
@@ -111,8 +107,7 @@ export default async function AccountsPage() {
                           </td>
                           <td className="px-5 py-3 text-zinc-500 whitespace-nowrap">
                             <Link href={`/accounts/${account.id}`} className="text-xs hover:text-zinc-200 transition-colors">
-                              View
-                            </Link>
+                              {tr("View")}</Link>
                           </td>
                         </tr>
                       );

@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import {
@@ -19,7 +20,7 @@ export function WatchlistSummary({ items }: WatchlistSummaryProps) {
   return (
     <Card className="flex flex-col">
       <CardHeader
-        label="Watchlist"
+        label={tr("Watchlist")}
         action={
           <Link href="/watchlist" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
             {flagged.length > 0 ? `${flagged.length} flagged · All →` : `All →`}
@@ -28,13 +29,12 @@ export function WatchlistSummary({ items }: WatchlistSummaryProps) {
       />
       {items.length === 0 ? (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-zinc-700 mb-3">Watchlist is empty.</p>
+          <p className="text-sm text-zinc-700 mb-3">{tr("Watchlist is empty.")}</p>
           <Link
             href="/watchlist/new"
             className="inline-flex items-center px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors"
           >
-            + Add to Watchlist
-          </Link>
+            {tr("+ Add to Watchlist")}</Link>
         </div>
       ) : (
       <div className="divide-y divide-[#1C1C21]">
@@ -64,7 +64,7 @@ export function WatchlistSummary({ items }: WatchlistSummaryProps) {
                       />
                     )}
                     {item.alert_flag && (
-                      <span className="text-[11px] text-amber-400 font-medium">Flagged</span>
+                      <span className="text-[11px] text-amber-400 font-medium">{tr("Flagged")}</span>
                     )}
                   </div>
                   {item.note && (
@@ -76,7 +76,7 @@ export function WatchlistSummary({ items }: WatchlistSummaryProps) {
               </div>
               {item.review_date && (
                 <div className="flex-shrink-0 text-right">
-                  <p className="text-[11px] text-zinc-600">Review</p>
+                  <p className="text-[11px] text-zinc-600">{tr("Review")}</p>
                   <p className="text-[11px] text-zinc-500 tabular-nums">
                     {formatDate(item.review_date)}
                   </p>

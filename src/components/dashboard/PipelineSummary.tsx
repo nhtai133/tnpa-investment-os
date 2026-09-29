@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 
@@ -48,11 +49,10 @@ export function PipelineSummary({
   return (
     <Card className="flex flex-col">
       <CardHeader
-        label="Opportunity Pipeline"
+        label={tr("Opportunity Pipeline")}
         action={
           <Link href="/pipeline" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-            View all →
-          </Link>
+            {tr("View all →")}</Link>
         }
       />
       <div className="grid grid-cols-2 divide-x divide-y divide-[#26262B] flex-1">
@@ -74,8 +74,7 @@ export function PipelineSummary({
       {inbox === 0 && researching === 0 && watchlistCount === 0 && (
         <div className="px-5 py-3 border-t border-[#26262B] text-center">
           <Link href="/pipeline" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-            Add opportunities to your pipeline →
-          </Link>
+            {tr("Add opportunities to your pipeline →")}</Link>
         </div>
       )}
     </Card>

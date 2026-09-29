@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
@@ -45,35 +47,35 @@ export function AssetForm({ action, defaultValues, cashSources = [] }: AssetForm
 
   return (
     <form action={action} className="space-y-5">
-      <Field label="Cash already recorded elsewhere (cash assets only)">
+      <Field label={tr("Cash already recorded elsewhere (cash assets only)")}>
         <select name="cash_source" className={inputClass} defaultValue={defaultValues?.cash_source_type ? `${defaultValues.cash_source_type}:${defaultValues.cash_source_id}` : ''}>
-          <option value="">Independent holding — count this value</option>
+          <option value="">{tr("Independent holding — count this value")}</option>
           {cashSources.map(source => <option key={source.value} value={source.value}>{source.label}</option>)}
         </select>
-        <p className="text-xs text-zinc-500">Link duplicate cash to count only the authoritative account or deposit balance.</p>
+        <p className="text-xs text-zinc-500">{tr("Link duplicate cash to count only the authoritative account or deposit balance.")}</p>
       </Field>
       {/* Row 1: Name + Symbol */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Field label="Name">
+          <Field label={tr("Name")}>
             <input
               type="text"
               name="name"
               required
               maxLength={200}
               defaultValue={defaultValues?.name ?? ''}
-              placeholder="e.g. Apple Inc."
+              placeholder={tr("e.g. Apple Inc.")}
               className={inputClass}
             />
           </Field>
         </div>
-        <Field label="Symbol (optional)">
+        <Field label={tr("Symbol (optional)")}>
           <input
             type="text"
             name="symbol"
             maxLength={20}
             defaultValue={defaultValues?.symbol ?? ''}
-            placeholder="e.g. AAPL"
+            placeholder={tr("e.g. AAPL")}
             className={`${inputClass} uppercase`}
           />
         </Field>
@@ -81,27 +83,27 @@ export function AssetForm({ action, defaultValues, cashSources = [] }: AssetForm
 
       {/* Row 2: Asset Class + Purpose */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Asset Class">
+        <Field label={tr("Asset Class")}>
           <select
             name="asset_class"
             required
             defaultValue={defaultValues?.asset_class ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="" disabled>Select class…</option>
+            <option value="" disabled>{tr("Select class…")}</option>
             {ASSET_CLASSES.map((c) => (
               <option key={c} value={c}>{ASSET_CLASS_LABELS[c]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Asset Purpose">
+        <Field label={tr("Asset Purpose")}>
           <select
             name="purpose"
             required
             defaultValue={defaultValues?.purpose ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="" disabled>Select purpose…</option>
+            <option value="" disabled>{tr("Select purpose…")}</option>
             {ASSET_PURPOSES.map((p) => (
               <option key={p} value={p}>{PURPOSE_LABELS[p]}</option>
             ))}
@@ -112,7 +114,7 @@ export function AssetForm({ action, defaultValues, cashSources = [] }: AssetForm
       {/* Row 3: Value + Currency */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Field label="Current Value">
+          <Field label={tr("Current Value")}>
             <CurrencyInput
               name="current_value"
               required
@@ -123,14 +125,14 @@ export function AssetForm({ action, defaultValues, cashSources = [] }: AssetForm
             />
           </Field>
         </div>
-        <Field label="Currency">
+        <Field label={tr("Currency")}>
           <input
             type="text"
             name="currency"
             maxLength={10}
             value={currency}
             onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-            placeholder="USD"
+            placeholder={tr("USD")}
             className={`${inputClass} uppercase`}
           />
         </Field>
@@ -138,7 +140,7 @@ export function AssetForm({ action, defaultValues, cashSources = [] }: AssetForm
 
       {/* Row 4: Quantity + Cost Basis */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Quantity (optional)">
+        <Field label={tr("Quantity (optional)")}>
           <input
             type="number"
             name="quantity"
@@ -146,29 +148,29 @@ export function AssetForm({ action, defaultValues, cashSources = [] }: AssetForm
             step="any"
             inputMode="decimal"
             defaultValue={defaultValues?.quantity ?? ''}
-            placeholder="e.g. 100 shares"
+            placeholder={tr("e.g. 100 shares")}
             className={inputClass}
           />
         </Field>
-        <Field label="Cost Basis (optional)">
+        <Field label={tr("Cost Basis (optional)")}>
           <CurrencyInput
             name="cost_basis"
             currency={currency}
             defaultValue={defaultValues?.cost_basis ?? ''}
-            placeholder="Total amount paid"
+            placeholder={tr("Total amount paid")}
             className={inputClass}
           />
         </Field>
       </div>
 
       {/* Notes */}
-      <Field label="Notes (optional)">
+      <Field label={tr("Notes (optional)")}>
         <textarea
           name="notes"
           rows={3}
           maxLength={1000}
           defaultValue={defaultValues?.notes ?? ''}
-          placeholder="Thesis summary, terms, review triggers…"
+          placeholder={tr("Thesis summary, terms, review triggers…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
@@ -180,8 +182,7 @@ export function AssetForm({ action, defaultValues, cashSources = [] }: AssetForm
           href={isEdit && defaultValues?.id ? `/holdings/${defaultValues.id}` : '/holdings'}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

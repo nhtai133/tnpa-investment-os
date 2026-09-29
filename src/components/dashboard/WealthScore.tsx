@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { Card } from '@/components/ui/Card';
 
 interface WealthScoreProps {
@@ -44,7 +45,7 @@ export function WealthScore({
     <Card className="p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Wealth Score</p>
+          <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Wealth Score")}</p>
           <div className="flex items-baseline gap-1.5 mt-1.5">
             <span className="text-4xl font-light tabular-nums" style={{ color }}>{score}</span>
             <span className="text-sm text-zinc-600">/100</span>
@@ -88,8 +89,7 @@ export function WealthScore({
       </div>
 
       <p className="text-[10px] text-zinc-700 mt-4 pt-3 border-t border-[#26262B] leading-relaxed">
-        Planning heuristic only. Not investment advice.
-      </p>
+        {tr("Planning heuristic only. Not investment advice.")}</p>
     </Card>
   );
 }

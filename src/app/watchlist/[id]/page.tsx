@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -47,8 +48,7 @@ export default async function EditWatchlistItemPage({
               href="/watchlist"
               className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
             >
-              ← Watchlist
-            </Link>
+              {tr("← Watchlist")}</Link>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
               {item.name}
             </h1>
@@ -57,8 +57,7 @@ export default async function EditWatchlistItemPage({
             href="/calendar"
             className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
           >
-            Calendar →
-          </Link>
+            {tr("Calendar →")}</Link>
         </div>
       </header>
 
@@ -83,7 +82,7 @@ export default async function EditWatchlistItemPage({
                   )}
                   {nextAfterReview && (
                     <span className="ml-2 text-zinc-700">
-                      → next: {formatDate(nextAfterReview)}
+                      {'' + tr("→ next:") + ' '}{formatDate(nextAfterReview)}
                     </span>
                   )}
                 </p>
@@ -93,8 +92,7 @@ export default async function EditWatchlistItemPage({
                   type="submit"
                   className="px-3 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors whitespace-nowrap"
                 >
-                  Mark Reviewed
-                </button>
+                  {tr("Mark Reviewed")}</button>
               </form>
             </div>
           )}

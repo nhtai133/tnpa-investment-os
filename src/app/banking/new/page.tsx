@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { createBankAsset } from '@/app/banking/actions';
 import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
@@ -12,11 +13,9 @@ export default function NewBankAssetPage() {
             href="/banking"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Banking
-          </Link>
+            {tr("← Banking")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Bank Asset
-          </h1>
+            {tr("Add Bank Asset")}</h1>
         </div>
       </header>
 

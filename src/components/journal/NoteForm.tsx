@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 import { RESEARCH_NOTE_TYPES } from '@/db/schema';
@@ -45,7 +47,7 @@ export function NoteForm({ action, assetId, opportunityId, cancelHref, redirectT
       {opportunityId && <input type="hidden" name="opportunity_id" value={opportunityId} />}
       {redirectTo && <input type="hidden" name="redirect_to" value={redirectTo} />}
 
-      <Field label="Note Type">
+      <Field label={tr("Note Type")}>
         <select
           name="note_type"
           defaultValue="research"
@@ -57,30 +59,30 @@ export function NoteForm({ action, assetId, opportunityId, cancelHref, redirectT
         </select>
       </Field>
 
-      <Field label="Note">
+      <Field label={tr("Note")}>
         <textarea
           name="body"
           required
           rows={6}
-          placeholder="Write your research note, observation, or insight here…"
+          placeholder={tr("Write your research note, observation, or insight here…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Source URL (optional)">
+        <Field label={tr("Source URL (optional)")}>
           <input
             type="url"
             name="source_url"
-            placeholder="https://…"
+            placeholder={tr("https://…")}
             className={inputClass}
           />
         </Field>
-        <Field label="Source Label (optional)">
+        <Field label={tr("Source Label (optional)")}>
           <input
             type="text"
             name="source_label"
-            placeholder="e.g. Q2 2026 Earnings Call"
+            placeholder={tr("e.g. Q2 2026 Earnings Call")}
             className={inputClass}
           />
         </Field>
@@ -89,8 +91,7 @@ export function NoteForm({ action, assetId, opportunityId, cancelHref, redirectT
       <div className="flex items-center gap-3 pt-1">
         <SubmitButton />
         <a href={cancelHref} className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

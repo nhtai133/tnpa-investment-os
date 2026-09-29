@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -39,8 +40,7 @@ export default async function EditOpportunityPage({ params }: Props) {
             ← {opp.name}
           </Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Edit Opportunity
-          </h1>
+            {tr("Edit Opportunity")}</h1>
         </div>
       </header>
       <main className="max-w-screen-xl mx-auto px-6 py-6">

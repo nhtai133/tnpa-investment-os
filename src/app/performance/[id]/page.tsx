@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { db } from '@/db';
 import { wealthSnapshots } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -54,10 +55,9 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
       <div className="flex items-start justify-between gap-4">
         <div>
           <Link href="/performance" className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-            ← Performance
-          </Link>
+            {tr("← Performance")}</Link>
           <h1 className="text-lg font-semibold text-zinc-100 mt-1">
-            Snapshot — {formatDate(snapshot.snapshot_date)}
+            {'' + tr("Snapshot —") + ' '}{formatDate(snapshot.snapshot_date)}
           </h1>
           {snapshot.notes && (
             <p className="text-sm text-zinc-500 mt-0.5">{snapshot.notes}</p>
@@ -69,13 +69,13 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="border border-[#26262B] rounded-xl bg-[#131316] px-4 py-3">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Total NW</p>
+          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">{tr("Total NW")}</p>
           <p className="text-base font-semibold text-zinc-100">
             {formatCurrency(snapshot.total_net_worth_usd)}
           </p>
         </div>
         <div className="border border-[#26262B] rounded-xl bg-[#131316] px-4 py-3">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Investable NW</p>
+          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">{tr("Investable NW")}</p>
           <p className="text-base font-semibold text-zinc-100">
             {formatCurrency(snapshot.investable_net_worth_usd)}
           </p>
@@ -86,14 +86,14 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
           </p>
         </div>
         <div className="border border-[#26262B] rounded-xl bg-[#131316] px-4 py-3">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">Unrealized G/L</p>
+          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">{tr("Unrealized G/L")}</p>
           {gl != null ? (
             <>
               <p className={`text-base font-semibold ${gl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {gl >= 0 ? '+' : ''}{formatCurrency(gl)}
               </p>
               {glPct !== null && (
-                <p className="text-xs text-zinc-600 mt-0.5">{formatPercent(glPct, 1)} return</p>
+                <p className="text-xs text-zinc-600 mt-0.5">{formatPercent(glPct, 1)} {tr("return")}</p>
               )}
             </>
           ) : (
@@ -101,7 +101,7 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
           )}
         </div>
         <div className="border border-[#26262B] rounded-xl bg-[#131316] px-4 py-3">
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">USD/VND Rate</p>
+          <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-1">{tr("USD/VND Rate")}</p>
           <p className="text-base font-semibold text-zinc-100">
             {snapshot.usd_vnd_rate.toLocaleString()}
           </p>
@@ -113,7 +113,7 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
         {/* Asset Class Allocation */}
         <div className="border border-[#26262B] rounded-xl bg-[#131316] overflow-hidden">
           <div className="px-5 py-3 border-b border-[#26262B]">
-            <p className="text-xs font-semibold text-zinc-300">Asset Class Allocation</p>
+            <p className="text-xs font-semibold text-zinc-300">{tr("Asset Class Allocation")}</p>
           </div>
           <div className="divide-y divide-[#26262B]">
             {assetAllocation
@@ -124,7 +124,7 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
                     <span className="text-xs text-zinc-300">
                       {ASSET_CLASS_LABELS[row.asset_class] ?? row.asset_class}
                     </span>
-                    <span className="text-[10px] text-zinc-600">{row.count} asset{row.count !== 1 ? 's' : ''}</span>
+                    <span className="text-[10px] text-zinc-600">{row.count} {tr("asset")}{row.count !== 1 ? 's' : ''}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-zinc-400">{formatCurrency(row.value)}</span>
@@ -140,7 +140,7 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
         {/* Purpose Allocation */}
         <div className="border border-[#26262B] rounded-xl bg-[#131316] overflow-hidden">
           <div className="px-5 py-3 border-b border-[#26262B]">
-            <p className="text-xs font-semibold text-zinc-300">Purpose Allocation</p>
+            <p className="text-xs font-semibold text-zinc-300">{tr("Purpose Allocation")}</p>
           </div>
           <div className="divide-y divide-[#26262B]">
             {purposeAllocation
@@ -151,7 +151,7 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
                     <span className="text-xs text-zinc-300">
                       {PURPOSE_LABELS[row.purpose] ?? row.purpose}
                     </span>
-                    <span className="text-[10px] text-zinc-600">{row.count} asset{row.count !== 1 ? 's' : ''}</span>
+                    <span className="text-[10px] text-zinc-600">{row.count} {tr("asset")}{row.count !== 1 ? 's' : ''}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-zinc-400">{formatCurrency(row.value)}</span>
@@ -167,7 +167,7 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
 
       {/* Retirement Tracking */}
       <div className="border border-[#26262B] rounded-xl bg-[#131316] px-5 py-4">
-        <p className="text-xs font-semibold text-zinc-300 mb-3">Retirement Bucket</p>
+        <p className="text-xs font-semibold text-zinc-300 mb-3">{tr("Retirement Bucket")}</p>
         {retirementRow ? (
           <div className="flex items-center gap-6">
             <div>
@@ -175,8 +175,7 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
                 {formatCurrency(retirementRow.value)}
               </p>
               <p className="text-xs text-zinc-500 mt-0.5">
-                {retirementRow.weight.toFixed(1)}% of total net worth
-              </p>
+                {retirementRow.weight.toFixed(1)}{tr("% of total net worth")}</p>
             </div>
             <div className="flex-1">
               <div className="h-2 bg-[#26262B] rounded-full overflow-hidden">
@@ -189,17 +188,16 @@ export default async function SnapshotDetailPage({ params }: { params: { id: str
           </div>
         ) : (
           <p className="text-sm text-zinc-600">
-            No assets assigned to the Retirement bucket at this snapshot.{' '}
+            {tr("No assets assigned to the Retirement bucket at this snapshot.")}{' '}
             <Link href="/buckets/retirement" className="text-zinc-500 hover:text-zinc-300 transition-colors">
-              Go to Retirement bucket →
-            </Link>
+              {tr("Go to Retirement bucket →")}</Link>
           </p>
         )}
       </div>
 
       <div className="text-center">
         <p className="text-[10px] text-zinc-800">
-          Snapshot captured {new Date(snapshot.created_at).toLocaleString('en-US')}
+          {'' + tr("Snapshot captured") + ' '}{new Date(snapshot.created_at).toLocaleString('vi-VN')}
         </p>
       </div>
     </div>

@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,8 +34,8 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
       const res = await fetch(url, { cache: 'no-store' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setSuccess(`Saved locally: ${data.path}`);
-    } catch { setError('Export failed. Check the local database and private folder permissions.'); }
+      setSuccess(`${tr('Saved locally:')} ${data.path}`);
+    } catch { setError(tr('Export failed. Check the local database and private folder permissions.')); }
   }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -43,22 +45,22 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
     setError(null);
     setSuccess(null);
 
-    if (file.size > 20 * 1024 * 1024) { setError('Backup exceeds 20 MiB.'); return; }
+    if (file.size > 20 * 1024 * 1024) { setError(tr('Backup exceeds 20 MiB.')); return; }
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
         const data = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
 
         if (data.app !== 'TNPA Investment OS') {
-          setError('Invalid backup file: wrong app identifier.');
+          setError(tr('Invalid backup file: wrong app identifier.'));
           return;
         }
         if (data.backup_version !== 6) {
-          setError('A complete v6 backup is required. Older backups require separate reconciliation.');
+          setError(tr('A complete v6 backup is required. Older backups require separate reconciliation.'));
           return;
         }
         if (!Array.isArray(data.assets)) {
-          setError('Invalid backup file: assets array missing.');
+          setError(tr('Invalid backup file: assets array missing.'));
           return;
         }
 
@@ -77,7 +79,7 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
         });
         setPendingBackup(data);
       } catch {
-        setError('Could not read file. Please select a valid JSON backup.');
+        setError(tr('Could not read file. Please select a valid JSON backup.'));
       }
     };
     reader.readAsText(file);
@@ -99,17 +101,17 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
       const data = await res.json() as { error?: string; backup_path?: string };
 
       if (!res.ok) {
-        setError(data.error ?? 'Import failed. Please try again.');
+        setError(data.error ? tr(data.error) : tr('Import failed. Please try again.'));
         return;
       }
 
-      setSuccess(`Backup restored. Previous data saved locally: ${data.backup_path}`);
+      setSuccess(`${tr('Backup restored. Previous data saved locally:')} ${data.backup_path}`);
       setPreview(null);
       setPendingBackup(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       router.refresh();
     } catch {
-      setError('Import failed. Please try again.');
+      setError(tr('Import failed. Please try again.'));
     } finally {
       setImporting(false);
     }
@@ -129,17 +131,15 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
       <Card className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-zinc-100">Export JSON Backup</p>
+            <p className="text-sm font-medium text-zinc-100">{tr("Export JSON Backup")}</p>
             <p className="text-xs text-zinc-500 mt-1">
-              Full portfolio backup — assets, settings, decisions, watchlist, and research notes.
-            </p>
+              {tr("Full portfolio backup — assets, settings, decisions, watchlist, and research notes.")}</p>
           </div>
           <button
             onClick={() => triggerDownload('/api/backup/export-json')}
             className="shrink-0 px-3 py-1.5 rounded-md bg-[#1C1C21] border border-[#26262B] text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-500 transition-colors"
           >
-            Export JSON
-          </button>
+            {tr("Export JSON")}</button>
         </div>
       </Card>
 
@@ -147,17 +147,15 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
       <Card className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-zinc-100">Export CSV Holdings</p>
+            <p className="text-sm font-medium text-zinc-100">{tr("Export CSV Holdings")}</p>
             <p className="text-xs text-zinc-500 mt-1">
-              Holdings only — spreadsheet-friendly format including active and archived assets.
-            </p>
+              {tr("Holdings only — spreadsheet-friendly format including active and archived assets.")}</p>
           </div>
           <button
             onClick={() => triggerDownload('/api/backup/export-csv')}
             className="shrink-0 px-3 py-1.5 rounded-md bg-[#1C1C21] border border-[#26262B] text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-500 transition-colors"
           >
-            Export CSV
-          </button>
+            {tr("Export CSV")}</button>
         </div>
       </Card>
 
@@ -165,10 +163,9 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
       <Card className="p-5">
         <div className="space-y-3">
           <div>
-            <p className="text-sm font-medium text-zinc-100">Import JSON Backup</p>
+            <p className="text-sm font-medium text-zinc-100">{tr("Import JSON Backup")}</p>
             <p className="text-xs text-zinc-500 mt-1">
-              Restore portfolio from a JSON backup file. Current local data will be replaced.
-            </p>
+              {tr("Restore portfolio from a JSON backup file. Current local data will be replaced.")}</p>
           </div>
 
           {!preview && !success && (
@@ -185,8 +182,7 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
                 htmlFor="backup-file-input"
                 className="inline-block cursor-pointer px-3 py-1.5 rounded-md bg-[#1C1C21] border border-[#26262B] text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-500 transition-colors"
               >
-                Select Backup File
-              </label>
+                {tr("Select Backup File")}</label>
             </>
           )}
 
@@ -197,23 +193,22 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
             <div className="space-y-3">
               <div className="rounded-lg border border-[#26262B] bg-[#0C0C0E] p-3 space-y-2">
                 <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-                  Backup Preview
-                </p>
+                  {tr("Backup Preview")}</p>
                 <div className="space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-xs text-zinc-500">Active assets</span>
+                    <span className="text-xs text-zinc-500">{tr("Active assets")}</span>
                     <span className="text-xs text-zinc-300 tabular-nums">{preview.asset_count}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-zinc-500">Archived assets</span>
+                    <span className="text-xs text-zinc-500">{tr("Archived assets")}</span>
                     <span className="text-xs text-zinc-300 tabular-nums">{preview.archived_asset_count}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-zinc-500">Settings entries</span>
+                    <span className="text-xs text-zinc-500">{tr("Settings entries")}</span>
                     <span className="text-xs text-zinc-300 tabular-nums">{preview.settings_count}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-zinc-500">Exported at</span>
+                    <span className="text-xs text-zinc-500">{tr("Exported at")}</span>
                     <span className="text-xs text-zinc-300">
                       {new Date(preview.exported_at).toLocaleString()}
                     </span>
@@ -223,8 +218,7 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
 
               <div className="rounded-lg border border-amber-900/40 bg-amber-950/20 px-3 py-2">
                 <p className="text-xs text-amber-400">
-                  This will overwrite current local portfolio data. A complete local backup is saved before any changes.
-                </p>
+                  {tr("This will overwrite current local portfolio data. A complete local backup is saved before any changes.")}</p>
               </div>
 
               <div className="flex gap-2">
@@ -240,8 +234,7 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
                   disabled={importing}
                   className="px-3 py-1.5 rounded-md bg-[#1C1C21] border border-[#26262B] text-xs font-medium text-zinc-400 hover:text-zinc-300 disabled:opacity-50 transition-colors"
                 >
-                  Cancel
-                </button>
+                  {tr("Cancel")}</button>
               </div>
             </div>
           )}
@@ -250,32 +243,30 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
 
       {/* Backup Info */}
       <Card className="p-5 space-y-3">
-        <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">Backup Info</p>
+        <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Backup Info")}</p>
         <div className="space-y-1.5">
           <div className="flex justify-between">
-            <span className="text-xs text-zinc-500">Active assets</span>
+            <span className="text-xs text-zinc-500">{tr("Active assets")}</span>
             <span className="text-xs text-zinc-300 tabular-nums">{activeAssets}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-zinc-500">Archived assets</span>
+            <span className="text-xs text-zinc-500">{tr("Archived assets")}</span>
             <span className="text-xs text-zinc-300 tabular-nums">{archivedAssets}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-zinc-500">Settings entries</span>
+            <span className="text-xs text-zinc-500">{tr("Settings entries")}</span>
             <span className="text-xs text-zinc-300 tabular-nums">{settingsCount}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-zinc-500">Database mode</span>
-            <span className="text-xs text-zinc-300">Local SQLite</span>
+            <span className="text-xs text-zinc-500">{tr("Database mode")}</span>
+            <span className="text-xs text-zinc-300">{tr("Local SQLite")}</span>
           </div>
         </div>
         <div className="pt-2 border-t border-[#26262B] space-y-1.5">
           <p className="text-[11px] text-zinc-600">
-            Exports are saved in ~/.tnpa-wealth-os/exports/. Pre-import backups are saved in ~/.tnpa-wealth-os/backups/. Never upload wealth files.
-          </p>
+            {tr("Exports are saved in ~/.tnpa-wealth-os/exports/. Pre-import backups are saved in ~/.tnpa-wealth-os/backups/. Never upload wealth files.")}</p>
           <p className="text-[11px] text-zinc-700">
-            The address book is stored in the local database and included in v6 backups.
-          </p>
+            {tr("The address book is stored in the local database and included in v6 backups.")}</p>
         </div>
       </Card>
 

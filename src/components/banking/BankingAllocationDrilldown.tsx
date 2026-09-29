@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -61,11 +63,11 @@ function BankBreakdownPanel({
     <div className={`rounded-lg border ${active ? 'border-zinc-500 bg-[#1C1C21]' : 'border-[#26262B] bg-[#0C0C0E]'} p-4`}>
       <div className="flex items-center justify-between gap-3 mb-3">
         <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{title}</p>
-        <p className="text-xs text-zinc-500">{rows.length} banks</p>
+        <p className="text-xs text-zinc-500">{rows.length} {tr("banks")}</p>
       </div>
       {rows.length === 0 ? (
         <div className="h-24 flex items-center justify-center">
-          <p className="text-sm text-zinc-600">No allocation data.</p>
+          <p className="text-sm text-zinc-600">{tr("No allocation data.")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -126,7 +128,7 @@ export function BankingAllocationDrilldown({ rows }: { rows: BankingAllocationIn
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader label="Banking Allocation" action="drill-down by bank" />
+      <CardHeader label={tr("Banking Allocation")} action="drill-down by bank" />
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 p-5">
         <div className="space-y-5">
           <div className="h-72 relative">
@@ -159,14 +161,14 @@ export function BankingAllocationDrilldown({ rows }: { rows: BankingAllocationIn
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
                   <div>
-                    <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">Total Banking Value</p>
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Total Banking Value")}</p>
                     <p className="mt-1 text-xl font-light text-zinc-50 tabular-nums">{formatValue(bankingValue, 'VND')}</p>
                   </div>
                 </div>
               </>
             ) : (
               <div className="h-full flex items-center justify-center">
-                <p className="text-sm text-zinc-600">No banking allocation data yet.</p>
+                <p className="text-sm text-zinc-600">{tr("No banking allocation data yet.")}</p>
               </div>
             )}
           </div>
@@ -207,8 +209,8 @@ export function BankingAllocationDrilldown({ rows }: { rows: BankingAllocationIn
             active
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <BankBreakdownPanel title="Checking Allocation by Bank" rows={checkingRows} total={checkingTotal} active={selected === 'checking'} />
-            <BankBreakdownPanel title="Savings Allocation by Bank" rows={savingsRows} total={savingsTotal} active={selected === 'savings'} />
+            <BankBreakdownPanel title={tr("Checking Allocation by Bank")} rows={checkingRows} total={checkingTotal} active={selected === 'checking'} />
+            <BankBreakdownPanel title={tr("Savings Allocation by Bank")} rows={savingsRows} total={savingsTotal} active={selected === 'savings'} />
           </div>
         </div>
       </div>

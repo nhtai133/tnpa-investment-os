@@ -1,6 +1,7 @@
 import { isLocalRequest } from './local-request';
 export function assertLocalRequest(request: Request) {
-  if (!isLocalRequest(request.headers, !['GET','HEAD'].includes(request.method))) throw new Error('Local same-origin access only.');
+  const environment = process.env.TNPA_ENV === 'development' ? 'development' : 'production';
+  if (!isLocalRequest(request.headers, !['GET','HEAD'].includes(request.method), environment)) throw new Error('Local same-origin access only.');
 }
 export async function readLimitedJson(request: Request, maximum = 20 * 1024 * 1024) {
   if (!request.headers.get('content-type')?.startsWith('application/json')) throw new Error('JSON content type required.');

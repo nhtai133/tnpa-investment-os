@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 
@@ -46,11 +47,10 @@ export function DecisionIntelligence({
   return (
     <Card>
       <CardHeader
-        label="Decisions"
+        label={tr("Decisions")}
         action={
           <Link href="/decisions/new" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-            + Log →
-          </Link>
+            {tr("+ Log →")}</Link>
         }
       />
       <div className="grid grid-cols-2 divide-x divide-y divide-[#26262B]">
@@ -70,8 +70,7 @@ export function DecisionIntelligence({
       {total === 0 && (
         <div className="px-5 py-3 border-t border-[#26262B] text-center">
           <Link href="/decisions/new" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
-            Log your first decision →
-          </Link>
+            {tr("Log your first decision →")}</Link>
         </div>
       )}
     </Card>

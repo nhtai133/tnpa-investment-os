@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getUsdVndRate } from '@/lib/settings';
 import { FxRateForm } from '@/components/settings/FxRateForm';
 import { DataManagement } from '@/components/settings/DataManagement';
@@ -24,8 +25,8 @@ export default async function SettingsPage() {
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto">
-          <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">System</p>
-          <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">Settings</h1>
+          <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("System")}</p>
+          <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">{tr("Settings")}</h1>
         </div>
       </header>
 
@@ -35,22 +36,19 @@ export default async function SettingsPage() {
         <section>
           <div className="mb-3">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Reporting Currency
-            </p>
+              {tr("Reporting Currency")}</p>
           </div>
           <Card className="p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-zinc-100">USD – United States Dollar</p>
-                <p className="text-xs text-zinc-600 mt-0.5">Base currency for all portfolio calculations</p>
+                <p className="text-sm font-medium text-zinc-100">{tr("USD – United States Dollar")}</p>
+                <p className="text-xs text-zinc-600 mt-0.5">{tr("Base currency for all portfolio calculations")}</p>
               </div>
               <span className="px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wide uppercase bg-[#1C1C21] text-zinc-500">
-                Active
-              </span>
+                {tr("Active")}</span>
             </div>
             <p className="text-[11px] text-zinc-700 pt-2 border-t border-[#26262B]">
-              Additional reporting currencies will be configurable in a future update.
-            </p>
+              {tr("Additional reporting currencies will be configurable in a future update.")}</p>
           </Card>
         </section>
 
@@ -58,8 +56,7 @@ export default async function SettingsPage() {
         <section>
           <div className="mb-3">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              FX Rates
-            </p>
+              {tr("FX Rates")}</p>
           </div>
           <Card className="p-5">
             <FxRateForm currentRate={usdVndRate} />
@@ -70,8 +67,7 @@ export default async function SettingsPage() {
         <section>
           <div className="mb-3">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              Data Management
-            </p>
+              {tr("Data Management")}</p>
           </div>
           <DataManagement
             activeAssets={activeAssets}
@@ -84,63 +80,58 @@ export default async function SettingsPage() {
         <section>
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              App Info
-            </p>
+              {tr("App Info")}</p>
             <div className="flex items-center gap-3">
               <Link
                 href="/system/production"
                 className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
               >
-                Checklist →
-              </Link>
+                {tr("Checklist →")}</Link>
               <Link
                 href="/system/health"
                 className="text-[11px] text-zinc-700 hover:text-zinc-400 transition-colors"
               >
-                Health →
-              </Link>
+                {tr("Health →")}</Link>
             </div>
           </div>
           <Card className="p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Version</span>
+              <span className="text-xs text-zinc-500">{tr("Version")}</span>
               <span className="text-xs text-zinc-300 tabular-nums">{APP_VERSION}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">System</span>
-              <span className="text-xs text-zinc-300">TNPA Investment OS</span>
+              <span className="text-xs text-zinc-500">{tr("System")}</span>
+              <span className="text-xs text-zinc-300">TNPA Wealth OS</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Environment</span>
+              <span className="text-xs text-zinc-500">{tr("Environment")}</span>
               <span className="text-xs text-zinc-300">{APP_ENV}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Database</span>
+              <span className="text-xs text-zinc-500">{tr("Database")}</span>
               <span className={`text-xs ${isLocalDb() ? 'text-amber-400' : 'text-emerald-400'}`}>
                 {dbMode()}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Deploy Readiness</span>
+              <span className="text-xs text-zinc-500">{tr("Deploy Readiness")}</span>
               <span className={`text-xs font-medium ${isLocalDb() ? 'text-zinc-600' : 'text-emerald-400'}`}>
                 {deployReadiness()}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500">Type</span>
-              <span className="text-xs text-zinc-300">Personal Family Office</span>
+              <span className="text-xs text-zinc-500">{tr("Type")}</span>
+              <span className="text-xs text-zinc-300">{tr("Personal Family Office")}</span>
             </div>
             {isLocalDb() && (
               <div className="pt-2 border-t border-[#26262B] flex items-center justify-between">
                 <p className="text-[11px] text-zinc-700">
-                  Private local-only mode. Backups stay on this Mac.
-                </p>
+                  {tr("Private local-only mode. Backups stay on this Mac.")}</p>
                 <Link
                   href="/system/production"
                   className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors whitespace-nowrap ml-3"
                 >
-                  Local operation →
-                </Link>
+                  {tr("Local operation →")}</Link>
               </div>
             )}
           </Card>

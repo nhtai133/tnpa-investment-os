@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { createRealEstateAsset } from '@/app/real-estate/actions';
 import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
@@ -12,11 +13,9 @@ export default function NewRealEstateAssetPage() {
             href="/real-estate"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Real Estate
-          </Link>
+            {tr("← Real Estate")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Property
-          </h1>
+            {tr("Add Property")}</h1>
         </div>
       </header>
 

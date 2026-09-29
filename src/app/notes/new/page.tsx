@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { db } from '@/db';
 import { assets, opportunities } from '@/db/schema';
 import { asc } from 'drizzle-orm';
@@ -38,25 +39,23 @@ export default async function NewNotePage({ searchParams }: Props) {
             ← {assetId ? 'Holding' : opportunityId ? 'Opportunity' : 'Journal'}
           </a>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Research Note
-          </h1>
+            {tr("Add Research Note")}</h1>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-lg">
           <Card>
-            <CardHeader label="New Note" />
+            <CardHeader label={tr("New Note")} />
             <div className="p-5 space-y-5">
               {/* Context selector — only shown when no asset/opp pre-selected */}
               {!assetId && !opportunityId && (allAssets.length > 0 || allOpps.length > 0) && (
                 <div>
                   <label className="block text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-1.5">
-                    Attach To (optional)
-                  </label>
+                    {tr("Attach To (optional)")}</label>
                   <div className="space-y-2">
                     {allAssets.length > 0 && (
-                      <div className="text-xs text-zinc-600 uppercase tracking-widest mb-1">Holdings</div>
+                      <div className="text-xs text-zinc-600 uppercase tracking-widest mb-1">{tr("Holdings")}</div>
                     )}
                     {allAssets.map((a) => (
                       <a
@@ -68,7 +67,7 @@ export default async function NewNotePage({ searchParams }: Props) {
                       </a>
                     ))}
                     {allOpps.length > 0 && (
-                      <div className="text-xs text-zinc-600 uppercase tracking-widest mt-3 mb-1">Opportunities</div>
+                      <div className="text-xs text-zinc-600 uppercase tracking-widest mt-3 mb-1">{tr("Opportunities")}</div>
                     )}
                     {allOpps.map((o) => (
                       <a

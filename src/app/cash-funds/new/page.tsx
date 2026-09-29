@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { createCashFundAsset } from '@/app/cash-funds/actions';
 import { CashFundsAssetForm } from '@/components/workspace/CashFundsAssetForm';
@@ -11,11 +12,9 @@ export default function NewCashFundAssetPage() {
             href="/cash-funds"
             className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold"
           >
-            ← Cash &amp; Funds
-          </Link>
+            {tr("← Cash & Funds")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Cash / Fund Asset
-          </h1>
+            {tr("Add Cash / Fund Asset")}</h1>
         </div>
       </header>
 

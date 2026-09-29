@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { Card } from '@/components/ui/Card';
 import { formatCurrency, formatWeight } from '@/lib/formatters';
 
@@ -29,7 +30,7 @@ export function HoldingsStats({
         <p className="text-3xl font-light text-zinc-50 tracking-tight">
           {filteredCount}
           {isFiltered && (
-            <span className="text-base text-zinc-600 ml-2">of {totalCount}</span>
+            <span className="text-base text-zinc-600 ml-2">{'' + tr("of") + ' '}{totalCount}</span>
           )}
         </p>
         {isFiltered && (
@@ -37,8 +38,7 @@ export function HoldingsStats({
             {formatCurrency(filteredValue)}
             {!isMixedCurrency && (
               <span className="text-zinc-600 ml-1.5">
-                ({formatWeight((filteredValue / totalNetWorth) * 100)} of portfolio)
-              </span>
+                ({formatWeight((filteredValue / totalNetWorth) * 100)} {tr("of portfolio)")}</span>
             )}
           </p>
         )}
@@ -46,31 +46,28 @@ export function HoldingsStats({
 
       <Card className="p-5">
         <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">
-          Investment Net Worth
-        </p>
+          {tr("Investment Net Worth")}</p>
         <p className="text-3xl font-light text-zinc-50 tracking-tight">
           {formatCurrency(investmentNetWorth)}
         </p>
         {isMixedCurrency ? (
-          <p className="mt-1.5 text-[10px] text-amber-500/80">Mixed currencies · sum not comparable</p>
+          <p className="mt-1.5 text-[10px] text-amber-500/80">{tr("Mixed currencies · sum not comparable")}</p>
         ) : (
-          <p className="mt-1.5 text-xs text-zinc-600">Stock · Crypto · Real Estate · Gold · Cash · Funds · Loan</p>
+          <p className="mt-1.5 text-xs text-zinc-600">{tr("Stock · Crypto · Real Estate · Gold · Cash · Funds · Loan")}</p>
         )}
       </Card>
 
       <Card className="p-5">
         <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-3">
-          Total Net Worth
-        </p>
+          {tr("Total Net Worth")}</p>
         <p className="text-3xl font-light text-zinc-50 tracking-tight">
           {formatCurrency(totalNetWorth)}
         </p>
         {isMixedCurrency ? (
-          <p className="mt-1.5 text-[10px] text-amber-500/80">Mixed currencies · sum not comparable</p>
+          <p className="mt-1.5 text-[10px] text-amber-500/80">{tr("Mixed currencies · sum not comparable")}</p>
         ) : (
           <p className="mt-1.5 text-xs text-zinc-600">
-            +{formatCurrency(totalNetWorth - investmentNetWorth)} illiquid
-          </p>
+            +{formatCurrency(totalNetWorth - investmentNetWorth)} {tr("illiquid")}</p>
         )}
       </Card>
     </div>

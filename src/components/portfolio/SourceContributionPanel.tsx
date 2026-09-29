@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/formatters';
 import type { SourceContribution } from '@/lib/portfolio-aggregation';
@@ -20,7 +21,7 @@ export function SourceContributionPanel({ rows }: { rows: SourceContribution[] }
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader label="Portfolio Aggregation Debug" action="source contribution" />
+      <CardHeader label={tr("Portfolio Aggregation Debug")} action="source contribution" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 border-t border-[#1C1C21]">
         {REQUIRED_ROWS.map((required) => {
           const row = map.get(required.key);
@@ -31,7 +32,7 @@ export function SourceContributionPanel({ rows }: { rows: SourceContribution[] }
               <p className={`mt-1 text-sm tabular-nums ${value < 0 ? 'text-red-300' : 'text-zinc-200'}`}>
                 {formatCurrency(value)}
               </p>
-              <p className="mt-0.5 text-[10px] text-zinc-700">{row?.count ?? 0} rows</p>
+              <p className="mt-0.5 text-[10px] text-zinc-700">{row?.count ?? 0} {tr("rows")}</p>
             </div>
           );
         })}

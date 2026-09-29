@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
@@ -65,12 +66,11 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
             <Link href="/banking" className="text-[11px] tracking-widest uppercase text-zinc-600 hover:text-zinc-400 transition-colors font-semibold">
-              Back to Banking
-            </Link>
+              {tr("Back to Banking")}</Link>
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">{displayName}</h1>
           </div>
           <div className="text-right">
-            <p className="text-xs text-zinc-500">VIP tier</p>
+            <p className="text-xs text-zinc-500">{tr("VIP tier")}</p>
             <p className="text-sm text-zinc-200">{vipTiers.join(', ') || 'Not set'}</p>
           </div>
         </div>
@@ -78,14 +78,14 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <Summary label="Total by Bank" value={formatValue(summary.totalBankingValue, 'VND')} />
-          <Summary label="Accounts" value={formatValue(summary.checkingBalance, 'VND')} />
-          <Summary label="Deposits" value={formatValue(summary.savingsBalance, 'VND')} />
-          <Summary label="Credit Used" value={formatValue(summary.creditUsed, 'VND')} />
+          <Summary label={tr("Total by Bank")} value={formatValue(summary.totalBankingValue, 'VND')} />
+          <Summary label={tr("Accounts")} value={formatValue(summary.checkingBalance, 'VND')} />
+          <Summary label={tr("Deposits")} value={formatValue(summary.savingsBalance, 'VND')} />
+          <Summary label={tr("Credit Used")} value={formatValue(summary.creditUsed, 'VND')} />
         </div>
 
         <Card className="overflow-hidden">
-          <CardHeader label="Accounts" action={`${accounts.length} accounts`} />
+          <CardHeader label={tr("Accounts")} action={`${accounts.length} accounts`} />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="border-b border-[#26262B]">{['Account', 'Number', 'Type', 'Balance', 'Purpose', 'VIP', 'Status'].map((h) => <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>)}</tr></thead>
@@ -94,14 +94,14 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
                   <tr key={account.id} className="border-b border-[#1C1C21]">
                     <td className="px-4 py-3.5 text-zinc-100">{account.account_name}</td>
                     <td className="px-4 py-3.5 text-zinc-500">{maskAccountNumber(account.account_number)}</td>
-                    <td className="px-4 py-3.5 text-zinc-300">{account.account_type}</td>
+                    <td className="px-4 py-3.5 text-zinc-300">{tr(account.account_type)}</td>
                     <td className="px-4 py-3.5 text-zinc-100">{formatValue(account.balance, account.currency)}</td>
                     <td className="px-4 py-3.5">
                       <p className="text-xs text-zinc-300 max-w-sm">{account.custom_purpose || '-'}</p>
                       <p className="text-[10px] mt-0.5" style={{ color: PURPOSE_COLORS[account.purpose] }}>{PURPOSE_LABELS[account.purpose]}</p>
                     </td>
                     <td className="px-4 py-3.5 text-zinc-400">{account.vip_tier || '-'}</td>
-                    <td className="px-4 py-3.5"><Badge label={account.status} color={account.status === 'active' ? '#34D399' : '#9CA3AF'} /></td>
+                    <td className="px-4 py-3.5"><Badge label={tr(account.status)} color={account.status === 'active' ? '#34D399' : '#9CA3AF'} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -110,7 +110,7 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
         </Card>
 
         <Card className="overflow-hidden">
-          <CardHeader label="Savings Deposits" action={`${deposits.length} deposits`} />
+          <CardHeader label={tr("Savings Deposits")} action={`${deposits.length} deposits`} />
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="border-b border-[#26262B]">{['Deposit Name', 'Amount', 'Maturity Date', 'Days Remaining', 'Status', 'Rate', 'Term', 'Auto Renew'].map((h) => <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>)}</tr></thead>
@@ -126,7 +126,7 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
                       <td className="px-4 py-3.5 text-zinc-300">{deposit.maturity_date ? formatDaysRemaining(daysRemaining) : '-'}</td>
                       <td className="px-4 py-3.5"><Badge label={maturityStatus} color={maturityColor(daysRemaining)} /></td>
                       <td className="px-4 py-3.5 text-zinc-300">{deposit.interest_rate.toFixed(2)}%</td>
-                      <td className="px-4 py-3.5 text-zinc-400">{deposit.term_months} mo</td>
+                      <td className="px-4 py-3.5 text-zinc-400">{deposit.term_months} {tr("mo")}</td>
                       <td className="px-4 py-3.5 text-zinc-400">{deposit.auto_renew ? 'Yes' : 'No'}</td>
                     </tr>
                   );
@@ -137,13 +137,13 @@ export default async function BankDetailPage({ params }: { params: { bankName: s
         </Card>
 
         <Card className="px-5 py-4">
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">Notes</p>
+          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Notes")}</p>
           {notes.length > 0 ? (
             <div className="mt-3 space-y-2">
               {notes.map((note, index) => <p key={index} className="text-sm text-zinc-400 leading-relaxed">{note}</p>)}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-zinc-600">No notes recorded for this bank.</p>
+            <p className="mt-3 text-sm text-zinc-600">{tr("No notes recorded for this bank.")}</p>
           )}
         </Card>
       </main>

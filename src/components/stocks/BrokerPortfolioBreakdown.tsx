@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -25,13 +27,12 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
   if (brokers.length === 0) {
     return (
       <Card className="px-6 py-12 text-center">
-        <p className="text-sm text-zinc-600 mb-3">No broker accounts registered yet.</p>
+        <p className="text-sm text-zinc-600 mb-3">{tr("No broker accounts registered yet.")}</p>
         <Link
           href="/stocks/accounts/new"
           className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
         >
-          + Add a broker account
-        </Link>
+          {tr("+ Add a broker account")}</Link>
       </Card>
     );
   }
@@ -66,11 +67,11 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                   {row.broker.name}
                 </Link>
                 <span className="text-xs tabular-nums text-zinc-500 hidden sm:block w-[100px]">
-                  <span className="text-zinc-600">Cash </span>
+                  <span className="text-zinc-600">{'' + tr("Cash") + ' '}</span>
                   {formatValue(row.cashBalance, 'USD')}
                 </span>
                 <span className="text-xs tabular-nums text-zinc-300 hidden md:block w-[100px]">
-                  <span className="text-zinc-600">Stock </span>
+                  <span className="text-zinc-600">{'' + tr("Stock") + ' '}</span>
                   {formatValue(row.stockCustodyValue, 'USD')}
                 </span>
                 <span className="text-xs tabular-nums text-zinc-100 font-medium hidden md:block w-[100px]">
@@ -120,7 +121,7 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                   <div className="border-t border-[#1A1A1F] bg-[#0E0E12]">
                     {/* P&L strip + broker link */}
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-5 py-2.5 border-b border-[#1A1A1F] text-xs">
-                      <span className="text-zinc-600">Realized:</span>
+                      <span className="text-zinc-600">{tr("Realized:")}</span>
                       <span
                         className={`tabular-nums ${
                           row.realizedPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -129,7 +130,7 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                         {row.realizedPnl >= 0 ? '+' : ''}
                         {formatValue(row.realizedPnl, 'USD')}
                       </span>
-                      <span className="text-zinc-600">Unrealized:</span>
+                      <span className="text-zinc-600">{tr("Unrealized:")}</span>
                       <span
                         className={`tabular-nums ${
                           row.unrealizedPnl >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -138,27 +139,24 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                         {row.unrealizedPnl >= 0 ? '+' : ''}
                         {formatValue(row.unrealizedPnl, 'USD')}
                       </span>
-                      <span className="text-zinc-600">{row.transactionCount} transactions</span>
+                      <span className="text-zinc-600">{row.transactionCount} {tr("transactions")}</span>
                       <Link
                         href={`/stocks/accounts/${row.broker.id}`}
                         className="ml-auto text-indigo-400 hover:text-indigo-300 transition-colors"
                       >
-                        View Broker →
-                      </Link>
+                        {tr("View Broker →")}</Link>
                     </div>
 
                     {/* Holdings table */}
                     {row.holdings.length === 0 ? (
                       <div className="px-5 py-6 text-sm text-zinc-700">
-                        No stock positions at this broker.{' '}
+                        {tr("No stock positions at this broker.")}{' '}
                         <Link
                           href="/transactions/new"
                           className="text-indigo-400 hover:text-indigo-300"
                         >
-                          Add a buy transaction
-                        </Link>{' '}
-                        to assign holdings here.
-                      </div>
+                          {tr("Add a buy transaction")}</Link>{' '}
+                        {tr("to assign holdings here.")}</div>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">

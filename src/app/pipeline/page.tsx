@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
 import { opportunities } from '@/db/schema';
@@ -64,21 +65,20 @@ export default async function PipelinePage() {
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
           <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">TNPA</p>
-            <h1 className="text-base font-semibold text-zinc-100 leading-tight">Opportunity Pipeline</h1>
+            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr("TNPA")}</p>
+            <h1 className="text-base font-semibold text-zinc-100 leading-tight">{tr("Opportunity Pipeline")}</h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 text-[11px] text-zinc-600">
-              <span>{newItems.length} new</span>
-              <span>{reviewing.length} reviewing</span>
-              <span>{archived.length} archived</span>
+              <span>{newItems.length} {tr("new")}</span>
+              <span>{reviewing.length} {tr("reviewing")}</span>
+              <span>{archived.length} {tr("archived")}</span>
             </div>
             <Link
               href="/opportunities/new"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              + Add Opportunity
-            </Link>
+              {tr("+ Add Opportunity")}</Link>
           </div>
         </div>
       </header>
@@ -100,8 +100,7 @@ export default async function PipelinePage() {
             label={`New · ${newItems.length}`}
             action={
               <Link href="/opportunities/new" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-                + Add →
-              </Link>
+                {tr("+ Add →")}</Link>
             }
           />
           {newItems.length > 0 ? (
@@ -110,13 +109,12 @@ export default async function PipelinePage() {
             </div>
           ) : (
             <div className="px-5 py-10 text-center">
-              <p className="text-sm text-zinc-700 mb-3">No opportunities yet.</p>
+              <p className="text-sm text-zinc-700 mb-3">{tr("No opportunities yet.")}</p>
               <Link
                 href="/opportunities/new"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                + Add Opportunity
-              </Link>
+                {tr("+ Add Opportunity")}</Link>
             </div>
           )}
         </Card>
@@ -125,7 +123,7 @@ export default async function PipelinePage() {
         {archived.length > 0 && (
           <div>
             <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-700 mb-2 px-1">
-              Archive · {archived.length}
+              {'' + tr("Archive ·") + ' '}{archived.length}
             </p>
             <Card>
               <div className="divide-y divide-[#1C1C21]">

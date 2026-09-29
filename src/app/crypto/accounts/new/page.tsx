@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import Link from 'next/link';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { CryptoAccountForm } from '@/components/crypto/CryptoAccountForm';
@@ -21,15 +22,14 @@ export default function NewCryptoAccountPage({ searchParams }: Props) {
             ← {returnUrl ? 'Back' : 'Exchanges & Wallets'}
           </Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            Add Exchange or Wallet
-          </h1>
+            {tr("Add Exchange or Wallet")}</h1>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-lg">
           <Card>
-            <CardHeader label="New Crypto Account" />
+            <CardHeader label={tr("New Crypto Account")} />
             <div className="p-5">
               <CryptoAccountForm action={createCryptoAccount} returnUrl={returnUrl} />
             </div>

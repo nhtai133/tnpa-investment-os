@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import { useFormStatus } from 'react-dom';
 import { ASSET_CLASSES, OPPORTUNITY_SOURCES, type Opportunity } from '@/db/schema';
@@ -45,25 +47,25 @@ export function OpportunityForm({ action, defaultValues, cancelHref }: Opportuni
       {/* Name + Symbol */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Field label="Name">
+          <Field label={tr("Name")}>
             <input
               type="text"
               name="name"
               required
               maxLength={200}
               defaultValue={d?.name ?? ''}
-              placeholder="e.g. Nvidia Corp"
+              placeholder={tr("e.g. Nvidia Corp")}
               className={inputClass}
             />
           </Field>
         </div>
-        <Field label="Symbol (optional)">
+        <Field label={tr("Symbol (optional)")}>
           <input
             type="text"
             name="symbol"
             maxLength={20}
             defaultValue={d?.symbol ?? ''}
-            placeholder="e.g. NVDA"
+            placeholder={tr("e.g. NVDA")}
             className={`${inputClass} uppercase`}
           />
         </Field>
@@ -71,19 +73,19 @@ export function OpportunityForm({ action, defaultValues, cancelHref }: Opportuni
 
       {/* Asset Class + Source */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Asset Class">
+        <Field label={tr("Asset Class")}>
           <select
             name="asset_class"
             defaultValue={d?.asset_class ?? ''}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="">Select class… (optional)</option>
+            <option value="">{tr("Select class… (optional)")}</option>
             {ASSET_CLASSES.map((c) => (
               <option key={c} value={c}>{ASSET_CLASS_LABELS[c]}</option>
             ))}
           </select>
         </Field>
-        <Field label="Source">
+        <Field label={tr("Source")}>
           <select
             name="source"
             defaultValue={d?.source ?? 'manual'}
@@ -97,23 +99,23 @@ export function OpportunityForm({ action, defaultValues, cancelHref }: Opportuni
       </div>
 
       {/* Raw Note */}
-      <Field label="Raw Note">
+      <Field label={tr("Raw Note")}>
         <textarea
           name="raw_note"
           rows={5}
           defaultValue={d?.raw_note ?? ''}
-          placeholder="Paste the original Telegram message, research note, or tip here…"
+          placeholder={tr("Paste the original Telegram message, research note, or tip here…")}
           className={`${inputClass} resize-none`}
         />
       </Field>
 
       {/* Parsed Thesis */}
-      <Field label="Parsed Thesis (optional)">
+      <Field label={tr("Parsed Thesis (optional)")}>
         <textarea
           name="parsed_thesis"
           rows={3}
           defaultValue={d?.parsed_thesis ?? ''}
-          placeholder="Cleaned-up thesis or key insight. Leave blank — AI will populate this in a future version."
+          placeholder={tr("Cleaned-up thesis or key insight. Leave blank — AI will populate this in a future version.")}
           className={`${inputClass} resize-none`}
         />
       </Field>
@@ -125,8 +127,7 @@ export function OpportunityForm({ action, defaultValues, cancelHref }: Opportuni
           href={cancelHref}
           className="px-4 py-2.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Cancel
-        </a>
+          {tr("Cancel")}</a>
       </div>
     </form>
   );

@@ -1,4 +1,6 @@
 'use client';
+import { tr } from '@/i18n';
+
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -74,7 +76,7 @@ export function MobileNav({ onMenuOpen }: MobileNavProps) {
             }`}
           >
             {item.icon}
-            <span className="text-[10px] font-medium leading-none">{item.label}</span>
+            <span className="text-[10px] font-medium leading-none">{tr(item.label)}</span>
           </Link>
         ))}
 
@@ -86,7 +88,7 @@ export function MobileNav({ onMenuOpen }: MobileNavProps) {
           }`}
         >
           {MORE_ICON}
-          <span className="text-[10px] font-medium leading-none">More</span>
+          <span className="text-[10px] font-medium leading-none">{tr("More")}</span>
         </button>
       </div>
     </nav>

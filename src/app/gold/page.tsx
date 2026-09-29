@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 import { getModuleData } from '@/lib/moduleData';
 import { ModulePageHeader } from '@/components/markets/ModulePageHeader';
 import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
@@ -28,9 +29,9 @@ export default async function GoldPage() {
         <WorkspaceAllocationChart
           assets={classAssets}
           usdVndRate={usdVndRate}
-          label="Gold Allocation"
+          label={tr("Gold Allocation")}
         />
-        <ArchivedSection assets={archivedClassAssets} label="Archived Gold" usdVndRate={usdVndRate} />
+        <ArchivedSection assets={archivedClassAssets} label={tr("Archived Gold")} usdVndRate={usdVndRate} />
       </main>
     </div>
   );
