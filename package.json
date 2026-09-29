@@ -1,18 +1,21 @@
 {
   "name": "tnpa-investment-os",
-  "version": "0.1.0",
+  "version": "2.1.5",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
-    "start": "next start -p 3001",
-    "lint": "next lint",
+    "dev": "node scripts/local-next.cjs dev",
+    "build": "node scripts/local-next.cjs build",
+    "start": "node scripts/local-next.cjs start",
+    "lint": "node scripts/local-next.cjs lint",
     "typecheck": "tsc --noEmit",
-    "db:push": "drizzle-kit push",
-    "db:migrate": "tsx src/db/migrate.ts",
+    "db:push": "tsx src/db/init-local.ts",
+    "db:migrate": "tsx src/db/init-local.ts",
     "validate:account-integration": "tsx scripts/validate-account-integration.ts",
     "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:init-local": "tsx src/db/init-local.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "security:check": "node scripts/check-source-only.cjs"
   },
   "dependencies": {
     "next": "14.2.29",

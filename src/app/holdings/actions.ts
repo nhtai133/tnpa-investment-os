@@ -1,16 +1,22 @@
 'use server';
 
+import { getCashSourceOptions } from '@/lib/cash-balances';
 import { db } from '@/db';
 import { assets } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-function parseAssetFormData(formData: FormData) {
+async function parseAssetFormData(formData: FormData) {
   const asset_class = formData.get('asset_class') as string;
+  const source = String(formData.get('cash_source') ?? '');
+  if (source && (asset_class !== 'cash' || !(await getCashSourceOptions()).some(o => o.value === source))) throw new Error('Invalid cash source.');
+  const [sourceType, sourceId] = source.split(':');
   return {
     name: (formData.get('name') as string).trim(),
     symbol: ((formData.get('symbol') as string) || '').trim() || null,
+    cash_source_type: sourceType ? sourceType as 'bank_account' | 'deposit' | 'registry' : null,
+    cash_source_id: sourceId ? Number(sourceId) : null,
     asset_class: asset_class as 'stock' | 'crypto' | 'real_estate' | 'gold' | 'cash' | 'funds' | 'private_loan' | 'other',
     purpose: formData.get('purpose') as
       | 'wealth_compounder'
@@ -30,7 +36,7 @@ function parseAssetFormData(formData: FormData) {
 }
 
 export async function createAsset(formData: FormData) {
-  const data = parseAssetFormData(formData);
+  const data = await parseAssetFormData(formData);
   const now = new Date().toISOString();
 
   const [inserted] = await db
@@ -44,7 +50,7 @@ export async function createAsset(formData: FormData) {
 }
 
 export async function updateAsset(id: number, formData: FormData) {
-  const data = parseAssetFormData(formData);
+  const data = await parseAssetFormData(formData);
   const now = new Date().toISOString();
 
   await db

@@ -29,11 +29,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export function AccountForm({ action }: { action: (formData: FormData) => Promise<void> }) {
+export function AccountForm({ action, banks = [] }: { banks?: { id: number; bank_name: string; account_name: string }[]; action: (formData: FormData) => Promise<void> }) {
   return (
     <form action={action} className="space-y-5">
       <Field label="Name">
-        <input name="name" required placeholder="BIDV 8888791996" className={inputClass} />
+        <input name="name" required placeholder="Main bank account" className={inputClass} />
       </Field>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -59,10 +59,17 @@ export function AccountForm({ action }: { action: (formData: FormData) => Promis
           <input name="institution" placeholder="BIDV, VCBS, Binance" className={inputClass} />
         </Field>
         <Field label="Masked Account Number">
-          <input name="account_number_masked" placeholder="****91996" className={inputClass} />
+          <input name="account_number_masked" placeholder="****1234" className={inputClass} />
         </Field>
       </div>
 
+      <Field label="Existing Banking account (optional)">
+        <select name="bank_account_id" className={inputClass} defaultValue="">
+          <option value="">Separate cash account</option>
+          {banks.map(b => <option key={b.id} value={b.id}>{b.bank_name} · {b.account_name}</option>)}
+        </select>
+        <p className="text-xs text-zinc-500">For an existing Banking account, use its balance once. The balance below is ignored when linked.</p>
+      </Field>
       <Field label="Current Balance">
         <input name="current_balance" type="number" inputMode="decimal" step="0.01" defaultValue="0" className={inputClass} />
       </Field>

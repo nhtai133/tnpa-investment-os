@@ -133,13 +133,13 @@ export default async function SettingsPage() {
             {isLocalDb() && (
               <div className="pt-2 border-t border-[#26262B] flex items-center justify-between">
                 <p className="text-[11px] text-zinc-700">
-                  Local SQLite mode. Export a backup before migrating to Turso.
+                  Private local-only mode. Backups stay on this Mac.
                 </p>
                 <Link
                   href="/system/production"
                   className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors whitespace-nowrap ml-3"
                 >
-                  Deploy guide →
+                  Local operation →
                 </Link>
               </div>
             )}

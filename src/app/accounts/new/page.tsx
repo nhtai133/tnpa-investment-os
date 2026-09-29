@@ -1,8 +1,12 @@
+import { db } from '@/db';
+import { bankAccounts } from '@/db/schema';
+export const dynamic = 'force-dynamic';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { AccountForm } from '@/components/accounts/AccountForm';
 import { createAccount } from '@/app/accounts/actions';
 
-export default function NewAccountPage() {
+export default async function NewAccountPage() {
+  const banks = await db.select().from(bankAccounts);
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
@@ -21,7 +25,7 @@ export default function NewAccountPage() {
           <Card>
             <CardHeader label="Account Registry" />
             <div className="p-5">
-              <AccountForm action={createAccount} />
+              <AccountForm banks={banks} action={createAccount} />
             </div>
           </Card>
         </div>

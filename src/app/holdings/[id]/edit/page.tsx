@@ -1,3 +1,4 @@
+import { getCashSourceOptions } from '@/lib/cash-balances';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -14,6 +15,7 @@ interface EditAssetPageProps {
 }
 
 export default async function EditAssetPage({ params }: EditAssetPageProps) {
+  const cashSources = await getCashSourceOptions();
   const id = Number(params.id);
   if (isNaN(id)) notFound();
 
@@ -56,7 +58,7 @@ export default async function EditAssetPage({ params }: EditAssetPageProps) {
             </div>
           )}
           <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
-            <AssetForm action={boundUpdate} defaultValues={asset} />
+            <AssetForm cashSources={cashSources} action={boundUpdate} defaultValues={asset} />
             {!asset.is_archived && (
               <ArchiveAssetForm action={boundArchive} assetName={asset.name} />
             )}

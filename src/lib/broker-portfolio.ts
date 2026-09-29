@@ -1,3 +1,5 @@
+import { normalizeToUsd } from './fx';
+import { getUsdVndRate } from './settings';
 import { db } from '@/db';
 import { accountRegistry, assetCustodyPositions, assets, transactions } from '@/db/schema';
 import { eq, asc, desc } from 'drizzle-orm';
@@ -29,6 +31,7 @@ export interface BrokerPortfolioRow {
 }
 
 export async function getBrokerPortfolioBreakdown(): Promise<BrokerPortfolioRow[]> {
+  const rate = await getUsdVndRate();
   const [brokers, positions, allAssets, allAccounts, allTxns] = await Promise.all([
     db
       .select()
@@ -44,7 +47,7 @@ export async function getBrokerPortfolioBreakdown(): Promise<BrokerPortfolioRow[
   const assetMap = new Map(allAssets.map((a) => [a.id, a]));
   const accountMap = new Map(allAccounts.map((a) => [a.id, a]));
 
-  return brokers.map((broker) => {
+  return brokers.filter(b => b.status === 'active').map((broker) => {
     const brokerPositions = positions.filter(
       (p) => p.custody_account_id === broker.id && p.quantity > EPSILON,
     );
@@ -90,17 +93,17 @@ export async function getBrokerPortfolioBreakdown(): Promise<BrokerPortfolioRow[
       })
       .filter((h): h is BrokerHolding => h !== null);
 
-    const stockCustodyValue = holdings.reduce((sum, h) => sum + h.marketValue, 0);
+    const stockCustodyValue = holdings.reduce((sum, h) => sum + normalizeToUsd(h.marketValue, h.asset.currency, rate), 0);
     const realizedPnl = brokerTxns
       .filter((t) => t.type === 'sell')
-      .reduce((sum, t) => sum + (t.realized_pnl ?? 0), 0);
-    const unrealizedPnl = holdings.reduce((sum, h) => sum + h.gainLoss, 0);
+      .reduce((sum, t) => sum + normalizeToUsd(t.realized_pnl ?? 0, t.currency, rate), 0);
+    const unrealizedPnl = holdings.reduce((sum, h) => sum + normalizeToUsd(h.gainLoss, h.asset.currency, rate), 0);
 
     return {
       broker,
-      cashBalance: broker.current_balance,
+      cashBalance: normalizeToUsd(broker.current_balance, broker.currency, rate),
       stockCustodyValue,
-      totalValue: broker.current_balance + stockCustodyValue,
+      totalValue: normalizeToUsd(broker.current_balance, broker.currency, rate) + stockCustodyValue,
       holdingCount: holdings.length,
       transactionCount: brokerTxns.length,
       holdings,

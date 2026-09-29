@@ -1,3 +1,5 @@
+import { convertCurrency } from '@/lib/fx';
+import { getUsdVndRate } from '@/lib/settings';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card, CardHeader } from '@/components/ui/Card';
@@ -23,6 +25,7 @@ export default async function LocationDetailPage({ params }: { params: { id: str
   const id = Number(params.id);
   if (!Number.isFinite(id)) notFound();
 
+  const rate = await getUsdVndRate();
   const summary = await getAccountDetailSummary(id);
   if (!summary) notFound();
 
@@ -48,8 +51,8 @@ export default async function LocationDetailPage({ params }: { params: { id: str
       const marketValue = pricePerUnit * row.quantity;
       const gain = marketValue - row.costBasis;
       const gainPct = row.costBasis > 0 ? (gain / row.costBasis) * 100 : null;
-      custodyValue += marketValue;
-      unrealizedPnl += gain;
+      custodyValue += convertCurrency(marketValue, row.asset.currency, account.currency, rate);
+      unrealizedPnl += convertCurrency(gain, row.asset.currency, account.currency, rate);
       return { ...row, marketValue, gain, gainPct };
     });
 

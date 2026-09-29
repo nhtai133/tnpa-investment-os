@@ -26,12 +26,14 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  function triggerDownload(url: string) {
-    const a = document.createElement('a');
-    a.href = url;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  async function triggerDownload(url: string) {
+    setError(null);
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSuccess(`Saved locally: ${data.path}`);
+    } catch { setError('Export failed. Check the local database and private folder permissions.'); }
   }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -41,6 +43,7 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
     setError(null);
     setSuccess(null);
 
+    if (file.size > 20 * 1024 * 1024) { setError('Backup exceeds 20 MiB.'); return; }
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
@@ -50,8 +53,8 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
           setError('Invalid backup file: wrong app identifier.');
           return;
         }
-        if (data.backup_version !== 1) {
-          setError('Invalid backup file: unsupported version.');
+        if (data.backup_version !== 6) {
+          setError('A complete v6 backup is required. Older backups require separate reconciliation.');
           return;
         }
         if (!Array.isArray(data.assets)) {
@@ -90,17 +93,17 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
       const res = await fetch('/api/backup/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pendingBackup),
+        body: JSON.stringify({ backup: pendingBackup, confirmation: 'REPLACE LOCAL DATA' }),
       });
 
-      const data = await res.json() as { error?: string };
+      const data = await res.json() as { error?: string; backup_path?: string };
 
       if (!res.ok) {
         setError(data.error ?? 'Import failed. Please try again.');
         return;
       }
 
-      setSuccess('Backup restored successfully.');
+      setSuccess(`Backup restored. Previous data saved locally: ${data.backup_path}`);
       setPreview(null);
       setPendingBackup(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -220,7 +223,7 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
 
               <div className="rounded-lg border border-amber-900/40 bg-amber-950/20 px-3 py-2">
                 <p className="text-xs text-amber-400">
-                  This will overwrite current local portfolio data. This action cannot be undone.
+                  This will overwrite current local portfolio data. A complete local backup is saved before any changes.
                 </p>
               </div>
 
@@ -268,10 +271,10 @@ export function DataManagement({ activeAssets, archivedAssets, settingsCount }: 
         </div>
         <div className="pt-2 border-t border-[#26262B] space-y-1.5">
           <p className="text-[11px] text-zinc-600">
-            Backups are stored locally by your browser download. Keep a copy in cloud drive or external storage.
+            Exports are saved in ~/.tnpa-wealth-os/exports/. Pre-import backups are saved in ~/.tnpa-wealth-os/backups/. Never upload wealth files.
           </p>
           <p className="text-[11px] text-zinc-700">
-            Wallet Registry localStorage backup will be added in a later sprint.
+            The address book is stored in the local database and included in v6 backups.
           </p>
         </div>
       </Card>

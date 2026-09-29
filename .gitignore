@@ -40,3 +40,23 @@ venv/
 drizzle/
 .claude/settings.json
 tsconfig.tsbuildinfo
+
+# Private wealth artifacts are never source code
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.db-journal
+*.db-*
+*.csv
+*.tsv
+*.jsonl
+*.backup
+*.bak
+*backup*.json
+*export*.json
+*snapshot*.json
+snapshots/
+exports/
+backups/
+.tnpa-wealth-os/

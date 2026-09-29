@@ -67,14 +67,14 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                 </Link>
                 <span className="text-xs tabular-nums text-zinc-500 hidden sm:block w-[100px]">
                   <span className="text-zinc-600">Cash </span>
-                  {formatValue(row.cashBalance, row.broker.currency)}
+                  {formatValue(row.cashBalance, 'USD')}
                 </span>
                 <span className="text-xs tabular-nums text-zinc-300 hidden md:block w-[100px]">
                   <span className="text-zinc-600">Stock </span>
-                  {formatValue(row.stockCustodyValue, row.broker.currency)}
+                  {formatValue(row.stockCustodyValue, 'USD')}
                 </span>
                 <span className="text-xs tabular-nums text-zinc-100 font-medium hidden md:block w-[100px]">
-                  {formatValue(row.totalValue, row.broker.currency)}
+                  {formatValue(row.totalValue, 'USD')}
                 </span>
                 <span
                   className={`text-xs tabular-nums hidden lg:block w-[90px] ${
@@ -82,7 +82,7 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                   }`}
                 >
                   {totalPnl >= 0 ? '+' : ''}
-                  {formatValue(totalPnl, row.broker.currency)}
+                  {formatValue(totalPnl, 'USD')}
                 </span>
                 <button
                   type="button"
@@ -127,7 +127,7 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                         }`}
                       >
                         {row.realizedPnl >= 0 ? '+' : ''}
-                        {formatValue(row.realizedPnl, row.broker.currency)}
+                        {formatValue(row.realizedPnl, 'USD')}
                       </span>
                       <span className="text-zinc-600">Unrealized:</span>
                       <span
@@ -136,7 +136,7 @@ export function BrokerPortfolioBreakdown({ brokers }: Props) {
                         }`}
                       >
                         {row.unrealizedPnl >= 0 ? '+' : ''}
-                        {formatValue(row.unrealizedPnl, row.broker.currency)}
+                        {formatValue(row.unrealizedPnl, 'USD')}
                       </span>
                       <span className="text-zinc-600">{row.transactionCount} transactions</span>
                       <Link

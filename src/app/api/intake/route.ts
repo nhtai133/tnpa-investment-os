@@ -1,3 +1,4 @@
+import { assertLocalRequest, readLimitedJson } from '@/lib/local-api';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { opportunities } from '@/db/schema';
@@ -8,10 +9,11 @@ import type { OpportunitySource, AssetClass } from '@/db/schema';
 const VALID_SOURCES = new Set<string>(['manual', 'telegram', 'ai', 'other']);
 
 export async function POST(req: NextRequest) {
+  try { assertLocalRequest(req); } catch { return NextResponse.json({ error: 'Local same-origin access only.' }, { status: 403 }); }
   let body: Record<string, unknown>;
 
   try {
-    body = await req.json();
+    body = await readLimitedJson(req, 1024 * 1024) as Record<string, unknown>;
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }

@@ -85,7 +85,8 @@ export async function createBankAccount(formData: FormData) {
   const currency = str(formData, 'currency') ?? 'VND';
   const balance = num(formData, 'balance');
 
-  await db.insert(bankAccounts).values({
+  await db.transaction(async (tx) => {
+  const [created] = await tx.insert(bankAccounts).values({
     bank_name: bankName,
     account_name: accountName,
     account_number: str(formData, 'account_number'),
@@ -99,16 +100,17 @@ export async function createBankAccount(formData: FormData) {
     notes: str(formData, 'notes'),
     created_at: now,
     updated_at: now,
-  });
+  }).returning();
 
   if (bool(formData, 'link_to_lifecycle')) {
-    await db.insert(accountRegistry).values({
+    await tx.insert(accountRegistry).values({
+      bank_account_id: created.id,
       name: accountName,
       type: 'bank_account',
       institution: bankName,
-      account_number_masked: str(formData, 'account_number'),
+      account_number_masked: str(formData, 'account_number')?.replace(/.(?=.{4})/g, '*') ?? null,
       currency,
-      current_balance: balance,
+      current_balance: 0, // Linked cash is owned by bank_accounts.
       status: 'active',
       notes: null,
       created_at: now,
@@ -118,6 +120,7 @@ export async function createBankAccount(formData: FormData) {
     revalidatePath('/transactions');
   }
 
+  });
   revalidateBanking(bankName);
   redirect('/banking');
 }

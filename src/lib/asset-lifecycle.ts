@@ -1,5 +1,6 @@
 import { db } from '@/db';
 import {
+  bankAccounts,
   accountRegistry,
   assetCustodyPositions,
   assets,
@@ -11,6 +12,10 @@ import {
 } from '@/db/schema';
 import { and, desc, eq, or, sql } from 'drizzle-orm';
 
+import { normalizeToUsd, convertCurrency } from './fx';
+import { getUsdVndRate } from './settings';
+import { getEffectiveAccounts } from './cash-balances';
+type Store = Pick<typeof db, 'select' | 'insert' | 'update'>;
 const EPSILON = 0.00000001;
 
 export interface LifecycleTransactionInput {
@@ -88,14 +93,14 @@ function requireValue<T>(value: T | null | undefined, message: string): T {
   return value;
 }
 
-async function getAsset(assetId: number | null): Promise<Asset | null> {
+async function getAsset(store: Store, assetId: number | null): Promise<Asset | null> {
   if (!assetId) return null;
-  return db.select().from(assets).where(eq(assets.id, assetId)).limit(1).then((rows) => rows[0] ?? null);
+  return store.select().from(assets).where(eq(assets.id, assetId)).limit(1).then((rows) => rows[0] ?? null);
 }
 
-async function assertActiveAccount(accountId: number | null, message: string) {
+async function assertActiveAccount(store: Store, accountId: number | null, message: string) {
   if (!accountId) throw new Error(message);
-  const account = await db
+  const account = await store
     .select()
     .from(accountRegistry)
     .where(eq(accountRegistry.id, accountId))
@@ -103,11 +108,16 @@ async function assertActiveAccount(accountId: number | null, message: string) {
     .then((rows) => rows[0] ?? null);
   if (!account) throw new Error(`${message} Account Registry record was not found.`);
   if (account.status !== 'active') throw new Error(`${account.name} is not active in Account Registry.`);
+  if (account.bank_account_id) {
+    const [bank] = await store.select().from(bankAccounts).where(eq(bankAccounts.id, account.bank_account_id));
+    if (!bank || bank.status !== 'active') throw new Error('Linked Banking account must be active.');
+    return { ...account, currency: bank.currency, current_balance: bank.balance };
+  }
   return account;
 }
 
-async function getPosition(assetId: number, custodyAccountId: number) {
-  return db
+async function getPosition(store: Store, assetId: number, custodyAccountId: number) {
+  return store
     .select()
     .from(assetCustodyPositions)
     .where(and(
@@ -119,15 +129,16 @@ async function getPosition(assetId: number, custodyAccountId: number) {
 }
 
 async function upsertPosition(
+  store: Store,
   assetId: number,
   custodyAccountId: number,
   quantityDelta: number,
   costBasisDelta: number,
   now: string,
 ) {
-  const existing = await getPosition(assetId, custodyAccountId);
+  const existing = await getPosition(store, assetId, custodyAccountId);
   if (existing) {
-    await db
+    await store
       .update(assetCustodyPositions)
       .set({
         quantity: existing.quantity + quantityDelta,
@@ -138,7 +149,7 @@ async function upsertPosition(
     return;
   }
 
-  await db.insert(assetCustodyPositions).values({
+  await store.insert(assetCustodyPositions).values({
     asset_id: assetId,
     custody_account_id: custodyAccountId,
     quantity: quantityDelta,
@@ -147,22 +158,25 @@ async function upsertPosition(
   });
 }
 
-async function moveCash(accountId: number, delta: number, now: string) {
-  await db
-    .update(accountRegistry)
-    .set({
-      current_balance: sql`${accountRegistry.current_balance} + ${delta}`,
-      updated_at: now,
-    })
-    .where(eq(accountRegistry.id, accountId));
+async function moveCash(store: Store, accountId: number, delta: number, now: string) {
+  const [account] = await store.select().from(accountRegistry).where(eq(accountRegistry.id, accountId));
+  if (!account) throw new Error('Cash account not found.');
+  if (account.bank_account_id) {
+    const [bank] = await store.select().from(bankAccounts).where(eq(bankAccounts.id, account.bank_account_id));
+    if (!bank || bank.status !== 'active') throw new Error('Linked bank account is not active.');
+    await store.update(bankAccounts).set({ balance: sql`${bankAccounts.balance} + ${delta}`, updated_at: now }).where(eq(bankAccounts.id, bank.id));
+  } else {
+    await store.update(accountRegistry).set({ current_balance: sql`${accountRegistry.current_balance} + ${delta}`, updated_at: now }).where(eq(accountRegistry.id, accountId));
+  }
 }
 
-async function updateAssetTotals(assetId: number, quantityDelta: number, costBasisDelta: number, now: string) {
-  const [asset] = await db.select().from(assets).where(eq(assets.id, assetId)).limit(1);
+async function updateAssetTotals(store: Store, assetId: number, quantityDelta: number, costBasisDelta: number, now: string, initialPrice = 0) {
+  const [asset] = await store.select().from(assets).where(eq(assets.id, assetId)).limit(1);
   if (!asset) return;
-  await db
+  await store
     .update(assets)
     .set({
+      current_value: Math.max(0, asset.current_value + quantityDelta * ((asset.quantity ?? 0) > 0 ? asset.current_value / asset.quantity! : initialPrice)),
       quantity: (asset.quantity ?? 0) + quantityDelta,
       cost_basis: (asset.cost_basis ?? 0) + costBasisDelta,
       updated_at: now,
@@ -203,31 +217,47 @@ function validateLifecycleInput(input: LifecycleTransactionInput, asset: Asset |
   }
 }
 
-export async function createLifecycleTransaction(input: LifecycleTransactionInput) {
+export async function createLifecycleTransaction(input: LifecycleTransactionInput, database = db) {
+  return database.transaction(async (tx) => {
   const now = new Date().toISOString();
-  const asset = await getAsset(input.assetId);
+  const asset = await getAsset(tx, input.assetId);
   validateLifecycleInput(input, asset);
+  if (input.assetId && (!asset || asset.is_archived)) throw new Error('An active asset is required.');
+  for (const value of [input.amount, input.quantity, input.price, input.fees, input.tax, input.transferFee, input.totalAmount, input.grossProceeds]) {
+    if (value != null && (!Number.isFinite(value) || value < 0)) throw new Error('Amounts and quantities must be finite and nonnegative.');
+  }
+  if (['buy','sell','transfer'].includes(input.type) && !(input.quantity! > 0)) throw new Error('Quantity must be positive.');
+  if (!['buy','sell','transfer','deposit','withdraw','fee','dividend','interest','adjustment'].includes(input.type)) throw new Error('Invalid transaction type.');
+  normalizeToUsd(input.amount, input.currency);
+  if (asset && asset.currency !== input.currency) throw new Error('Transaction currency must match the asset. Cross-currency settlement is not supported.');
+  for (const id of [input.fundingAccountId, input.receiveAccountId]) {
+    if (id) {
+      const account = await assertActiveAccount(tx, id, 'Cash account required.');
+      if (account.currency !== input.currency) throw new Error('Cash and transaction currencies must match. Record currency conversion separately.');
+    }
+  }
+
 
   if (input.type === 'buy') {
     await Promise.all([
-      assertActiveAccount(input.fundingAccountId, 'Buy transaction requires a funding source.'),
-      assertActiveAccount(input.executionAccountId, 'Buy transaction requires an execution venue.'),
-      assertActiveAccount(input.custodyAccountId, 'Buy transaction requires a custody location.'),
+      assertActiveAccount(tx, input.fundingAccountId, 'Buy transaction requires a funding source.'),
+      assertActiveAccount(tx, input.executionAccountId, 'Buy transaction requires an execution venue.'),
+      assertActiveAccount(tx, input.custodyAccountId, 'Buy transaction requires a custody location.'),
     ]);
   }
 
   if (input.type === 'sell') {
     await Promise.all([
-      assertActiveAccount(input.executionAccountId, 'Sell transaction requires an execution venue.'),
-      assertActiveAccount(input.receiveAccountId, 'Sell transaction requires a receive destination.'),
-      assertActiveAccount(input.fromCustodyAccountId ?? input.custodyAccountId, 'Sell transaction requires source custody.'),
+      assertActiveAccount(tx, input.executionAccountId, 'Sell transaction requires an execution venue.'),
+      assertActiveAccount(tx, input.receiveAccountId, 'Sell transaction requires a receive destination.'),
+      assertActiveAccount(tx, input.fromCustodyAccountId ?? input.custodyAccountId, 'Sell transaction requires source custody.'),
     ]);
   }
 
   if (input.type === 'transfer') {
     await Promise.all([
-      assertActiveAccount(input.fromCustodyAccountId, 'Transfer requires source custody.'),
-      assertActiveAccount(input.toCustodyAccountId, 'Transfer requires destination custody.'),
+      assertActiveAccount(tx, input.fromCustodyAccountId, 'Transfer requires source custody.'),
+      assertActiveAccount(tx, input.toCustodyAccountId, 'Transfer requires destination custody.'),
     ]);
   }
 
@@ -238,7 +268,7 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
   let realizedPnl: number | null = null;
 
   if (input.type === 'transfer') {
-    const source = await getPosition(input.assetId!, input.fromCustodyAccountId!);
+    const source = await getPosition(tx, input.assetId!, input.fromCustodyAccountId!);
     if (!source || source.quantity + EPSILON < quantity) {
       throw new Error('Cannot transfer more than the available quantity in source custody.');
     }
@@ -246,7 +276,7 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
 
   if (input.type === 'sell') {
     const sourceCustodyId = input.fromCustodyAccountId ?? input.custodyAccountId!;
-    const source = await getPosition(input.assetId!, sourceCustodyId);
+    const source = await getPosition(tx, input.assetId!, sourceCustodyId);
     if (!source || source.quantity + EPSILON < quantity) {
       throw new Error('Cannot sell more than the available quantity in source custody.');
     }
@@ -255,7 +285,7 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
     realizedPnl = proceeds - fees - tax - costRemoved;
   }
 
-  const inserted = await db.insert(transactions).values({
+  const inserted = await tx.insert(transactions).values({
     asset_id: input.assetId ?? undefined,
     type: input.type,
     transaction_date: input.transactionDate,
@@ -285,10 +315,10 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
   if (input.type === 'buy') {
     const cashOut = (input.totalAmount ?? input.amount) + fees + tax;
     const assetCost = cashOut;
-    await moveCash(input.fundingAccountId!, -cashOut, now);
-    await upsertPosition(input.assetId!, input.custodyAccountId!, quantity, assetCost, now);
-    await updateAssetTotals(input.assetId!, quantity, assetCost, now);
-    await db.insert(ledgerEntries).values([
+    await moveCash(tx, input.fundingAccountId!, -cashOut, now);
+    await upsertPosition(tx, input.assetId!, input.custodyAccountId!, quantity, assetCost, now);
+    await updateAssetTotals(tx, input.assetId!, quantity, assetCost, now, input.price ?? 0);
+    await tx.insert(ledgerEntries).values([
       {
         transaction_id: transaction.id,
         account_id: input.fundingAccountId,
@@ -314,13 +344,13 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
 
   if (input.type === 'sell') {
     const sourceCustodyId = input.fromCustodyAccountId ?? input.custodyAccountId!;
-    const source = await getPosition(input.assetId!, sourceCustodyId);
+    const source = await getPosition(tx, input.assetId!, sourceCustodyId);
     const costRemoved = source && source.quantity > 0 ? (source.cost_basis / source.quantity) * quantity : 0;
     const netProceeds = (input.grossProceeds ?? input.amount) - fees - tax;
-    await moveCash(input.receiveAccountId!, netProceeds, now);
-    await upsertPosition(input.assetId!, sourceCustodyId, -quantity, -costRemoved, now);
-    await updateAssetTotals(input.assetId!, -quantity, -costRemoved, now);
-    await db.insert(ledgerEntries).values([
+    await moveCash(tx, input.receiveAccountId!, netProceeds, now);
+    await upsertPosition(tx, input.assetId!, sourceCustodyId, -quantity, -costRemoved, now);
+    await updateAssetTotals(tx, input.assetId!, -quantity, -costRemoved, now);
+    await tx.insert(ledgerEntries).values([
       {
         transaction_id: transaction.id,
         account_id: sourceCustodyId,
@@ -355,11 +385,15 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
   }
 
   if (input.type === 'transfer') {
-    const source = await getPosition(input.assetId!, input.fromCustodyAccountId!);
+    if (transferFee > 0) {
+      await assertActiveAccount(tx, input.fundingAccountId, 'Transfer fee requires a cash funding account.');
+      await moveCash(tx, input.fundingAccountId!, -transferFee, now);
+    }
+    const source = await getPosition(tx, input.assetId!, input.fromCustodyAccountId!);
     const costMoved = source && source.quantity > 0 ? (source.cost_basis / source.quantity) * quantity : 0;
-    await upsertPosition(input.assetId!, input.fromCustodyAccountId!, -quantity, -costMoved, now);
-    await upsertPosition(input.assetId!, input.toCustodyAccountId!, quantity, costMoved, now);
-    await db.insert(ledgerEntries).values([
+    await upsertPosition(tx, input.assetId!, input.fromCustodyAccountId!, -quantity, -costMoved, now);
+    await upsertPosition(tx, input.assetId!, input.toCustodyAccountId!, quantity, costMoved, now);
+    await tx.insert(ledgerEntries).values([
       {
         transaction_id: transaction.id,
         account_id: input.fromCustodyAccountId,
@@ -383,7 +417,7 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
       ...(transferFee > 0
         ? [{
             transaction_id: transaction.id,
-            account_id: input.fromCustodyAccountId,
+            account_id: input.fundingAccountId,
             asset_id: input.assetId,
             entry_type: 'fee' as const,
             amount: transferFee,
@@ -395,7 +429,17 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
     ]);
   }
 
+  if (['deposit','dividend','interest','adjustment','withdraw','fee'].includes(input.type)) {
+    const incoming = ['deposit','dividend','interest','adjustment'].includes(input.type);
+    const id = incoming ? input.receiveAccountId : input.fundingAccountId;
+    await assertActiveAccount(tx, id, 'Select the cash account for this transaction.');
+    const delta = incoming ? input.amount : -input.amount;
+    await moveCash(tx, id!, delta, now);
+    await tx.insert(ledgerEntries).values({ transaction_id: transaction.id, account_id: id, asset_id: input.assetId,
+      entry_type: incoming ? 'cash_credit' : 'cash_debit', amount: delta, currency: input.currency, created_at: now });
+  }
   return transaction;
+  });
 }
 
 export async function getAssetLifecycleSummary(assetId: number): Promise<AssetLifecycleSummary> {
@@ -403,7 +447,7 @@ export async function getAssetLifecycleSummary(assetId: number): Promise<AssetLi
     db.select().from(assets).where(eq(assets.id, assetId)).limit(1).then((rows) => rows[0] ?? null),
     db.select().from(transactions).where(eq(transactions.asset_id, assetId)).orderBy(desc(transactions.transaction_date)),
     db.select().from(assetCustodyPositions).where(eq(assetCustodyPositions.asset_id, assetId)),
-    db.select().from(accountRegistry),
+    getEffectiveAccounts(),
   ]);
 
   const accountMap = new Map(accounts.map((account) => [account.id, account]));
@@ -460,8 +504,9 @@ export async function getAssetLifecycleSummary(assetId: number): Promise<AssetLi
 }
 
 export async function getLifecycleDashboard() {
+  const rate = await getUsdVndRate();
   const [accounts, positions, allAssets, recentTransactions] = await Promise.all([
-    db.select().from(accountRegistry),
+    getEffectiveAccounts(),
     db.select().from(assetCustodyPositions),
     db.select().from(assets),
     db.select().from(transactions).orderBy(desc(transactions.transaction_date), desc(transactions.created_at)).limit(12),
@@ -472,7 +517,7 @@ export async function getLifecycleDashboard() {
   const activeAccounts = accounts.filter((account) => account.status === 'active');
   const cashByAccount = activeAccounts
     .filter((account) => ['bank_account', 'cash_location', 'broker_account'].includes(account.type))
-    .map((account) => ({ account, balance: account.current_balance }));
+    .map((account) => ({ account, balance: normalizeToUsd(account.current_balance, account.currency, rate) }));
 
   const assetsByCustody = positions
     .filter((position) => position.quantity > EPSILON)
@@ -480,9 +525,9 @@ export async function getLifecycleDashboard() {
       account: accountMap.get(position.custody_account_id),
       asset: assetMap.get(position.asset_id),
       quantity: position.quantity,
-      costBasis: position.cost_basis,
+      costBasis: normalizeToUsd(position.cost_basis, assetMap.get(position.asset_id)?.currency ?? 'USD', rate),
     }))
-    .filter((row) => row.account && row.asset);
+    .filter((row) => row.account?.status === 'active' && row.asset && !row.asset.is_archived);
 
   const cryptoPositions = assetsByCustody.filter((row) => row.asset?.asset_class === 'crypto');
   const cryptoByWallet = cryptoPositions
@@ -509,8 +554,8 @@ export async function getLifecycleDashboard() {
   const coldStorage = cryptoPositions
     .filter((row) => row.account?.type === 'crypto_wallet')
     .reduce((sum, row) => sum + row.costBasis, 0);
-  const investedCapital = positions.reduce((sum, position) => sum + position.cost_basis, 0);
-  const lifetimePnl = allAssets.reduce((sum, asset) => sum + (asset.current_value - (asset.cost_basis ?? 0)), 0);
+  const investedCapital = assetsByCustody.reduce((sum, position) => sum + position.costBasis, 0);
+  const lifetimePnl = allAssets.filter(a => !a.is_archived).reduce((sum, asset) => sum + normalizeToUsd(asset.current_value - (asset.cost_basis ?? 0), asset.currency, rate), 0);
 
   return {
     cashByAccount,
@@ -540,7 +585,7 @@ function transactionUsesAccount(transaction: typeof transactions.$inferSelect, a
 
 export async function getAccountRegistryMetrics(): Promise<AccountRegistryMetrics[]> {
   const [allAccounts, txns, positions] = await Promise.all([
-    db.select().from(accountRegistry),
+    getEffectiveAccounts(),
     db.select().from(transactions),
     db.select().from(assetCustodyPositions),
   ]);
@@ -567,8 +612,9 @@ export async function getAccountRegistryMetrics(): Promise<AccountRegistryMetric
 }
 
 export async function getAccountDetailSummary(accountId: number): Promise<AccountDetailSummary | null> {
+  const rate = await getUsdVndRate();
   const [account, txns, allAssets, positions] = await Promise.all([
-    db.select().from(accountRegistry).where(eq(accountRegistry.id, accountId)).limit(1).then((rows) => rows[0] ?? null),
+    getEffectiveAccounts().then(rows => rows.find(a => a.id === accountId) ?? null),
     db.select().from(transactions).where(or(
       eq(transactions.funding_account_id, accountId),
       eq(transactions.execution_account_id, accountId),
@@ -600,7 +646,7 @@ export async function getAccountDetailSummary(accountId: number): Promise<Accoun
         quantity: position.quantity,
         costBasis: position.cost_basis,
       }))
-      .filter((row): row is { asset: Asset; quantity: number; costBasis: number } => Boolean(row.asset)),
+      .filter((row): row is { asset: Asset; quantity: number; costBasis: number } => Boolean(row.asset && !row.asset.is_archived && !row.asset.cash_source_type)),
     transfersIn: txns.filter((transaction) => transaction.to_custody_account_id === accountId),
     transfersOut: txns.filter((transaction) => transaction.from_custody_account_id === accountId),
     realizedPnl: txns

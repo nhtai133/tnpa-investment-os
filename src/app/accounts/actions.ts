@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { accountRegistry, transactions, type AccountType } from '@/db/schema';
+import { bankAccounts, accountRegistry, transactions, type AccountType } from '@/db/schema';
 import { or, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -23,14 +23,18 @@ export async function createAccount(formData: FormData) {
   const type = str(formData, 'type') as AccountType | null;
   if (!name || !type) throw new Error('Account name and type are required.');
 
+  const bankId = num(formData, 'bank_account_id') || null;
+  const bank = bankId ? (await db.select().from(bankAccounts).where(eq(bankAccounts.id, bankId)))[0] : null;
+  if (bankId && (!bank || type !== 'bank_account')) throw new Error('Select an existing bank account and bank_account type.');
   const now = new Date().toISOString();
   await db.insert(accountRegistry).values({
+    bank_account_id: bankId,
     name,
     type,
     institution: str(formData, 'institution'),
     account_number_masked: str(formData, 'account_number_masked'),
-    currency: str(formData, 'currency') ?? 'USD',
-    current_balance: num(formData, 'current_balance'),
+    currency: bank?.currency ?? str(formData, 'currency') ?? 'USD',
+    current_balance: bank ? 0 : num(formData, 'current_balance'),
     status: 'active',
     notes: str(formData, 'notes'),
     created_at: now,

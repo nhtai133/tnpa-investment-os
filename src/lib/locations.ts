@@ -1,3 +1,7 @@
+import { getEffectiveAccounts } from './cash-balances';
+import { getUsdVndRate } from './settings';
+import { normalizeToUsd } from './fx';
+import { getPortfolioSummary } from './portfolio-aggregation';
 import { db } from '@/db';
 import { accountRegistry, assetCustodyPositions, assets, transactions } from '@/db/schema';
 import { desc } from 'drizzle-orm';
@@ -85,8 +89,9 @@ export async function getPortfolioLocations(): Promise<{
   totalValue: number;
   grouped: Record<string, LocationSummary[]>;
 }> {
+  const rate = await getUsdVndRate();
   const [accounts, positions, allAssets, allTxns] = await Promise.all([
-    db.select().from(accountRegistry),
+    getEffectiveAccounts(),
     db.select().from(assetCustodyPositions),
     db.select().from(assets),
     db.select().from(transactions).orderBy(desc(transactions.transaction_date)),
@@ -94,7 +99,7 @@ export async function getPortfolioLocations(): Promise<{
 
   const assetMap = new Map(allAssets.map((a) => [a.id, a]));
 
-  const locations: LocationSummary[] = accounts.map((account) => {
+  const locations: LocationSummary[] = accounts.filter(a => a.status === 'active').map((account) => {
     const accountPositions = positions.filter(
       (p) => p.custody_account_id === account.id && p.quantity > EPSILON,
     );
@@ -104,12 +109,12 @@ export async function getPortfolioLocations(): Promise<{
 
     for (const pos of accountPositions) {
       const asset = assetMap.get(pos.asset_id);
-      if (!asset) continue;
+      if (!asset || asset.is_archived || asset.cash_source_type) continue;
       const pricePerUnit =
         asset.quantity && asset.quantity > 0 ? asset.current_value / asset.quantity : 0;
       const marketValue = pricePerUnit * pos.quantity;
-      custodyValue += marketValue;
-      unrealizedPnl += marketValue - pos.cost_basis;
+      custodyValue += normalizeToUsd(marketValue, asset.currency, rate);
+      unrealizedPnl += normalizeToUsd(marketValue - pos.cost_basis, asset.currency, rate);
     }
 
     const linkedTxns = allTxns.filter((t) => transactionLinksAccount(t, account.id));
@@ -120,10 +125,10 @@ export async function getPortfolioLocations(): Promise<{
           t.type === 'sell' &&
           (t.execution_account_id === account.id || t.receive_account_id === account.id),
       )
-      .reduce((sum, t) => sum + (t.realized_pnl ?? 0), 0);
+      .reduce((sum, t) => sum + normalizeToUsd(t.realized_pnl ?? 0, t.currency, rate), 0);
 
     const lastActivity = linkedTxns.length > 0 ? linkedTxns[0].transaction_date : null;
-    const cashBalance = account.current_balance;
+    const cashBalance = normalizeToUsd(account.current_balance, account.currency, rate);
     const totalValue = cashBalance + custodyValue;
 
     return {
@@ -145,8 +150,9 @@ export async function getPortfolioLocations(): Promise<{
   });
 
   const totalValue = locations.reduce((sum, l) => sum + l.totalValue, 0);
+  const netWorth = (await getPortfolioSummary()).totalNetWorth;
   for (const loc of locations) {
-    loc.netWorthPct = totalValue > 0 ? (loc.totalValue / totalValue) * 100 : 0;
+    loc.netWorthPct = netWorth > 0 ? (loc.totalValue / netWorth) * 100 : 0;
   }
 
   locations.sort((a, b) => b.totalValue - a.totalValue);

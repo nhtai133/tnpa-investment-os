@@ -30,6 +30,8 @@ export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
 export const assets = sqliteTable('assets', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
+  cash_source_type: text('cash_source_type', { enum: ['bank_account', 'deposit', 'registry'] }),
+  cash_source_id: integer('cash_source_id'),
   symbol: text('symbol'),
   asset_class: text('asset_class', { enum: ASSET_CLASSES }).notNull(),
   purpose: text('purpose', { enum: ASSET_PURPOSES }).notNull(),
@@ -356,6 +358,7 @@ export const bankCreditFacilities = sqliteTable('bank_credit_facilities', {
 
 export const accountRegistry = sqliteTable('account_registry', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  bank_account_id: integer('bank_account_id').references(() => bankAccounts.id).unique(),
   name: text('name').notNull(),
   type: text('type', { enum: ACCOUNT_TYPES }).notNull(),
   institution: text('institution'),

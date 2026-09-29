@@ -75,7 +75,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Metric label="Cash Balance" value={formatValue(account.current_balance, account.currency)} />
-          <Metric label="Stock Value" value={formatValue(totalStockValue, account.currency)} />
+          <Metric label="Stock Value" value={formatValue(totalStockValue, 'USD')} />
           <Metric
             label="Realized P&L"
             value={formatValue(summary.realizedPnl, account.currency)}
@@ -148,7 +148,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
                           {formatValue(marketValue, row.asset.currency)}
                         </td>
                         <td className="px-5 py-3 text-zinc-500 tabular-nums">
-                          {formatValue(row.costBasis, row.asset.currency)}
+                          {formatValue(row.costBasis, 'USD')}
                         </td>
                         <td className="px-5 py-3">
                           <span

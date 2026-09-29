@@ -1,14 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import { Sidebar } from '@/components/nav/Sidebar';
 import { MobileNavSystem } from '@/components/nav/MobileNavSystem';
 import './globals.css';
+export const dynamic = 'force-dynamic';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'TNPA Wealth OS',
@@ -30,7 +25,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" >
       <body className="bg-[#0C0C0E] text-zinc-100 font-sans">
         <div className="flex h-screen">
           <Sidebar />

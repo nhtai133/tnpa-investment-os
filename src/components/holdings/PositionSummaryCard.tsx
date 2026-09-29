@@ -1,3 +1,4 @@
+import { normalizeToUsd } from '@/lib/fx';
 import { Card, CardHeader, Badge } from '@/components/ui/Card';
 import {
   formatCurrency,
@@ -14,6 +15,7 @@ import type { Asset } from '@/db/schema';
 interface PositionSummaryCardProps {
   asset: Asset;
   totalNetWorth: number;
+  usdVndRate: number;
 }
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -25,8 +27,8 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-export function PositionSummaryCard({ asset, totalNetWorth }: PositionSummaryCardProps) {
-  const weight = totalNetWorth > 0 ? (asset.current_value / totalNetWorth) * 100 : 0;
+export function PositionSummaryCard({ asset, totalNetWorth, usdVndRate }: PositionSummaryCardProps) {
+  const weight = totalNetWorth > 0 ? (normalizeToUsd(asset.current_value, asset.currency, usdVndRate) / totalNetWorth) * 100 : 0;
   const gain = asset.cost_basis != null ? asset.current_value - asset.cost_basis : null;
   const gainPct =
     asset.cost_basis != null && asset.cost_basis > 0

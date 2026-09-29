@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Badge, Card, CardHeader } from '@/components/ui/Card';
 import {
   CRYPTO_CHAINS,
@@ -62,15 +62,37 @@ export function CryptoPortfolioClient() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
+  const [saveError, setSaveError] = useState('');
+  const saveQueue = useRef(Promise.resolve());
   useEffect(() => {
-    setWallets(loadWallets());
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (loaded) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(wallets));
+    let cancelled = false;
+    async function load() {
+      try {
+        const response = await fetch('/api/wallets', { cache: 'no-store' });
+        if (!response.ok) throw new Error();
+        const saved: CryptoWallet[] = await response.json();
+        const legacy = loadWallets();
+        const merged = [...saved, ...legacy.filter(w => !saved.some(s => s.id === w.id))];
+        if (legacy.length) {
+          const result = await fetch('/api/wallets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(merged) });
+          if (!result.ok) throw new Error();
+          window.localStorage.removeItem(STORAGE_KEY);
+        }
+        if (!cancelled) { setWallets(merged); setLoaded(true); }
+      } catch { if (!cancelled) setSaveError('Local address book could not be loaded. Existing browser data has been retained.'); }
     }
+    void load();
+    return () => { cancelled = true; };
+  }, []);
+  useEffect(() => {
+    if (!loaded) return;
+    saveQueue.current = saveQueue.current.then(async () => {
+      try {
+        const response = await fetch('/api/wallets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(wallets) });
+        if (!response.ok) throw new Error();
+        setSaveError('');
+      } catch { setSaveError('Address book changes have not been saved. Keep this page open and retry your edit.'); }
+    });
   }, [loaded, wallets]);
 
   function resetForm() {
@@ -80,6 +102,7 @@ export function CryptoPortfolioClient() {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!loaded) return;
 
     const name = form.name.trim();
     const address = form.address.trim();
@@ -135,6 +158,7 @@ export function CryptoPortfolioClient() {
 
   return (
     <div className="space-y-4">
+      {saveError && <p role="alert" className="text-red-400">{saveError}</p>}
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
         <p className="text-sm font-medium text-amber-200">
           Never enter seed phrase, private key, or recovery phrase. TNPA Investment OS only tracks

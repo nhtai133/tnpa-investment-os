@@ -48,7 +48,7 @@ export function LocationsSummary({ locations, totalValue }: Props) {
             Assets by Location
           </span>
           <span className="text-[11px] text-zinc-700">
-            {active.length} active · {formatValue(totalValue, 'VND')} tracked
+            {active.length} active · {formatValue(totalValue, 'USD')} tracked
           </span>
         </div>
         <Link
@@ -80,7 +80,7 @@ export function LocationsSummary({ locations, totalValue }: Props) {
                     </span>
                   )}
                   <span className="text-[11px] text-zinc-500 tabular-nums">
-                    {formatValue(groupTotal, 'VND')}
+                    {formatValue(groupTotal, 'USD')}
                   </span>
                   <span className="text-[11px] text-zinc-700 tabular-nums w-[36px] text-right">
                     {groupPct.toFixed(1)}%
@@ -121,7 +121,7 @@ export function LocationsSummary({ locations, totalValue }: Props) {
                   {/* Value + % */}
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm text-zinc-100 tabular-nums font-medium">
-                      {formatValue(loc.totalValue, loc.account.currency)}
+                      {formatValue(loc.totalValue, 'USD')}
                     </p>
                     <p className="text-[11px] text-zinc-600 tabular-nums">
                       {formatWeight(loc.netWorthPct)}

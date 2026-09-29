@@ -1,3 +1,4 @@
+import { getPortfolioSummary } from '@/lib/portfolio-aggregation';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -35,7 +36,8 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
   if (!asset) notFound();
 
-  const totalNW = computeTotalNetWorth(allAssets, 1);
+  const portfolio = await getPortfolioSummary();
+  const totalNW = portfolio.totalNetWorth;
 
   // Breadcrumb: if asset has a single custody location, show Locations > Account > Asset
   // If multiple custody locations, show Locations > Asset
@@ -102,7 +104,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
-        <PositionSummaryCard asset={asset} totalNetWorth={totalNW} />
+        <PositionSummaryCard usdVndRate={portfolio.usdVndRate} asset={asset} totalNetWorth={totalNW} />
 
         {/* Asset Journey Card — funding → execution → custody → value → gain/loss */}
         <AssetJourneyCard lifecycle={lifecycle} asset={asset} />

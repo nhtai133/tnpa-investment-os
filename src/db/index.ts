@@ -1,11 +1,8 @@
-import { createClient } from '@libsql/client';
+import { createClient } from '@libsql/client/sqlite3';
 import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from './schema';
-import { EFFECTIVE_DB_URL, EFFECTIVE_AUTH_TOKEN } from '@/lib/env';
-
-const client = createClient({
-  url: EFFECTIVE_DB_URL,
-  ...(EFFECTIVE_AUTH_TOKEN ? { authToken: EFFECTIVE_AUTH_TOKEN } : {}),
-});
-
+import { EFFECTIVE_DB_URL } from '@/lib/env';
+import { requireInitializedDatabase } from '@/lib/local-paths';
+requireInitializedDatabase();
+export const client = createClient({ url: EFFECTIVE_DB_URL });
 export const db = drizzle(client, { schema });

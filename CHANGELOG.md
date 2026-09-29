@@ -2,6 +2,15 @@
 
 All meaningful changes to TNPA Investment OS should be recorded here.
 
+## v2.1.5 — Local-only foundation
+
+- Added schema-only, idempotent local database initialization at `~/.tnpa-wealth-os/database/wealth.db`; initialization and legacy migration entry points no longer insert demo records.
+- Bound supported development/runtime commands to loopback and disabled Next.js telemetry; local database configuration fails closed instead of falling back to Turso.
+- Moved backup, export, snapshots, and app settings such as wallet addresses into the private local data root; validated full-table imports and snapshot current data before restore.
+- Unified bank-account and registry cash references, normalized portfolio balances to USD, and added regression coverage for cash aggregation and lifecycle accounting.
+- Added local-only security documentation and ADR 0005.
+- Validation: lint, build, local foundation tests, typecheck, and source-only check.
+
 ## 2026-06-05
 
 - Built Phase 4: Holdings Registry (13 new files, 1 modified).

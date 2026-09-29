@@ -17,13 +17,13 @@ export interface PurposeBreakdown {
 
 export function computeInvestmentNetWorth(assets: Asset[], usdVndRate: number): number {
   return assets
-    .filter((a) => a.include_in_investment_net_worth)
+    .filter((a) => !a.is_archived && !a.cash_source_type && a.include_in_investment_net_worth)
     .reduce((sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate), 0);
 }
 
 export function computeTotalNetWorth(assets: Asset[], usdVndRate: number, liabilitiesUsd = 0): number {
   const assetValue = assets
-    .filter((a) => a.include_in_total_net_worth)
+    .filter((a) => !a.is_archived && !a.cash_source_type && a.include_in_total_net_worth)
     .reduce((sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate), 0);
   return assetValue - liabilitiesUsd;
 }
@@ -33,7 +33,7 @@ export function computeAssetClassBreakdown(
   investmentNetWorth: number,
   usdVndRate: number,
 ): AssetClassBreakdown[] {
-  const investableAssets = assets.filter((a) => a.include_in_investment_net_worth);
+  const investableAssets = assets.filter((a) => !a.is_archived && !a.cash_source_type && a.include_in_investment_net_worth);
   const map = new Map<AssetClass, { value: number; count: number }>();
 
   for (const asset of investableAssets) {
@@ -59,7 +59,7 @@ export function computePurposeBreakdown(
 ): PurposeBreakdown[] {
   const map = new Map<AssetPurpose, { value: number; count: number }>();
 
-  for (const asset of assets.filter((a) => a.include_in_total_net_worth)) {
+  for (const asset of assets.filter((a) => !a.is_archived && !a.cash_source_type && a.include_in_total_net_worth)) {
     const existing = map.get(asset.purpose) ?? { value: 0, count: 0 };
     map.set(asset.purpose, {
       value: existing.value + normalizeToUsd(asset.current_value, asset.currency, usdVndRate),
@@ -84,7 +84,7 @@ export function hasMultipleCurrencies(assets: Asset[]): boolean {
 
 export function computeTopHoldings(assets: Asset[], totalNetWorth: number, usdVndRate: number) {
   return [...assets]
-    .filter((a) => a.include_in_total_net_worth)
+    .filter((a) => !a.is_archived && !a.cash_source_type && a.include_in_total_net_worth)
     .sort(
       (a, b) =>
         normalizeToUsd(b.current_value, b.currency, usdVndRate) -

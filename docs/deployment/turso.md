@@ -1,3 +1,5 @@
+> LEGACY / DISABLED as of v2.1.5. Do not follow these historical deployment instructions. This project is local-only; see ../LOCAL_ONLY_SECURITY_MODEL.md.
+
 # Turso Cloud Database Setup
 
 TNPA Investment OS uses `@libsql/client`, which speaks the same protocol for both local SQLite files and Turso remote databases. Switching to Turso requires only two environment variables — no code changes.

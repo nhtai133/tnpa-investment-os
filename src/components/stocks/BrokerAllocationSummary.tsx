@@ -49,13 +49,13 @@ export function BrokerAllocationSummary({ brokers }: Props) {
                     </Link>
                   </td>
                   <td className="px-5 py-2.5 text-zinc-300 tabular-nums whitespace-nowrap">
-                    {formatValue(row.stockCustodyValue, row.broker.currency)}
+                    {formatValue(row.stockCustodyValue, 'USD')}
                   </td>
                   <td className="px-5 py-2.5 text-zinc-500 tabular-nums whitespace-nowrap">
-                    {formatValue(row.cashBalance, row.broker.currency)}
+                    {formatValue(row.cashBalance, 'USD')}
                   </td>
                   <td className="px-5 py-2.5 text-zinc-200 tabular-nums whitespace-nowrap font-medium">
-                    {formatValue(row.totalValue, row.broker.currency)}
+                    {formatValue(row.totalValue, 'USD')}
                   </td>
                   <td className="px-5 py-2.5 whitespace-nowrap">
                     <div className="flex items-center gap-2">
@@ -77,7 +77,7 @@ export function BrokerAllocationSummary({ brokers }: Props) {
                       }`}
                     >
                       {totalPnl >= 0 ? '+' : ''}
-                      {formatValue(totalPnl, row.broker.currency)}
+                      {formatValue(totalPnl, 'USD')}
                     </span>
                   </td>
                 </tr>

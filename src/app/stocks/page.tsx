@@ -30,7 +30,7 @@ export default async function StocksPage() {
 
   // Derived KPI values
   const brokerCash = brokerBreakdown.reduce((sum, b) => sum + b.cashBalance, 0);
-  const totalWorkspaceValue = classValue + brokerCash;
+  const totalWorkspaceValue = classValueUsd + brokerCash;
 
   // Build per-asset metadata map with IDs for linkable columns
   const assetMeta = new Map<number, AssetAccountMeta>();
@@ -101,17 +101,17 @@ export default async function StocksPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
             label="Stock Market Value"
-            value={formatValue(classValue, 'VND')}
+            value={formatValue(classValueUsd, 'USD')}
             sub={classValueUsd ? `≈ ${formatValue(classValueUsd, 'USD')}` : undefined}
           />
           <KpiCard
             label="Broker Cash"
-            value={formatValue(brokerCash, 'VND')}
+            value={formatValue(brokerCash, 'USD')}
             sub={`${brokerBreakdown.length} broker${brokerBreakdown.length !== 1 ? 's' : ''}`}
           />
           <KpiCard
             label="Total Workspace"
-            value={formatValue(totalWorkspaceValue, 'VND')}
+            value={formatValue(totalWorkspaceValue, 'USD')}
             highlight
           />
           <KpiCard

@@ -19,10 +19,11 @@ export async function getModuleData(assetClass: AssetClass) {
   const classAssets = allAssets.filter((a) => a.asset_class === assetClass);
   const investmentNW = portfolio.investmentNetWorth;
   const totalNW = portfolio.totalNetWorth;
-  const classValue = classAssets.reduce((s, a) => s + a.current_value, 0);
+
   const classValueUsd = classAssets.reduce(
     (s, a) => s + normalizeToUsd(a.current_value, a.currency, usdVndRate),
     0,
   );
+  const classValue = assetClass === 'crypto' ? classValueUsd : classValueUsd * usdVndRate;
   return { classAssets, allAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate, creditLiabilityUsd: portfolio.liabilityValueUsd };
 }

@@ -41,9 +41,9 @@ export default async function LocationsPage() {
         {/* Summary KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard label="Active Locations" value={String(activeCount)} sub={`${locations.length} total`} />
-          <KpiCard label="Total Cash" value={formatValue(totalCash, 'VND')} />
-          <KpiCard label="Asset / Custody Value" value={formatValue(totalCustody, 'VND')} />
-          <KpiCard label="Total Value Tracked" value={formatValue(totalValue, 'VND')} highlight />
+          <KpiCard label="Total Cash" value={formatValue(totalCash, 'USD')} />
+          <KpiCard label="Asset / Custody Value" value={formatValue(totalCustody, 'USD')} />
+          <KpiCard label="Total Value Tracked" value={formatValue(totalValue, 'USD')} highlight />
         </div>
 
         {/* Grouped sections */}
@@ -55,7 +55,7 @@ export default async function LocationsPage() {
           const groupCash = rows.reduce((sum, r) => sum + r.cashBalance, 0);
           const groupCustody = rows.reduce((sum, r) => sum + r.custodyValue, 0);
           const hasActivity = rows.some((r) => !r.isEmpty);
-          const summary = `${formatValue(groupTotal, rows[0].account.currency)} · ${rows.length} location${rows.length !== 1 ? 's' : ''}`;
+          const summary = `${formatValue(groupTotal, 'USD')} · ${rows.length} location${rows.length !== 1 ? 's' : ''}`;
 
           return (
             <CollapsibleSection
@@ -68,9 +68,9 @@ export default async function LocationsPage() {
                 {/* Group totals strip */}
                 {hasActivity && (
                   <div className="flex flex-wrap gap-x-6 gap-y-1 px-1 pb-1 text-xs text-zinc-600">
-                    <span>Cash: <span className="text-zinc-400">{formatValue(groupCash, rows[0].account.currency)}</span></span>
-                    <span>Assets: <span className="text-zinc-400">{formatValue(groupCustody, rows[0].account.currency)}</span></span>
-                    <span>Total: <span className="text-zinc-300 font-medium">{formatValue(groupTotal, rows[0].account.currency)}</span></span>
+                    <span>Cash: <span className="text-zinc-400">{formatValue(groupCash, 'USD')}</span></span>
+                    <span>Assets: <span className="text-zinc-400">{formatValue(groupCustody, 'USD')}</span></span>
+                    <span>Total: <span className="text-zinc-300 font-medium">{formatValue(groupTotal, 'USD')}</span></span>
                   </div>
                 )}
 
@@ -121,7 +121,7 @@ export default async function LocationsPage() {
                         {/* Cash */}
                         <div className="text-right hidden sm:block w-[110px]">
                           <p className="text-xs text-zinc-400 tabular-nums">
-                            {formatValue(loc.cashBalance, loc.account.currency)}
+                            {formatValue(loc.cashBalance, 'USD')}
                           </p>
                           <p className="text-[11px] text-zinc-700">cash</p>
                         </div>
@@ -131,7 +131,7 @@ export default async function LocationsPage() {
                           {loc.custodyValue > 0 ? (
                             <>
                               <p className="text-xs text-zinc-400 tabular-nums">
-                                {formatValue(loc.custodyValue, loc.account.currency)}
+                                {formatValue(loc.custodyValue, 'USD')}
                               </p>
                               <p className="text-[11px] text-zinc-700">{loc.positionCount} position{loc.positionCount !== 1 ? 's' : ''}</p>
                             </>
@@ -143,7 +143,7 @@ export default async function LocationsPage() {
                         {/* Total */}
                         <div className="text-right w-[110px]">
                           <p className="text-sm text-zinc-100 tabular-nums font-medium">
-                            {formatValue(loc.totalValue, loc.account.currency)}
+                            {formatValue(loc.totalValue, 'USD')}
                           </p>
                           <p className="text-[11px] text-zinc-600 tabular-nums">
                             {formatWeight(loc.netWorthPct)}

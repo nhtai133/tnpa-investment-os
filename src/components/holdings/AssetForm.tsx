@@ -34,16 +34,24 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
 }
 
 interface AssetFormProps {
+  cashSources?: { value: string; label: string }[];
   action: (formData: FormData) => Promise<void>;
   defaultValues?: Partial<Asset>;
 }
 
-export function AssetForm({ action, defaultValues }: AssetFormProps) {
+export function AssetForm({ action, defaultValues, cashSources = [] }: AssetFormProps) {
   const isEdit = !!defaultValues;
   const [currency, setCurrency] = useState(defaultValues?.currency ?? 'USD');
 
   return (
     <form action={action} className="space-y-5">
+      <Field label="Cash already recorded elsewhere (cash assets only)">
+        <select name="cash_source" className={inputClass} defaultValue={defaultValues?.cash_source_type ? `${defaultValues.cash_source_type}:${defaultValues.cash_source_id}` : ''}>
+          <option value="">Independent holding — count this value</option>
+          {cashSources.map(source => <option key={source.value} value={source.value}>{source.label}</option>)}
+        </select>
+        <p className="text-xs text-zinc-500">Link duplicate cash to count only the authoritative account or deposit balance.</p>
+      </Field>
       {/* Row 1: Name + Symbol */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">

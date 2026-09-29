@@ -1,3 +1,5 @@
+> LEGACY / DISABLED as of v2.1.5. Do not follow these historical deployment instructions. This project is local-only; see ../LOCAL_ONLY_SECURITY_MODEL.md.
+
 # Deploying TNPA Investment OS to Vercel
 
 TNPA Investment OS (v2.0) is a Next.js 14 App Router application. It deploys cleanly to Vercel with Turso as the cloud database.

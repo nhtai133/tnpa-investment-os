@@ -1,8 +1,11 @@
+import { getCashSourceOptions } from '@/lib/cash-balances';
 import Link from 'next/link';
 import { createAsset } from '@/app/holdings/actions';
 import { AssetForm } from '@/components/holdings/AssetForm';
 
-export default function NewAssetPage() {
+export const dynamic = 'force-dynamic';
+export default async function NewAssetPage() {
+  const cashSources = await getCashSourceOptions();
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
@@ -24,7 +27,7 @@ export default function NewAssetPage() {
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-2xl">
           <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
-            <AssetForm action={createAsset} />
+            <AssetForm cashSources={cashSources} action={createAsset} />
           </div>
         </div>
       </main>
