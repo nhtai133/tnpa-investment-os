@@ -42,7 +42,7 @@ export default async function PerformancePage() {
   return (
     <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div id="performance" className="flex items-start justify-between gap-4 scroll-mt-6">
         <div>
           <h1 className="text-lg font-semibold text-zinc-100">{tr("Wealth Performance")}</h1>
           <p className="text-xs text-zinc-500 mt-0.5">
@@ -122,7 +122,7 @@ export default async function PerformancePage() {
       <PerformanceCharts data={chartData} />
 
       {/* Snapshot list */}
-      <div className="border border-[#26262B] rounded-xl bg-[#131316] overflow-hidden">
+      <div id="wealth-history" className="border border-[#26262B] rounded-xl bg-[#131316] overflow-hidden scroll-mt-6">
         <div className="px-5 py-3 border-b border-[#26262B] flex items-center justify-between">
           <p className="text-xs font-semibold text-zinc-300">{tr("Snapshot History")}</p>
           <p className="text-[10px] text-zinc-600">{snapshots.length} {tr("snapshot")}{snapshots.length !== 1 ? 's' : ''}</p>

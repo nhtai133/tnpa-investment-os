@@ -39,6 +39,7 @@ export interface LifecycleTransactionInput {
   toCustodyAccountId: number | null;
   transferFee: number | null;
   notes: string | null;
+  enforceAvailableCash?: boolean;
 }
 
 export interface AssetLifecycleSummary {
@@ -173,12 +174,15 @@ async function moveCash(store: Store, accountId: number, delta: number, now: str
 async function updateAssetTotals(store: Store, assetId: number, quantityDelta: number, costBasisDelta: number, now: string, initialPrice = 0) {
   const [asset] = await store.select().from(assets).where(eq(assets.id, assetId)).limit(1);
   if (!asset) return;
+  const nextQuantity = Math.max(0, (asset.quantity ?? 0) + quantityDelta);
+  const nextCostBasis = Math.max(0, (asset.cost_basis ?? 0) + costBasisDelta);
   await store
     .update(assets)
     .set({
       current_value: Math.max(0, asset.current_value + quantityDelta * ((asset.quantity ?? 0) > 0 ? asset.current_value / asset.quantity! : initialPrice)),
-      quantity: (asset.quantity ?? 0) + quantityDelta,
-      cost_basis: (asset.cost_basis ?? 0) + costBasisDelta,
+      quantity: nextQuantity,
+      cost_basis: nextCostBasis,
+      is_archived: nextQuantity <= EPSILON,
       updated_at: now,
     })
     .where(eq(assets.id, assetId));
@@ -222,7 +226,7 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
   const now = new Date().toISOString();
   const asset = await getAsset(tx, input.assetId);
   validateLifecycleInput(input, asset);
-  if (input.assetId && (!asset || asset.is_archived)) throw new Error('An active asset is required.');
+  if (input.assetId && (!asset || (asset.is_archived && !(asset.asset_class === 'stock' && ['buy', 'dividend'].includes(input.type))))) throw new Error('An active asset is required.');
   for (const value of [input.amount, input.quantity, input.price, input.fees, input.tax, input.transferFee, input.totalAmount, input.grossProceeds]) {
     if (value != null && (!Number.isFinite(value) || value < 0)) throw new Error('Amounts and quantities must be finite and nonnegative.');
   }
@@ -285,6 +289,15 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
     realizedPnl = proceeds - fees - tax - costRemoved;
   }
 
+  if (input.enforceAvailableCash && ['buy', 'withdraw', 'fee'].includes(input.type)) {
+    const accountId = input.fundingAccountId;
+    if (!accountId) throw new Error('Select the cash account for this transaction.');
+    const cashEntries = await tx.select().from(ledgerEntries).where(eq(ledgerEntries.account_id, accountId));
+    const available = cashEntries.reduce((sum, entry) => entry.entry_type === 'cash_credit' || entry.entry_type === 'cash_debit' ? sum + (entry.amount ?? 0) : sum, 0);
+    const required = input.type === 'buy' ? (input.totalAmount ?? input.amount) + fees + tax : input.amount;
+    if (available + EPSILON < required) throw new Error('Insufficient broker cash.');
+  }
+
   const inserted = await tx.insert(transactions).values({
     asset_id: input.assetId ?? undefined,
     type: input.type,
@@ -339,6 +352,8 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
         description: 'Asset position acquired into custody.',
         created_at: now,
       },
+      ...(fees > 0 ? [{ transaction_id: transaction.id, account_id: input.fundingAccountId, asset_id: input.assetId, entry_type: 'fee' as const, amount: fees, currency: input.currency, description: 'Purchase fee included in acquisition cost.', created_at: now }] : []),
+      ...(tax > 0 ? [{ transaction_id: transaction.id, account_id: input.fundingAccountId, asset_id: input.assetId, entry_type: 'tax' as const, amount: tax, currency: input.currency, description: 'Purchase tax included in acquisition cost.', created_at: now }] : []),
     ]);
   }
 
@@ -381,6 +396,8 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
         description: 'Realized profit or loss.',
         created_at: now,
       },
+      ...(fees > 0 ? [{ transaction_id: transaction.id, account_id: input.receiveAccountId, asset_id: input.assetId, entry_type: 'fee' as const, amount: fees, currency: input.currency, description: 'Sale fee deducted from proceeds.', created_at: now }] : []),
+      ...(tax > 0 ? [{ transaction_id: transaction.id, account_id: input.receiveAccountId, asset_id: input.assetId, entry_type: 'tax' as const, amount: tax, currency: input.currency, description: 'Sale tax withheld from proceeds.', created_at: now }] : []),
     ]);
   }
 
@@ -435,8 +452,12 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
     await assertActiveAccount(tx, id, 'Select the cash account for this transaction.');
     const delta = incoming ? input.amount : -input.amount;
     await moveCash(tx, id!, delta, now);
-    await tx.insert(ledgerEntries).values({ transaction_id: transaction.id, account_id: id, asset_id: input.assetId,
-      entry_type: incoming ? 'cash_credit' : 'cash_debit', amount: delta, currency: input.currency, created_at: now });
+    await tx.insert(ledgerEntries).values([
+      { transaction_id: transaction.id, account_id: id, asset_id: input.assetId,
+        entry_type: incoming ? 'cash_credit' : 'cash_debit', amount: delta, currency: input.currency, created_at: now },
+      ...(input.type === 'dividend' && tax > 0 ? [{ transaction_id: transaction.id, account_id: id, asset_id: input.assetId, entry_type: 'tax' as const, amount: tax, currency: input.currency, description: 'Dividend withholding tax; net receipt is credited to cash.', created_at: now }] : []),
+      ...(input.type === 'fee' && input.amount > 0 ? [{ transaction_id: transaction.id, account_id: id, asset_id: input.assetId, entry_type: 'fee' as const, amount: input.amount, currency: input.currency, description: 'Broker fee.', created_at: now }] : []),
+    ]);
   }
   return transaction;
   });

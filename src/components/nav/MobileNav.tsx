@@ -1,53 +1,20 @@
 'use client';
 import { tr } from '@/i18n';
-
-
+import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { MORE_PREFIXES } from '@/lib/nav';
+import { MORE_PREFIXES, MOBILE_PRIMARY_LINKS } from '@/lib/nav';
+import { useActiveNav } from './useActiveNav';
 
-const PRIMARY_ITEMS = [
-  {
-    label: 'Dashboard',
-    href: '/',
-    icon: (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-        <path d="M2 11l8-8 8 8v7a1 1 0 01-1 1H3a1 1 0 01-1-1v-7z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Holdings',
-    href: '/holdings',
-    icon: (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm0 6a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Buckets',
-    href: '/buckets',
-    icon: (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm6-6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Rebalancing',
-    href: '/rebalancing',
-    icon: (
-      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clipRule="evenodd" />
-      </svg>
-    ),
-  },
-];
+const ICONS: Record<string, ReactNode> = {
+  '/': <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M2 11l8-8 8 8v7a1 1 0 01-1 1H3a1 1 0 01-1-1v-7z" /></svg>,
+  '/banking': <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 2 1 7v2h18V7l-9-5ZM3 10v6H1v2h18v-2h-2v-6h-2v6h-3v-6h-2v6H7v-6H5v6H3v-6Z" /></svg>,
+  '/pipeline': <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="m10 1 2.2 5.3L18 8l-5.8 1.7L10 15l-2.2-5.3L2 8l5.8-1.7L10 1Zm6 11 1.1 2.4L20 15l-2.9.6L16 18l-1.1-2.4L12 15l2.9-.6L16 12ZM4 13l1.1 2.4L8 16l-2.9.6L4 19l-1.1-2.4L0 16l2.9-.6L4 13Z" /></svg>,
+  '/performance#performance': <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M2 16h16v2H2v-2Zm1-2 4-5 3 2 5-7 2 1-6 9-3-2-3 4-2-2Z" /></svg>,
+};
 
 const MORE_ICON = (
   <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z" />
   </svg>
 );
 
@@ -56,39 +23,35 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ onMenuOpen }: MobileNavProps) {
-  const pathname = usePathname();
-
-  function isActive(href: string): boolean {
-    return href === '/' ? pathname === '/' : pathname.startsWith(href);
-  }
-
-  const isMoreActive = MORE_PREFIXES.some((p) => pathname.startsWith(p));
+  const isActive = useActiveNav();
+  const isMoreActive = MORE_PREFIXES.some((prefix) => isActive(prefix));
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0C0C0E] border-t border-[#26262B] pb-safe">
+    <nav aria-label={tr('Primary navigation')} className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0C0C0E] border-t border-[#26262B] pb-safe">
       <div className="flex items-stretch h-16">
-        {PRIMARY_ITEMS.map((item) => (
+        {MOBILE_PRIMARY_LINKS.map((item) => (
           <Link
             key={item.href}
             href={item.href}
+            aria-current={isActive(item.href) ? 'page' : undefined}
             className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
               isActive(item.href) ? 'text-indigo-400' : 'text-zinc-600 hover:text-zinc-400'
             }`}
           >
-            {item.icon}
+            {ICONS[item.href]}
             <span className="text-[10px] font-medium leading-none">{tr(item.label)}</span>
           </Link>
         ))}
-
-        {/* More — opens drawer */}
         <button
           onClick={onMenuOpen}
+          aria-label={tr('More')}
+          aria-current={isMoreActive ? 'page' : undefined}
           className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${
             isMoreActive ? 'text-indigo-400' : 'text-zinc-600 hover:text-zinc-400'
           }`}
         >
           {MORE_ICON}
-          <span className="text-[10px] font-medium leading-none">{tr("More")}</span>
+          <span className="text-[10px] font-medium leading-none">{tr('More')}</span>
         </button>
       </div>
     </nav>

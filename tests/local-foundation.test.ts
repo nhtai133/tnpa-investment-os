@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { eq } from 'drizzle-orm';
 import { createClient } from '@libsql/client/sqlite3';
 import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from '../src/db/schema';
@@ -14,6 +15,20 @@ import { buildPortfolioSummary, type PortfolioInput } from '../src/lib/portfolio
 import { readBackup, restoreBackup, validateBackup, csvCell, TABLE_NAMES } from '../src/lib/backup';
 import { createLifecycleTransaction, type LifecycleTransactionInput } from '../src/lib/asset-lifecycle';
 import { tr, t } from '../src/i18n';
+import { NAV_GROUPS } from '../src/lib/nav';
+import { accountRegistry, assets, assetCustodyPositions, ledgerEntries, transactions } from '../src/db/schema';
+import { convertToVnd, getLedgerCashBalance, recordStockTransaction, setStockMarketPrice } from '../src/lib/stock-workspace';
+
+test('primary navigation follows the wealth management domains and hides infrastructure pages', () => {
+  assert.deepEqual(NAV_GROUPS.map((group) => group.label), ['Overview', 'Wealth', 'Investing', 'Reports', 'System']);
+  const links = NAV_GROUPS.flatMap((group) => group.links);
+  const routes = links.map(({ href }) => href.split('#')[0]);
+  for (const href of ['/locations', '/holdings', '/transactions', '/accounts', '/rebalancing', '/journal', '/system/production']) {
+    assert.equal(routes.includes(href), false, `${href} should stay out of primary navigation`);
+  }
+  assert.ok(links.some(({ label }) => tr(label) === 'Phân bổ tài sản'));
+  assert.ok(links.some(({ label }) => tr(label) === 'Lịch sử gia sản'));
+});
 
 async function fixture() {
   const directory = mkdtempSync(join(tmpdir(), 'tnpa-test-'));
@@ -23,6 +38,90 @@ async function fixture() {
   await initializeSchema(client);
   return { client, database: drizzle(client, { schema }) };
 }
+
+test('stock reference lifecycle keeps cash ledger driven through buy, valuation, dividend and full exit', async () => {
+  const { client, database } = await fixture();
+  try {
+    const now = new Date().toISOString();
+    const [account] = await database.insert(accountRegistry).values({
+      name: 'ACBS Securities', type: 'broker_account', institution: 'ACBS', currency: 'VND',
+      current_balance: 0, status: 'active', created_at: now, updated_at: now,
+    }).returning();
+    const [stock] = await database.insert(assets).values({
+      name: 'Vietcombank', symbol: 'VCB', asset_class: 'stock', purpose: 'wealth_compounder',
+      current_value: 0, currency: 'VND', quantity: 0, cost_basis: 0,
+      include_in_total_net_worth: true, include_in_investment_net_worth: true,
+      is_archived: false, created_at: now, updated_at: now,
+    }).returning();
+
+    await assert.rejects(recordStockTransaction({ type: 'buy', brokerAccountId: account.id, assetId: stock.id, date: '2026-09-30', currency: 'VND', quantity: 3_000, price: 60_000, fees: 200_000 }, database), /Insufficient broker cash/);
+    await recordStockTransaction({ type: 'deposit', brokerAccountId: account.id, date: '2026-09-30', currency: 'VND', amount: 500_000_000 }, database);
+    await recordStockTransaction({ type: 'buy', brokerAccountId: account.id, assetId: stock.id, date: '2026-09-30', currency: 'VND', quantity: 3_000, price: 60_000, fees: 200_000 }, database);
+    assert.equal(await getLedgerCashBalance(account.id, database), 319_800_000);
+    assert.equal((await database.select().from(accountRegistry).where(eq(accountRegistry.id, account.id)))[0].current_balance, 319_800_000);
+    await assert.rejects(recordStockTransaction({ type: 'sell', brokerAccountId: account.id, assetId: stock.id, date: '2026-09-30', currency: 'VND', quantity: 3_001, price: 60_000 }, database), /Cannot sell more than the available quantity/);
+
+    await setStockMarketPrice(stock.id, 70_000, database);
+    let [updatedStock] = await database.select().from(assets).where(eq(assets.id, stock.id));
+    let [position] = await database.select().from(assetCustodyPositions).where(eq(assetCustodyPositions.asset_id, stock.id));
+    assert.equal(updatedStock.current_value, 210_000_000);
+    assert.equal(position.cost_basis, 180_200_000);
+    assert.equal(updatedStock.current_value - position.cost_basis, 29_800_000);
+    assert.equal(await getLedgerCashBalance(account.id, database), 319_800_000, 'a price change must not create cash');
+    assert.equal(updatedStock.current_value + await getLedgerCashBalance(account.id, database), 529_800_000, 'workspace total is market value plus cash');
+    assert.equal((await database.select().from(transactions)).filter((row) => row.realized_pnl != null).length, 0, 'a price change must not create realized P&L');
+
+    await recordStockTransaction({ type: 'dividend', brokerAccountId: account.id, assetId: stock.id, date: '2026-09-30', currency: 'VND', amount: 5_000_000, tax: 250_000 }, database);
+    assert.equal(await getLedgerCashBalance(account.id, database), 324_550_000);
+
+    await recordStockTransaction({ type: 'sell', brokerAccountId: account.id, assetId: stock.id, date: '2026-09-30', currency: 'VND', quantity: 1_000, price: 75_000, fees: 100_000 }, database);
+    [updatedStock] = await database.select().from(assets).where(eq(assets.id, stock.id));
+    [position] = await database.select().from(assetCustodyPositions).where(eq(assetCustodyPositions.asset_id, stock.id));
+    assert.equal(position.quantity, 2_000);
+    assert.ok(Math.abs(position.cost_basis - 120_133_333.33333333) < 0.001);
+    assert.ok(Math.abs(position.cost_basis / position.quantity - 60_066.666666666664) < 0.000001);
+    assert.ok(Math.abs((updatedStock.current_value / updatedStock.quantity! - 70_000) * position.quantity) < 0.001);
+    assert.ok(Math.abs((await database.select().from(transactions).where(eq(transactions.type, 'sell')))[0].realized_pnl! - 14_833_333.33333333) < 0.001);
+    assert.equal(await getLedgerCashBalance(account.id, database), 399_450_000);
+
+    await recordStockTransaction({ type: 'sell', brokerAccountId: account.id, assetId: stock.id, date: '2026-09-30', currency: 'VND', quantity: 2_000, price: 72_000, fees: 100_000 }, database);
+    [updatedStock] = await database.select().from(assets).where(eq(assets.id, stock.id));
+    [position] = await database.select().from(assetCustodyPositions).where(eq(assetCustodyPositions.asset_id, stock.id));
+    const sellRows = await database.select().from(transactions).where(eq(transactions.type, 'sell'));
+    const dividendRows = await database.select().from(transactions).where(eq(transactions.type, 'dividend'));
+    const cashEntries = await database.select().from(ledgerEntries).where(eq(ledgerEntries.account_id, account.id));
+    const finalCash = await getLedgerCashBalance(account.id, database);
+    const totalRealized = sellRows.reduce((sum, row) => sum + (row.realized_pnl ?? 0), 0);
+    const feesRecorded = cashEntries.filter((entry) => entry.entry_type === 'fee').reduce((sum, entry) => sum + (entry.amount ?? 0), 0);
+    assert.equal(position.quantity, 0);
+    assert.equal(updatedStock.is_archived, true);
+    assert.equal(updatedStock.current_value, 0);
+    assert.ok(Math.abs(totalRealized - 38_600_000) < 0.001);
+    assert.equal(dividendRows[0].gross_proceeds, 5_000_000);
+    assert.equal(dividendRows[0].tax, 250_000);
+    assert.equal(dividendRows[0].amount, 4_750_000);
+    assert.equal(feesRecorded, 400_000);
+    assert.equal((await database.select().from(transactions)).length, 5, 'the full lifecycle remains in transaction history');
+    assert.equal(finalCash, 543_350_000);
+    assert.equal(finalCash + updatedStock.current_value, 543_350_000, 'after full exit workspace total equals broker cash');
+    assert.equal(convertToVnd(updatedStock.current_value, 'VND', 25_500), 0);
+  } finally { client.close(); }
+});
+
+test('stock workspace withdrawals and standalone broker fees are cash-ledger movements', async () => {
+  const { client, database } = await fixture();
+  try {
+    const now = new Date().toISOString();
+    const [account] = await database.insert(accountRegistry).values({ name: 'VCBS', type: 'broker_account', institution: 'VCBS', currency: 'VND', current_balance: 0, status: 'active', created_at: now, updated_at: now }).returning();
+    for (const [type, amount] of [['deposit', 1_000], ['withdraw', 100], ['fee', 25]] as const) {
+      await recordStockTransaction({ type, brokerAccountId: account.id, date: '2026-09-30', currency: 'VND', amount }, database);
+    }
+    assert.equal(await getLedgerCashBalance(account.id, database), 875);
+    const rows = await database.select().from(ledgerEntries).where(eq(ledgerEntries.account_id, account.id));
+    assert.equal(rows.filter((entry) => entry.entry_type === 'fee').reduce((sum, entry) => sum + (entry.amount ?? 0), 0), 25);
+    assert.equal((await database.select().from(transactions)).length, 3);
+  } finally { client.close(); }
+});
 const now = '2026-09-28T00:00:00.000Z';
 const asset = (extra = {}) => ({ id: 1, name: 'Test holding', symbol: null, asset_class: 'stock', purpose: 'wealth_compounder', current_value: 100, currency: 'USD', quantity: 10, cost_basis: 80, notes: null, is_archived: false, cash_source_type: null, cash_source_id: null, include_in_investment_net_worth: true, include_in_total_net_worth: true, created_at: now, updated_at: now, ...extra } as schema.Asset);
 const registry = (extra = {}) => ({ id: 1, name: 'Fixture cash', type: 'broker_account', institution: null, bank_account_id: null, account_number_masked: null, currency: 'USD', current_balance: 200, status: 'active', notes: null, created_at: now, updated_at: now, ...extra } as schema.AccountRegistry);

@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { getAccountDetailSummary } from '@/lib/asset-lifecycle';
 import { formatValue, formatDate, formatPercent } from '@/lib/formatters';
+import { convertCurrency } from '@/lib/fx';
+import { getUsdVndRate } from '@/lib/settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +18,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
   if (summary.account.type !== 'broker_account') notFound();
 
   const { account } = summary;
+  const usdVndRate = await getUsdVndRate();
 
   const stockHoldings = summary.custodiedAssets.filter(
     (row) => row.asset.asset_class === 'stock',
@@ -27,7 +30,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
         ? row.asset.current_value / row.asset.quantity
         : 0;
     const marketValue = pricePerUnit * row.quantity;
-    return sum + (marketValue - row.costBasis);
+    return sum + convertCurrency(marketValue - row.costBasis, row.asset.currency, account.currency, usdVndRate);
   }, 0);
 
   const totalStockValue = stockHoldings.reduce((sum, row) => {
@@ -35,7 +38,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
       row.asset.quantity && row.asset.quantity > 0
         ? row.asset.current_value / row.asset.quantity
         : 0;
-    return sum + pricePerUnit * row.quantity;
+    return sum + convertCurrency(pricePerUnit * row.quantity, row.asset.currency, account.currency, usdVndRate);
   }, 0);
 
   return (
@@ -57,12 +60,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href={`/accounts/${account.id}`}
-              className="px-4 py-2 border border-[#303037] hover:border-zinc-500 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors"
-            >
-              {tr("Registry View")}</Link>
-            <Link
-              href={`/transactions/new?execution_account_id=${account.id}`}
+              href="/stocks#stock-actions"
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
               {tr("+ New Transaction")}</Link>
@@ -73,7 +71,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Metric label={tr("Cash Balance")} value={formatValue(account.current_balance, account.currency)} />
-          <Metric label={tr("Stock Value")} value={formatValue(totalStockValue, 'USD')} />
+          <Metric label={tr("Stock Value")} value={formatValue(totalStockValue, account.currency)} />
           <Metric
             label={tr("Realized P&L")}
             value={formatValue(summary.realizedPnl, account.currency)}
@@ -91,7 +89,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
           {stockHoldings.length === 0 ? (
             <div className="px-5 py-8 text-sm text-zinc-700">
               {tr("No stock positions at this broker.")}{' '}
-              <Link href="/transactions/new" className="text-indigo-400 hover:text-indigo-300">
+              <Link href="/stocks#stock-actions" className="text-indigo-400 hover:text-indigo-300">
                 {tr("Record a buy transaction")}</Link>{' '}
               {tr("and select this account as execution venue.")}</div>
           ) : (
@@ -126,7 +124,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
                       <tr key={row.asset.id} className="hover:bg-[#101014] transition-colors">
                         <td className="px-5 py-3">
                           <Link
-                            href={`/holdings/${row.asset.id}`}
+                            href="/stocks#open-positions"
                             className="text-sm text-zinc-200 hover:text-indigo-300 transition-colors"
                           >
                             {row.asset.name}
@@ -144,7 +142,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
                           {formatValue(marketValue, row.asset.currency)}
                         </td>
                         <td className="px-5 py-3 text-zinc-500 tabular-nums">
-                          {formatValue(row.costBasis, 'USD')}
+                          {formatValue(row.costBasis, row.asset.currency)}
                         </td>
                         <td className="px-5 py-3">
                           <span
@@ -206,8 +204,8 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
               {summary.linkedTransactions.length > 25 && (
                 <div className="px-5 py-3 text-xs text-zinc-600">
                   {'' + tr("Showing 25 of") + ' '}{summary.linkedTransactions.length}.{' '}
-                  <Link href={`/accounts/${account.id}`} className="text-indigo-400 hover:text-indigo-300">
-                    {tr("View all in Registry")}</Link>
+                  <Link href="/stocks#stock-history" className="text-indigo-400 hover:text-indigo-300">
+                    {tr("View full stock history")}</Link>
                 </div>
               )}
             </div>

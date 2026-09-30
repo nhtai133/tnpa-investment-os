@@ -70,7 +70,7 @@ export default async function StocksBrokerAccountsPage() {
                     <tr key={account.id} className="hover:bg-[#101014] transition-colors">
                       <td className="px-5 py-3 text-zinc-200 whitespace-nowrap">
                         <Link
-                          href={`/accounts/${account.id}`}
+                          href={`/stocks/accounts/${account.id}`}
                           className="hover:text-indigo-300 transition-colors"
                         >
                           {account.name}

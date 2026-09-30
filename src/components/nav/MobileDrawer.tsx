@@ -3,9 +3,9 @@ import { tr } from '@/i18n';
 
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { NAV_GROUPS } from '@/lib/nav';
+import { useActiveNav } from './useActiveNav';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -13,11 +13,7 @@ interface MobileDrawerProps {
 }
 
 export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
-  const pathname = usePathname();
-
-  function isActive(href: string) {
-    return href === '/' ? pathname === '/' : pathname.startsWith(href);
-  }
+  const isActive = useActiveNav();
 
   // Close on Escape key
   useEffect(() => {
@@ -78,20 +74,6 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
         {/* Scrollable nav — pb-20 keeps content above bottom nav */}
         <nav className="flex-1 px-3 py-3 overflow-y-auto pb-20">
-          {/* Dashboard */}
-          <div className="space-y-0.5">
-            <Link
-              href="/"
-              onClick={onClose}
-              className={`flex items-center px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                isActive('/')
-                  ? 'bg-[#1C1C21] text-zinc-100'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1C1C21]'
-              }`}
-            >
-              {tr("Dashboard")}</Link>
-          </div>
-
           {/* Nav groups */}
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>

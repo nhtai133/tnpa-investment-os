@@ -25,7 +25,7 @@ function SubmitButton() {
       disabled={pending}
       className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
     >
-      {pending ? 'Saving...' : 'Add Broker Account'}
+      {pending ? tr('Saving...') : tr('Add Broker Account')}
     </button>
   );
 }
@@ -59,24 +59,16 @@ export function BrokerAccountForm({ action }: { action: (formData: FormData) => 
         </Field>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label={tr("Currency")}>
-          <select name="currency" defaultValue="VND" className={`${inputClass} appearance-none cursor-pointer`}>
-            <option value="VND">{tr("VND")}</option>
-            <option value="USD">{tr("USD")}</option>
-          </select>
-        </Field>
-        <Field label={tr("Current Balance")}>
-          <input
-            name="current_balance"
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            defaultValue="0"
-            className={inputClass}
-          />
-        </Field>
-      </div>
+      <Field label={tr("Currency")}>
+        <select name="currency" defaultValue="VND" className={`${inputClass} appearance-none cursor-pointer`}>
+          <option value="VND">{tr("VND")}</option>
+          <option value="USD">{tr("USD")}</option>
+        </select>
+      </Field>
+
+      <p className="text-xs text-zinc-600">
+        {tr("Broker cash is calculated from recorded deposits, withdrawals, trades, dividends and fees. Record the opening cash as a deposit after creating this account.")}
+      </p>
 
       <Field label={tr("Notes (optional)")}>
         <textarea

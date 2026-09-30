@@ -10,13 +10,6 @@ function str(formData: FormData, key: string): string | null {
   return v && typeof v === 'string' && v.trim() !== '' ? v.trim() : null;
 }
 
-function num(formData: FormData, key: string): number {
-  const v = str(formData, key);
-  if (!v) return 0;
-  const n = parseFloat(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
 export async function createBrokerAccount(formData: FormData) {
   const name = str(formData, 'name');
   if (!name) throw new Error('Account name is required.');
@@ -28,7 +21,7 @@ export async function createBrokerAccount(formData: FormData) {
     institution: str(formData, 'institution'),
     account_number_masked: str(formData, 'account_number_masked'),
     currency: str(formData, 'currency') ?? 'USD',
-    current_balance: num(formData, 'current_balance'),
+    current_balance: 0,
     status: 'active',
     notes: str(formData, 'notes'),
     created_at: now,
@@ -36,8 +29,9 @@ export async function createBrokerAccount(formData: FormData) {
   });
 
   revalidatePath('/stocks/accounts');
+  revalidatePath('/stocks');
   revalidatePath('/accounts');
   revalidatePath('/transactions');
   revalidatePath('/');
-  redirect('/stocks/accounts');
+  redirect('/stocks');
 }

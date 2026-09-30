@@ -8,52 +8,55 @@ export interface NavGroup {
   links: NavLink[];
 }
 
-export const PORTFOLIO_LINKS: NavLink[] = [
-  { label: 'Locations', href: '/locations' },
-  { label: 'Holdings', href: '/holdings' },
-  { label: 'Transactions', href: '/transactions' },
-  { label: 'Accounts', href: '/accounts' },
-  { label: 'Buckets', href: '/buckets' },
-  { label: 'Rebalancing', href: '/rebalancing' },
-  { label: 'Wealth Calendar', href: '/calendar' },
-  { label: 'Performance', href: '/performance' },
-];
-
-export const RESEARCH_LINKS: NavLink[] = [
-  { label: 'Research', href: '/research' },
-  { label: 'Opportunities', href: '/pipeline' },
-  { label: 'Watchlist', href: '/watchlist' },
-  { label: 'Decisions', href: '/decisions' },
-  { label: 'Journal', href: '/journal' },
-];
-
-export const MARKET_LINKS: NavLink[] = [
-  { label: 'Stocks', href: '/stocks' },
-  { label: 'Crypto Portfolio', href: '/crypto' },
-  { label: 'Real Estate', href: '/real-estate' },
-  { label: 'Gold', href: '/gold' },
-  { label: 'Banking', href: '/banking' },
-  { label: 'Funds & ETFs', href: '/funds' },
-  { label: 'Private Loans', href: '/private-loans' },
-];
-
-export const SYSTEM_LINKS: NavLink[] = [
-  { label: 'Settings', href: '/settings' },
-  { label: 'Health', href: '/system/health' },
-  { label: 'Production', href: '/system/production' },
-];
-
 export const NAV_GROUPS: NavGroup[] = [
-  { label: 'Portfolio', links: PORTFOLIO_LINKS },
-  { label: 'Research', links: RESEARCH_LINKS },
-  { label: 'Markets', links: MARKET_LINKS },
-  { label: 'System', links: SYSTEM_LINKS },
+  { label: 'Overview', links: [{ label: 'Dashboard', href: '/' }] },
+  {
+    label: 'Wealth',
+    links: [
+      { label: 'Banking', href: '/banking' },
+      { label: 'Stocks', href: '/stocks' },
+      { label: 'Crypto Portfolio', href: '/crypto' },
+      { label: 'Gold', href: '/gold' },
+      { label: 'Real Estate', href: '/real-estate' },
+      { label: 'Funds & ETFs', href: '/funds' },
+      { label: 'Private Loans', href: '/private-loans' },
+    ],
+  },
+  {
+    label: 'Investing',
+    links: [
+      { label: 'Opportunities', href: '/pipeline' },
+      { label: 'Watchlist', href: '/watchlist' },
+      { label: 'Research', href: '/research' },
+      { label: 'Decisions', href: '/decisions' },
+    ],
+  },
+  {
+    label: 'Reports',
+    links: [
+      { label: 'Wealth Calendar', href: '/calendar' },
+      { label: 'Performance', href: '/performance#performance' },
+      { label: 'Asset Allocation', href: '/buckets' },
+      { label: 'Wealth History', href: '/performance#wealth-history' },
+    ],
+  },
+  {
+    label: 'System',
+    links: [
+      { label: 'Settings', href: '/settings' },
+      { label: 'Health', href: '/system/health' },
+    ],
+  },
 ];
 
-// All non-primary routes — used for "More" tab active detection in bottom nav
-export const MORE_PREFIXES: string[] = [
-  '/transactions', '/accounts', '/locations', '/research', '/pipeline', '/watchlist',
-  '/decisions', '/journal', '/stocks', '/crypto', '/real-estate',
-  '/gold', '/banking', '/funds', '/private-loans', '/settings', '/system',
-  '/calendar', '/performance',
+// The mobile bottom bar pins one destination for each frequently used area.
+export const MOBILE_PRIMARY_LINKS: NavLink[] = [
+  { label: 'Dashboard', href: '/' },
+  { label: 'Banking', href: '/banking' },
+  { label: 'Opportunities', href: '/pipeline' },
+  { label: 'Performance', href: '/performance#performance' },
 ];
+
+export const MORE_PREFIXES: string[] = NAV_GROUPS.flatMap((group) => group.links)
+  .map(({ href }) => href)
+  .filter((href) => href !== '/' && !MOBILE_PRIMARY_LINKS.some((item) => item.href === href));
