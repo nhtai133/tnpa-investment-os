@@ -26,9 +26,9 @@ export function AssetLifecycleCard({
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Metric label={tr("Lifetime Cash In")} value={formatValue(lifecycle.lifetimeCashIn, currency)} />
           <Metric label={tr("Lifetime Cash Out")} value={formatValue(lifecycle.lifetimeCashOut, currency)} />
-          <Metric label={tr("Realized P&L")} value={formatValue(lifecycle.realizedPnl, currency)} />
-          <Metric label={tr("Unrealized P&L")} value={formatValue(lifecycle.unrealizedPnl, currency)} />
-          <Metric label={tr("Total Return")} value={formatValue(lifecycle.totalReturn, currency)} />
+          <Metric label={tr("Realized P&L")} value={lifecycle.realizedPnl == null ? tr("Unknown cost basis") : formatValue(lifecycle.realizedPnl, currency)} />
+          <Metric label={tr("Unrealized P&L")} value={lifecycle.unrealizedPnl == null ? tr("Unknown cost basis") : formatValue(lifecycle.unrealizedPnl, currency)} />
+          <Metric label={tr("Total Return")} value={lifecycle.totalReturn == null ? tr("Unknown cost basis") : formatValue(lifecycle.totalReturn, currency)} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -83,7 +83,7 @@ export function AssetLifecycleCard({
                       {'' + tr("To") + ' '}{sale.receiveAccount?.name ?? '-'}
                     </p>
                     <p className="text-xs text-zinc-600 tabular-nums">
-                      {formatDate(sale.date)} {'' + tr("- P&L") + ' '}{formatValue(sale.realizedPnl ?? 0, currency)}
+                      {formatDate(sale.date)} {'' + tr("- P&L") + ' '}{sale.realizedPnl == null ? tr("Unknown cost basis") : formatValue(sale.realizedPnl, currency)}
                     </p>
                   </div>
                 ))

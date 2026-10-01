@@ -24,6 +24,9 @@ export function formatValue(value: number, currency = 'USD'): string {
       maximumFractionDigits: 0,
     }).format(value);
   }
+  if (currency === 'USDT' || currency === 'USDC') {
+    return `${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 8 }).format(value)} ${currency}`;
+  }
   return formatCurrency(value);
 }
 
@@ -139,7 +142,7 @@ export const RESEARCH_NOTE_TYPE_COLORS: Record<string, string> = {
 };
 
 export const TRANSACTION_TYPE_LABELS: Record<TransactionType, string> = {
-  buy: tr('Buy'), sell: tr('Sell'), deposit: tr('Deposit'), withdraw: tr('Withdraw'), dividend: tr('Dividend'), interest: tr('Interest'), fee: tr('Fee'), transfer: tr('Transfer'), adjustment: tr('Adjustment'),
+  buy: tr('Buy'), sell: tr('Sell'), deposit: tr('Deposit'), withdraw: tr('Withdraw'), dividend: tr('Dividend'), interest: tr('Interest'), fee: tr('Fee'), transfer: tr('Transfer'), adjustment: tr('Adjustment'), opening_position: tr('opening_position'), opening_balance: tr('opening_balance'), basis_adjustment: tr('basis_adjustment'),
 };
 
 export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {
@@ -152,4 +155,7 @@ export const TRANSACTION_TYPE_COLORS: Record<TransactionType, string> = {
   fee: '#6B7280',
   transfer: '#E879F9',
   adjustment: '#9CA3AF',
+  opening_position: '#A78BFA',
+  opening_balance: '#60A5FA',
+  basis_adjustment: '#A78BFA',
 };

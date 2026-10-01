@@ -40,7 +40,7 @@ export default async function LocationDetailPage({ params }: { params: { id: str
 
   // Compute custody/unrealized values
   let custodyValue = 0;
-  let unrealizedPnl = 0;
+  let unrealizedPnl: number | null = 0;
 
   const enrichedPositions = custodiedAssets
     .filter((row) => row.quantity > 0)
@@ -50,10 +50,11 @@ export default async function LocationDetailPage({ params }: { params: { id: str
           ? row.asset.current_value / row.asset.quantity
           : 0;
       const marketValue = pricePerUnit * row.quantity;
-      const gain = marketValue - row.costBasis;
-      const gainPct = row.costBasis > 0 ? (gain / row.costBasis) * 100 : null;
+      const gain = row.costBasisKnown ? marketValue - row.costBasis : null;
+      const gainPct = row.costBasisKnown && row.costBasis > 0 ? (gain! / row.costBasis) * 100 : null;
       custodyValue += convertCurrency(marketValue, row.asset.currency, account.currency, rate);
-      unrealizedPnl += convertCurrency(gain, row.asset.currency, account.currency, rate);
+      if (gain == null) unrealizedPnl = null;
+      else if (unrealizedPnl != null) unrealizedPnl += convertCurrency(gain, row.asset.currency, account.currency, rate);
       return { ...row, marketValue, gain, gainPct };
     });
 
@@ -108,13 +109,13 @@ export default async function LocationDetailPage({ params }: { params: { id: str
           <Metric label={tr("Asset / Custody Value")} value={formatValue(custodyValue, account.currency)} />
           <Metric
             label={tr("Realized P&L")}
-            value={formatValue(realizedPnl, account.currency)}
-            colored={realizedPnl}
+            value={realizedPnl == null ? tr('Unknown cost basis') : formatValue(realizedPnl, account.currency)}
+            colored={realizedPnl ?? undefined}
           />
           <Metric
             label={tr("Unrealized P&L")}
-            value={formatValue(unrealizedPnl, account.currency)}
-            colored={unrealizedPnl}
+            value={unrealizedPnl == null ? tr('Unknown cost basis') : formatValue(unrealizedPnl, account.currency)}
+            colored={unrealizedPnl ?? undefined}
           />
         </div>
 
@@ -172,16 +173,15 @@ export default async function LocationDetailPage({ params }: { params: { id: str
                           {formatValue(row.marketValue, row.asset.currency)}
                         </td>
                         <td className="px-5 py-3 text-zinc-500 tabular-nums whitespace-nowrap">
-                          {formatValue(row.costBasis, row.asset.currency)}
+                          {row.costBasisKnown ? formatValue(row.costBasis, row.asset.currency) : tr('Unknown cost basis')}
                         </td>
                         <td className="px-5 py-3 whitespace-nowrap">
                           <span
                             className={`text-sm font-medium tabular-nums ${
-                              row.gain >= 0 ? 'text-emerald-400' : 'text-red-400'
+                              row.gain == null ? 'text-zinc-500' : row.gain >= 0 ? 'text-emerald-400' : 'text-red-400'
                             }`}
                           >
-                            {row.gain >= 0 ? '+' : ''}
-                            {formatValue(row.gain, row.asset.currency)}
+                            {row.gain == null ? tr('Unknown cost basis') : `${row.gain >= 0 ? '+' : ''}${formatValue(row.gain, row.asset.currency)}`}
                           </span>
                           {row.gainPct !== null && (
                             <p

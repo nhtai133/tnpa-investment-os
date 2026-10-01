@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { tr } from '@/i18n';
 import { StockActionCenter, StockPriceEditor } from '@/components/stocks/StockActionCenter';
+import { StockOpeningManager } from '@/components/stocks/StockOpeningManager';
 import { formatDate, formatPercent, formatValue } from '@/lib/formatters';
 import { getStockWorkspaceData } from '@/lib/stock-workspace';
+import { getAppSetting } from '@/lib/settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +12,7 @@ type SearchParams = { broker?: string; ticker?: string; type?: string; from?: st
 
 export default async function StocksPage({ searchParams }: { searchParams: SearchParams }) {
   const data = await getStockWorkspaceData();
+  const trackingStartDate = await getAppSetting('wealth_tracking_start_date') ?? new Date().toISOString().slice(0, 10);
   const activeBrokers = data.brokers.filter((row) => row.account.status === 'active');
   const activeAssetIds = [...new Set(data.positions.map((row) => row.asset.id))];
   const pricedStocks = activeAssetIds.map((id) => data.assetMap.get(id)!).filter(Boolean);
@@ -25,7 +28,7 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
     return true;
   });
 
-  const kpis: [string, number][] = [
+  const kpis: [string, number | null][] = [
     ['Total Workspace', data.totals.workspaceVnd],
     ['Stock Market Value', data.totals.marketValueVnd],
     ['Broker Cash', data.totals.cashVnd],
@@ -45,7 +48,7 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/stocks/accounts/new" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-300 rounded-lg">+ {tr('Add Broker Account')}</Link>
-            <Link href="/stocks/new" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-400 rounded-lg">{tr('Add Existing Holding')}</Link>
+            <Link href="#stock-opening" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-300 rounded-lg">+ {tr('Add existing stock')}</Link>
             <Link href="/watchlist" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-300 rounded-lg">{tr('Watchlist')}</Link>
             <Link href="/research" className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs text-white rounded-lg">{tr('Research Notes')}</Link>
           </div>
@@ -59,18 +62,17 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
             <span className="text-[10px] text-zinc-600">{tr('Converted to VND for workspace totals')}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-3">
-            {kpis.map(([label, value], index) => <Kpi key={label} label={tr(label)} value={formatValue(value, 'VND')} emphasis={index === 0} />)}
+            {kpis.map(([label, value], index) => <Kpi key={label} label={tr(label)} value={value == null ? tr('Unknown cost basis') : formatValue(value, 'VND')} emphasis={index === 0} />)}
           </div>
         </section>
 
         {data.positions.length === 0 && (
           <section className="rounded-xl border border-indigo-500/30 bg-[#131316] p-5">
             <h2 className="text-sm font-semibold text-zinc-100">{tr('Start your stock workspace')}</h2>
-            <ol className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-zinc-400">
-              <li><span className="text-indigo-400">1.</span> {activeBrokers.length ? tr('Broker account ready') : tr('Add a broker account')}</li>
-              <li><span className="text-indigo-400">2.</span> {tr('Deposit broker cash')}</li>
-              <li><span className="text-indigo-400">3.</span> {tr('Record your first stock purchase')}</li>
-            </ol>
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-zinc-400">
+              <div className="rounded-lg bg-[#101014] p-3"><p className="font-medium text-zinc-200">{tr('Already own stocks')}</p><ol className="mt-2 space-y-1"><li>1. {activeBrokers.length ? tr('Broker account ready') : tr('Add a broker account')}</li><li>2. {tr('Add existing stock')}</li><li>3. {tr('Enter known or unknown cost basis')}</li></ol></div>
+              <div className="rounded-lg bg-[#101014] p-3"><p className="font-medium text-zinc-200">{tr('Starting new transactions')}</p><ol className="mt-2 space-y-1"><li>1. {tr('Add a broker account')}</li><li>2. {tr('Deposit broker cash')}</li><li>3. {tr('Record your first stock purchase')}</li></ol></div>
+            </div>
             <p className="mt-3 text-[11px] text-zinc-600">{tr('Add the ticker in the transaction area before recording the purchase.')}</p>
             <Link href={activeBrokers.length ? '#stock-actions' : '/stocks/accounts/new'} className="inline-block mt-4 px-4 py-2 rounded-lg bg-indigo-600 text-xs text-white">{activeBrokers.length ? tr('Continue to transactions') : `+ ${tr('Add Broker Account')}`}</Link>
           </section>
@@ -96,11 +98,11 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
                     <SmallMetric label={tr('Cash')} value={formatValue(cash, account.currency)} />
                     <SmallMetric label={tr('Stock Market Value')} value={formatValue(stockValue, account.currency)} />
                     <SmallMetric label={tr('Total Value')} value={formatValue(totalValue, account.currency)} />
-                    <SmallMetric label={tr('Gain / Loss')} value={formatValue(realizedPnl + unrealizedPnl, account.currency)} signed={realizedPnl + unrealizedPnl} />
+                    <SmallMetric label={tr('Gain / Loss')} value={realizedPnl == null || unrealizedPnl == null ? tr('Unknown cost basis') : formatValue(realizedPnl + unrealizedPnl, account.currency)} signed={realizedPnl == null || unrealizedPnl == null ? undefined : realizedPnl + unrealizedPnl} />
                   </div>
                   <div className="mt-3 flex gap-4 text-[10px] text-zinc-600">
-                    <span>{tr('Realized P&L')}: {formatValue(realizedPnl, account.currency)}</span>
-                    <span>{tr('Unrealized P&L')}: {formatValue(unrealizedPnl, account.currency)}</span>
+                    <span>{tr('Realized P&L')}: {realizedPnl == null ? tr('Unknown cost basis') : formatValue(realizedPnl, account.currency)}</span>
+                    <span>{tr('Unrealized P&L')}: {unrealizedPnl == null ? tr('Unknown cost basis') : formatValue(unrealizedPnl, account.currency)}</span>
                   </div>
                 </article>;
               })}
@@ -116,6 +118,13 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
             positions={data.positions.flatMap((position) => position.broker ? [{ assetId: position.asset.id, brokerId: position.broker.id, quantity: position.quantity }] : [])}
           />
         </section>
+
+        <StockOpeningManager
+          accounts={activeBrokers.map(({ account }) => ({ id: account.id, name: account.name, institution: account.institution, currency: account.currency }))}
+          stocks={data.assets.map((asset) => ({ id: asset.id, symbol: asset.symbol, name: asset.name, currency: asset.currency, isArchived: asset.is_archived }))}
+          positions={data.positions.flatMap((position) => position.broker ? [{ assetId: position.asset.id, brokerId: position.broker.id, symbol: position.asset.symbol ?? position.asset.name, name: position.asset.name, currency: position.asset.currency, quantity: position.quantity, averageCost: position.averageCost, currentPrice: position.currentPrice, marketValue: position.marketValue, costBasis: position.costBasis, costBasisKnown: position.costBasisKnown, openingTransactionId: position.openingTransactionId, openingDate: position.openingDate, canCorrectOpening: position.canCorrectOpening }] : [])}
+          trackingStartDate={trackingStartDate}
+        />
 
         <section aria-labelledby="open-positions" className="space-y-3">
           <div className="flex items-center justify-between gap-2">
@@ -134,11 +143,11 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
                     <td className="px-3 py-3 text-zinc-300">{row.asset.name}</td>
                     <td className="px-3 py-3">{row.broker ? <Link href={`/stocks/accounts/${row.broker.id}`} className="text-indigo-400">{row.broker.institution ?? row.broker.name}</Link> : <span className="text-zinc-600">{tr('Unassigned')}</span>}</td>
                     <td className="px-3 py-3 text-right tabular-nums text-zinc-300">{row.quantity.toLocaleString('vi-VN')}</td>
-                    <td className="px-3 py-3 text-right tabular-nums text-zinc-400">{formatValue(row.averageCost, row.asset.currency)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums text-zinc-400">{row.averageCost == null ? tr('Unknown cost basis') : formatValue(row.averageCost, row.asset.currency)}</td>
                     <td className="px-3 py-3 text-right tabular-nums text-zinc-300">{formatValue(row.currentPrice, row.asset.currency)}</td>
-                    <td className="px-3 py-3 text-right tabular-nums text-zinc-400">{formatValue(row.costBasis, row.asset.currency)}</td>
+                    <td className="px-3 py-3 text-right tabular-nums text-zinc-400">{row.costBasis == null ? tr('Unknown cost basis') : formatValue(row.costBasis, row.asset.currency)}</td>
                     <td className="px-3 py-3 text-right tabular-nums text-zinc-200">{formatValue(row.marketValue, row.asset.currency)}</td>
-                    <td className={`px-3 py-3 text-right tabular-nums ${row.gainLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{row.gainLoss >= 0 ? '+' : ''}{formatValue(row.gainLoss, row.asset.currency)}</td>
+                    <td className={`px-3 py-3 text-right tabular-nums ${row.gainLoss == null ? 'text-zinc-500' : row.gainLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{row.gainLoss == null ? tr('Unknown cost basis') : `${row.gainLoss >= 0 ? '+' : ''}${formatValue(row.gainLoss, row.asset.currency)}`}</td>
                     <td className="px-3 py-3 text-right tabular-nums text-zinc-400">{row.gainLossPct == null ? '—' : formatPercent(row.gainLossPct)}</td>
                     <td className="px-3 py-3 text-right tabular-nums text-zinc-400">{row.weight.toFixed(1)}%</td>
                   </tr>)}
@@ -163,7 +172,7 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
           <form method="get" className="grid grid-cols-2 md:grid-cols-5 gap-2 rounded-xl border border-[#26262B] bg-[#131316] p-3">
             <select name="broker" defaultValue={filters.broker ?? ''} className="rounded-lg bg-[#0C0C0E] border border-[#303037] px-2 py-2 text-xs text-zinc-300"><option value="">{tr('All brokers')}</option>{data.brokers.map(({ account }) => <option key={account.id} value={account.id}>{account.institution ?? account.name}</option>)}</select>
             <select name="ticker" defaultValue={filters.ticker ?? ''} className="rounded-lg bg-[#0C0C0E] border border-[#303037] px-2 py-2 text-xs text-zinc-300"><option value="">{tr('All tickers')}</option>{data.assets.filter((asset) => asset.symbol).map((asset) => <option key={asset.id} value={asset.symbol!}>{asset.symbol}</option>)}</select>
-            <select name="type" defaultValue={filters.type ?? ''} className="rounded-lg bg-[#0C0C0E] border border-[#303037] px-2 py-2 text-xs text-zinc-300"><option value="">{tr('All transaction types')}</option>{['deposit', 'withdraw', 'buy', 'sell', 'dividend', 'fee'].map((type) => <option key={type} value={type}>{tr(type)}</option>)}</select>
+            <select name="type" defaultValue={filters.type ?? ''} className="rounded-lg bg-[#0C0C0E] border border-[#303037] px-2 py-2 text-xs text-zinc-300"><option value="">{tr('All transaction types')}</option>{['opening_balance', 'opening_position', 'basis_adjustment', 'deposit', 'withdraw', 'buy', 'sell', 'dividend', 'fee'].map((type) => <option key={type} value={type}>{tr(type)}</option>)}</select>
             <input name="from" type="date" defaultValue={filters.from} aria-label={tr('From date')} className="rounded-lg bg-[#0C0C0E] border border-[#303037] px-2 py-2 text-xs text-zinc-300" />
             <div className="flex gap-2"><input name="to" type="date" defaultValue={filters.to} aria-label={tr('To date')} className="min-w-0 flex-1 rounded-lg bg-[#0C0C0E] border border-[#303037] px-2 py-2 text-xs text-zinc-300" /><button className="px-3 rounded-lg bg-[#24242B] text-xs text-zinc-200">{tr('Filter')}</button></div>
           </form>

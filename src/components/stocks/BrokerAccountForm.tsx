@@ -46,9 +46,11 @@ export function BrokerAccountForm({ action }: { action: (formData: FormData) => 
         <Field label={tr("Broker / Institution")}>
           <input
             name="institution"
-            placeholder={tr("VCBS, SSI, VPS...")}
+            list="stock-broker-options"
+            placeholder={tr("ACBS, VPBankS, or another broker")}
             className={inputClass}
           />
+          <datalist id="stock-broker-options"><option value="ACBS" /><option value="VPBankS" /></datalist>
         </Field>
         <Field label={tr("Masked Account Number")}>
           <input
@@ -67,7 +69,7 @@ export function BrokerAccountForm({ action }: { action: (formData: FormData) => 
       </Field>
 
       <p className="text-xs text-zinc-600">
-        {tr("Broker cash is calculated from recorded deposits, withdrawals, trades, dividends and fees. Record the opening cash as a deposit after creating this account.")}
+        {tr("Broker cash is calculated from opening cash, deposits, withdrawals, trades, dividends and fees. Enter any cash already held using the opening cash action inside Stocks.")}
       </p>
 
       <Field label={tr("Notes (optional)")}>

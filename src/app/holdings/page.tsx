@@ -128,7 +128,7 @@ export default async function HoldingsPage({ searchParams }: HoldingsPageProps) 
           totalNetWorth={totalNW}
         />
 
-        <SourceContributionPanel rows={portfolio.sourceContributions} />
+        <SourceContributionPanel rows={portfolio.sourceContributions} usdVndRate={portfolio.usdVndRate} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AllocationChart

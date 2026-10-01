@@ -1,6 +1,6 @@
 import { tr } from '@/i18n';
 import { Card } from '@/components/ui/Card';
-import { formatCurrency, formatPercent } from '@/lib/formatters';
+import { formatValue, formatPercent } from '@/lib/formatters';
 
 interface WealthSnapshotProps {
   totalNetWorth: number;
@@ -21,13 +21,13 @@ export function WealthSnapshot({
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <Card className="p-5">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Total Net Worth")}</p>
-        <p className="text-2xl font-light text-zinc-50 tracking-tight mt-2">{formatCurrency(totalNetWorth)}</p>
+        <p className="text-2xl font-light text-zinc-50 tracking-tight mt-2">{formatValue(totalNetWorth, 'VND')}</p>
         <p className="text-[11px] text-zinc-600 mt-1.5">{tr("Complete balance sheet")}</p>
       </Card>
 
       <Card className="p-5">
         <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Investable")}</p>
-        <p className="text-2xl font-light text-zinc-50 tracking-tight mt-2">{formatCurrency(investableNetWorth)}</p>
+        <p className="text-2xl font-light text-zinc-50 tracking-tight mt-2">{formatValue(investableNetWorth, 'VND')}</p>
         <p className="text-[11px] text-zinc-600 mt-1.5">{tr("Allocatable capital")}</p>
       </Card>
 
@@ -36,7 +36,7 @@ export function WealthSnapshot({
         {totalGainLoss != null ? (
           <>
             <p className={`text-2xl font-light tracking-tight mt-2 ${totalGainLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {totalGainLoss >= 0 ? '+' : ''}{formatCurrency(totalGainLoss)}
+              {totalGainLoss >= 0 ? '+' : ''}{formatValue(totalGainLoss, 'VND')}
             </p>
             <p className={`text-[11px] mt-1.5 ${gainLossPct != null && gainLossPct >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {gainLossPct != null ? `${formatPercent(gainLossPct)} vs cost basis` : ''}

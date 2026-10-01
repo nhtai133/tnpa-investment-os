@@ -65,9 +65,9 @@ export function HoldingsTable({ assets, totalNetWorth, usdVndRate = DEFAULT_USD_
                   ? (normalizeToUsd(asset.current_value, asset.currency, usdVndRate) / totalNetWorth) * 100
                   : 0;
               const gain =
-                asset.cost_basis != null ? asset.current_value - asset.cost_basis : null;
+                asset.cost_basis != null && asset.cost_basis_known ? asset.current_value - asset.cost_basis : null;
               const gainPct =
-                asset.cost_basis != null && asset.cost_basis > 0
+                asset.cost_basis != null && asset.cost_basis_known && asset.cost_basis > 0
                   ? ((asset.current_value - asset.cost_basis) / asset.cost_basis) * 100
                   : null;
 
@@ -129,12 +129,12 @@ export function HoldingsTable({ assets, totalNetWorth, usdVndRate = DEFAULT_USD_
                   </td>
 
                   <td className="px-4 py-3.5 text-right hidden md:table-cell">
-                    {asset.cost_basis != null ? (
+                    {asset.cost_basis != null && asset.cost_basis_known ? (
                       <span className="text-xs text-zinc-400 tabular-nums">
                         {formatValue(asset.cost_basis, asset.currency)}
                       </span>
                     ) : (
-                      <span className="text-xs text-zinc-700">—</span>
+                      <span className="text-xs text-zinc-700">{tr(asset.cost_basis_known ? '—' : 'Unknown cost basis')}</span>
                     )}
                   </td>
 
@@ -158,7 +158,7 @@ export function HoldingsTable({ assets, totalNetWorth, usdVndRate = DEFAULT_USD_
                         </p>
                       </div>
                     ) : (
-                      <span className="text-xs text-zinc-700">—</span>
+                      <span className="text-xs text-zinc-700">{tr(!asset.cost_basis_known ? 'Unknown cost basis' : '—')}</span>
                     )}
                   </td>
 

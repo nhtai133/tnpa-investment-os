@@ -136,7 +136,7 @@ export function TransactionForm({
             className={`${inputClass} appearance-none cursor-pointer`}
           >
             <option value="" disabled>{tr("Select type…")}</option>
-            {TRANSACTION_TYPES.map((t) => (
+            {TRANSACTION_TYPES.filter((t) => !['opening_position', 'opening_balance', 'basis_adjustment'].includes(t)).map((t) => (
               <option key={t} value={t}>
                 {TRANSACTION_TYPE_LABELS[t]}
               </option>

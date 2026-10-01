@@ -156,7 +156,7 @@ export function StockActionCenter({ accounts, stocks, positions }: { accounts: A
               </select>
             </label>
             <label className="space-y-1.5 text-[11px] text-zinc-500"><span>{tr('Date')}</span>
-              <input name="transaction_date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+              <input key={actionType} name="transaction_date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
             </label>
             {['buy', 'sell', 'dividend'].includes(actionType) && (
               <label className="space-y-1.5 text-[11px] text-zinc-500"><span>{tr('Ticker')}</span>

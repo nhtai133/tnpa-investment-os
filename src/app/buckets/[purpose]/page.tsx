@@ -67,8 +67,9 @@ export default async function BucketDetailPage({
     (sum, a) => sum + getNormalizedCostBasisUsd(a, usdVndRate),
     0,
   );
-  const gainLoss = value - costBasis;
-  const returnPct = costBasis > 0 ? (gainLoss / costBasis) * 100 : null;
+  const costBasisKnown = bucket.filter((asset) => (asset.quantity ?? 0) > 0).every((asset) => asset.cost_basis_known);
+  const gainLoss = costBasisKnown ? value - costBasis : null;
+  const returnPct = costBasisKnown && costBasis > 0 && gainLoss != null ? (gainLoss / costBasis) * 100 : null;
   const weight = totalPortfolio > 0 ? (value / totalPortfolio) * 100 : 0;
 
   const color = PURPOSE_COLORS[purpose];
@@ -131,13 +132,13 @@ export default async function BucketDetailPage({
           <Card className="p-4">
             <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Cost Basis")}</p>
             <p className="text-xl font-bold tabular-nums text-zinc-100 mt-1.5">
-              {costBasis > 0 ? formatCurrency(costBasis) : '—'}
+              {!costBasisKnown ? tr('Unknown cost basis') : costBasis > 0 ? formatCurrency(costBasis) : '—'}
             </p>
           </Card>
           <Card className="p-4">
             <p className="text-[10px] font-semibold tracking-widest uppercase text-zinc-600">{tr("Gain / Loss")}</p>
-            <p className={`text-xl font-bold tabular-nums mt-1.5 ${costBasis > 0 ? (gainLoss >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
-              {costBasis > 0 ? formatCurrency(gainLoss) : '—'}
+            <p className={`text-xl font-bold tabular-nums mt-1.5 ${costBasisKnown && costBasis > 0 && gainLoss != null ? (gainLoss >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
+              {!costBasisKnown ? tr('Unknown cost basis') : costBasis > 0 && gainLoss != null ? formatCurrency(gainLoss) : '—'}
             </p>
           </Card>
           <Card className="p-4">
@@ -183,8 +184,8 @@ export default async function BucketDetailPage({
                   {sortedBucket.map((asset) => {
                     const aValueUsd = normalizeToUsd(asset.current_value, asset.currency, usdVndRate);
                     const aCostUsd = getNormalizedCostBasisUsd(asset, usdVndRate);
-                    const aGain = aValueUsd - aCostUsd;
-                    const aReturn = aCostUsd > 0 ? (aGain / aCostUsd) * 100 : null;
+                    const aGain = asset.cost_basis_known ? aValueUsd - aCostUsd : null;
+                    const aReturn = asset.cost_basis_known && aCostUsd > 0 && aGain != null ? (aGain / aCostUsd) * 100 : null;
                     const aWeight = value > 0 ? (aValueUsd / value) * 100 : 0;
                     const classColor = ASSET_CLASS_COLORS[asset.asset_class];
                     return (
@@ -212,10 +213,10 @@ export default async function BucketDetailPage({
                           )}
                         </td>
                         <td className="px-5 py-3 text-zinc-500 tabular-nums">
-                          {asset.cost_basis != null ? formatValue(asset.cost_basis, asset.currency) : '—'}
+                          {!asset.cost_basis_known ? tr('Unknown cost basis') : asset.cost_basis != null ? formatValue(asset.cost_basis, asset.currency) : '—'}
                         </td>
-                        <td className={`px-5 py-3 tabular-nums font-medium ${aCostUsd > 0 ? (aGain >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
-                          {aCostUsd > 0 ? formatCurrency(aGain) : '—'}
+                        <td className={`px-5 py-3 tabular-nums font-medium ${asset.cost_basis_known && aCostUsd > 0 && aGain != null ? (aGain >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
+                          {!asset.cost_basis_known ? tr('Unknown cost basis') : aCostUsd > 0 && aGain != null ? formatCurrency(aGain) : '—'}
                         </td>
                         <td className={`px-5 py-3 tabular-nums ${aReturn !== null ? (aReturn >= 0 ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
                           {aReturn !== null ? formatPercent(aReturn) : '—'}

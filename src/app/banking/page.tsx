@@ -18,6 +18,8 @@ import { SourceContributionPanel } from '@/components/portfolio/SourceContributi
 import { BankingAllocationDrilldown, type BankingAllocationInput } from '@/components/banking/BankingAllocationDrilldown';
 import { getBankingMaturitySummary } from '@/lib/banking-events';
 import { BankingAlertsCard, UpcomingBankingEvents } from '@/components/banking/BankingEvents';
+import { projectSavingsDeposit } from '@/lib/banking-projections';
+import { getMaturityStatus } from '@/lib/banking-events';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,9 +50,10 @@ export default async function BankingPage() {
     bankingEvents,
   ] = await Promise.all([getModuleData('cash'), getBankingData(), getPortfolioSummary(), getBankingMaturitySummary()]);
 
-  const summary = computeBankingSummary(bankingData);
+  const summary = computeBankingSummary(bankingData, usdVndRate);
   const bankingAggregationPositions = portfolio.positions.filter((position) =>
-    ['banking_accounts', 'savings_deposits', 'credit_cards', 'credit_facilities'].includes(position.source),
+    ['banking_accounts', 'savings_deposits', 'credit_cards', 'credit_facilities'].includes(position.source) ||
+    (position.source === 'legacy_holdings' && position.assetClass === 'cash'),
   );
   const checkingVnd = bankingAggregationPositions
     .filter((position) => position.source === 'banking_accounts')
@@ -67,12 +70,12 @@ export default async function BankingPage() {
   const bankingMarketValueUsd = bankingAggregationPositions.reduce((sum, position) => sum + position.valueUsd, 0);
   const bankingAllocationRows: BankingAllocationInput[] = bankingAggregationPositions.map((position) => {
     const kind =
-      position.source === 'banking_accounts'
+      position.source === 'banking_accounts' || position.source === 'legacy_holdings'
         ? 'checking'
         : position.source === 'savings_deposits'
           ? 'savings'
           : 'credit';
-    const bankName = position.bankName ?? position.name.split(' · ')[0] ?? 'Unassigned';
+    const bankName = position.bankName ?? (position.legacyAsset ? getLegacyAssetBank(position.legacyAsset) : position.name.split(' · ')[0] ?? 'Unassigned');
     return {
       kind,
       bankName,
@@ -110,12 +113,26 @@ export default async function BankingPage() {
             {tr("Add legacy bank asset")}</Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <SummaryCard label={tr("Total Banking Value")} value={formatValue(summary.totalBankingValue, 'VND')} />
-          <SummaryCard label={tr("Checking Balance")} value={formatValue(summary.checkingBalance, 'VND')} />
-          <SummaryCard label={tr("Savings Balance")} value={formatValue(summary.savingsBalance, 'VND')} tone="green" />
-          <SummaryCard label={tr("Upcoming Maturities")} value={`${bankingEvents.upcomingMaturities}`} tone="amber" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+          <SummaryCard label={tr("Total Bank Wealth")} value={formatValue(summary.totalBankingValue, 'VND')} />
+          <SummaryCard label={tr("Liquid Cash")} value={formatValue(summary.checkingBalance, 'VND')} />
+          <SummaryCard label={tr("Savings Principal")} value={formatValue(summary.savingsBalance, 'VND')} tone="green" />
+          <SummaryCard label={tr("Expected Interest")} value={formatValue(summary.expectedInterest, 'VND')} tone="amber" />
+          <SummaryCard label={tr("Expected Maturity Value")} value={formatValue(summary.expectedMaturityValue, 'VND')} />
         </div>
+        <p className="-mt-3 text-xs text-zinc-600">{tr("Current bank wealth excludes expected future interest.")}</p>
+
+        <Card className="overflow-hidden">
+          <CardHeader label={tr("Bank breakdown")} action={tr("Current bank wealth excludes expected future interest.")} />
+          <div className="overflow-x-auto"><table className="w-full text-sm">
+            <thead><tr className="border-b border-[#26262B]">{['Bank', 'Liquid Cash', 'Savings Principal', 'Expected Interest', 'Expected Maturity Value', 'Total Bank Wealth'].map((h) => <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{tr(h)}</th>)}</tr></thead>
+            <tbody>{summary.institutionBreakdown.map((row) => <tr key={row.bankName} className="border-b border-[#1C1C21]">
+              <td className="px-4 py-3.5 text-zinc-100">{row.bankName}</td><td className="px-4 py-3.5 text-zinc-300 tabular-nums">{formatValue(row.liquidCash, 'VND')}</td>
+              <td className="px-4 py-3.5 text-zinc-300 tabular-nums">{formatValue(row.savingsPrincipal, 'VND')}</td><td className="px-4 py-3.5 text-amber-300 tabular-nums">{formatValue(row.expectedInterest, 'VND')}</td>
+              <td className="px-4 py-3.5 text-zinc-300 tabular-nums">{formatValue(row.expectedMaturityValue, 'VND')}</td><td className="px-4 py-3.5 text-zinc-100 tabular-nums">{formatValue(row.liquidCash + row.savingsPrincipal, 'VND')}</td>
+            </tr>)}{summary.institutionBreakdown.length === 0 && <tr><td colSpan={6} className="px-4 py-7 text-center text-sm text-zinc-600">{tr('No bank accounts or deposits yet.')}</td></tr>}</tbody>
+          </table></div>
+        </Card>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
           <SummaryCard label={tr("Total Banking Cash")} value={formatValue(summary.totalBankingValue, 'VND')} />
@@ -126,7 +143,7 @@ export default async function BankingPage() {
           <SummaryCard label={tr("Debt Due This Month")} value={formatValue(summary.debtDueThisMonth, 'VND')} tone="red" />
         </div>
 
-        <SourceContributionPanel rows={portfolio.sourceContributions} />
+        <SourceContributionPanel rows={portfolio.sourceContributions} usdVndRate={usdVndRate} />
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <BankingAlertsCard events={bankingEvents.events} />
@@ -181,7 +198,7 @@ export default async function BankingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#26262B]">
-                  {['Bank', 'Deposit Name', 'Principal', 'Interest Rate', 'Term', 'Start Date', 'Maturity Date', 'Auto Renew', 'Status', 'Actions'].map((h) => (
+                  {['Bank', 'Deposit Name', 'Principal', 'Interest Rate', 'Start Date', 'Maturity Date', 'Days Remaining', 'Expected Interest', 'Expected Maturity Value', 'Payout Type', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold tracking-wide uppercase text-zinc-600">{h}</th>
                   ))}
                 </tr>
@@ -189,23 +206,28 @@ export default async function BankingPage() {
               <tbody>
                 {bankingData.deposits.map((deposit) => {
                   const bankName = resolveDepositBankName(deposit, bankingData.accounts);
+                  const projection = projectSavingsDeposit(deposit);
+                  const daysRemaining = projection.daysRemaining;
+                  const maturityLabel = daysRemaining === null ? '—' : `${daysRemaining} ${tr('days')} · ${tr(getMaturityStatus(daysRemaining))}`;
                   return (
                     <tr key={deposit.id} className="border-b border-[#1C1C21] hover:bg-[#1C1C21] transition-colors">
                       <td className="px-4 py-3.5"><Link href={`/banking/${slugBankName(bankName)}`} className="text-zinc-100 hover:text-indigo-300">{bankName}</Link></td>
                       <td className="px-4 py-3.5 text-zinc-300">{deposit.deposit_name}</td>
                       <td className="px-4 py-3.5 text-zinc-100 tabular-nums">{formatValue(deposit.principal, 'VND')}</td>
                       <td className="px-4 py-3.5 text-zinc-300">{formatPercent(deposit.interest_rate, 2)}</td>
-                      <td className="px-4 py-3.5 text-zinc-400">{deposit.term_months} {tr("mo")}</td>
                       <td className="px-4 py-3.5 text-zinc-500">{displayDate(deposit.start_date)}</td>
                       <td className="px-4 py-3.5 text-zinc-500">{displayDate(deposit.maturity_date)}</td>
-                      <td className="px-4 py-3.5 text-zinc-400">{deposit.auto_renew ? 'Yes' : 'No'}</td>
+                      <td className="px-4 py-3.5 text-zinc-400">{maturityLabel}</td>
+                      <td className="px-4 py-3.5 text-amber-300 tabular-nums">{formatValue(projection.expectedInterest, 'VND')}</td>
+                      <td className="px-4 py-3.5 text-zinc-300 tabular-nums">{formatValue(projection.expectedMaturityValue, 'VND')}{!projection.interestAtMaturity && <span className="block text-[10px] text-zinc-600">{tr('Principal only; interest paid periodically')}</span>}</td>
+                      <td className="px-4 py-3.5 text-zinc-400">{tr(deposit.interest_payout_type || 'At maturity')}</td>
                       <td className="px-4 py-3.5"><Badge label={tr(deposit.status)} color={deposit.status === 'active' ? '#34D399' : '#9CA3AF'} /></td>
                       <td className="px-4 py-3.5"><Link href={`/banking/deposits/${deposit.id}/edit`} className="text-xs text-zinc-500 hover:text-zinc-200">{tr("Edit")}</Link></td>
                     </tr>
                   );
                 })}
                 {bankingData.deposits.length === 0 && (
-                  <tr><td colSpan={10} className="px-4 py-8 text-center text-sm text-zinc-600">{tr("No savings deposits yet.")}</td></tr>
+                  <tr><td colSpan={12} className="px-4 py-8 text-center text-sm text-zinc-600">{tr("No savings deposits yet.")}</td></tr>
                 )}
               </tbody>
             </table>

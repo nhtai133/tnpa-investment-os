@@ -1,132 +1,70 @@
 import { tr } from '@/i18n';
 import Link from 'next/link';
-import { db } from '@/db';
-import { accountRegistry } from '@/db/schema';
-import { inArray } from 'drizzle-orm';
-import { getModuleData } from '@/lib/moduleData';
-import { WorkspaceKPIs } from '@/components/workspace/WorkspaceKPIs';
-import { SectionPlaceholder } from '@/components/workspace/SectionPlaceholder';
-import { WorkspaceAllocationChart } from '@/components/workspace/WorkspaceAllocationChart';
-import { HoldingsTable } from '@/components/holdings/HoldingsTable';
-import { ArchivedSection } from '@/components/holdings/ArchivedSection';
-import { CryptoPortfolioClient } from '@/components/crypto/CryptoPortfolioClient';
-import { Card, CardHeader } from '@/components/ui/Card';
+import { CryptoCostBasisEditor, CryptoOpeningCorrection, CryptoPriceEditor, CryptoWorkspaceClient } from '@/components/crypto/CryptoWorkspaceClient';
+import { formatPercent, formatValue } from '@/lib/formatters';
+import { normalizeToUsd } from '@/lib/fx';
+import { getCryptoWorkspaceData } from '@/lib/crypto-workspace';
 
 export const dynamic = 'force-dynamic';
 
+const card = 'rounded-xl border border-[#26262B] bg-[#131316] p-5';
+const number = (value: number, currency: string) => formatValue(value, currency);
+
 export default async function CryptoPage() {
-  const [
-    { classAssets, investmentNW, totalNW, classValue, classValueUsd, archivedClassAssets, usdVndRate },
-    cryptoAccounts,
-  ] = await Promise.all([
-    getModuleData('crypto'),
-    db.select().from(accountRegistry).where(inArray(accountRegistry.type, ['crypto_exchange', 'crypto_wallet'])),
-  ]);
+  const data = await getCryptoWorkspaceData();
+  const accountProps = data.accounts.map(({ account, cash }) => ({ id: account.id, name: account.name, type: account.custody_type ?? account.type, currency: account.currency, cash }));
+  const assetProps = data.assets.map((asset) => ({ id: asset.id, symbol: asset.symbol, name: asset.name, currency: asset.currency, isArchived: asset.is_archived }));
+  const positionProps = data.positions.map((position) => ({ assetId: position.asset.id, custodyId: position.account?.id ?? 0, quantity: position.quantity, costBasisKnown: position.costBasisKnown }));
+  const correctionRows = data.positions.filter((position) => position.account && position.canCorrectOpening && position.openingTransactionId).map((position) => ({ transactionId: position.openingTransactionId!, custodyAccountId: position.account!.id, custodyName: position.account!.name, assetId: position.asset.id, symbol: position.asset.symbol ?? position.asset.name, quantity: position.quantity, costBasisKnown: position.costBasisKnown, averageCost: position.averageCost, openingDate: position.openingDate }));
+  const basisRows = data.positions.filter((position) => position.account && !position.costBasisKnown).map((position) => ({ custodyAccountId: position.account!.id, custodyName: position.account!.name, assetId: position.asset.id, symbol: position.asset.symbol ?? position.asset.name, quantity: position.quantity }));
+  const history = data.transactions.map((row) => {
+    const asset = row.asset_id ? data.assets.find((item) => item.id === row.asset_id) : null;
+    const from = data.accounts.find((item) => item.account.id === row.from_custody_account_id)?.account.name
+      ?? data.accounts.find((item) => item.account.id === row.funding_account_id)?.account.name
+      ?? data.accounts.find((item) => item.account.id === row.custody_account_id)?.account.name ?? '';
+    const to = data.accounts.find((item) => item.account.id === row.to_custody_account_id)?.account.name
+      ?? data.accounts.find((item) => item.account.id === row.receive_account_id)?.account.name ?? '';
+    return { id: row.id, date: row.transaction_date, type: row.type, symbol: asset?.symbol ?? '—', source: from, destination: to, quantity: row.quantity, amount: row.type === 'buy' || row.type === 'sell' ? row.gross_proceeds ?? row.amount : row.amount, currency: row.currency };
+  });
+  const cashByCurrency = data.accounts.reduce((result, row) => {
+    result[row.account.currency] = (result[row.account.currency] ?? 0) + row.cash;
+    return result;
+  }, {} as Record<string, number>);
+  const unrealizedPct = data.totals.costBasis && data.totals.unrealizedPnl != null ? data.totals.unrealizedPnl / data.totals.costBasis * 100 : 0;
+  const metrics = [
+    [tr('Total Crypto Value'), number(data.totals.total, 'USDT'), tr('USD equivalent; stablecoins valued 1:1')],
+    [tr('Coin / Token Market Value'), number(data.totals.marketValue, 'USDT'), tr('Current manual valuation')],
+    [tr('Stablecoin / Cash Equivalent'), number(data.totals.cash, 'USDT'), Object.entries(cashByCurrency).map(([currency, value]) => number(value, currency)).join(' · ') || '—'],
+    [tr('Cost Basis'), data.totals.costBasisKnown ? number(data.totals.costBasis, 'USDT') : tr('Unknown cost basis'), tr('Remaining acquisition cost')],
+    [tr('Unrealized P&L'), data.totals.unrealizedPnl == null ? tr('Unknown cost basis') : number(data.totals.unrealizedPnl, 'USDT'), data.totals.unrealizedPnl == null ? tr('Unknown cost basis') : formatPercent(unrealizedPct)],
+    [tr('Realized P&L'), data.totals.realizedPnl == null ? tr('Unknown cost basis') : number(data.totals.realizedPnl, 'USDT'), data.totals.realizedPnl == null ? tr('Unknown cost basis') : tr('Trading profit after fees')],
+  ];
 
-  return (
-    <div className="min-h-screen bg-[#0C0C0E]">
-      <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
-        <div className="max-w-screen-xl mx-auto flex items-center justify-between">
-          <div>
-            <p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">
-              {tr("Portfolio")}</p>
-            <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-              {tr("Crypto Portfolio")}</h1>
-          </div>
-          <Link
-            href="/crypto/new"
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {tr("+ Add Crypto Asset")}</Link>
-        </div>
-      </header>
+  return <div className="min-h-screen bg-[#0C0C0E]">
+    <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]"><div className="max-w-screen-xl mx-auto flex items-center justify-between gap-4"><div><p className="text-[11px] tracking-widest uppercase text-zinc-600 font-semibold">{tr('Wealth')}</p><h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">{tr('Crypto workspace')}</h1><p className="text-xs text-zinc-600 mt-1">{tr('Manual crypto accounting · no exchange or blockchain connections')}</p></div><Link href="/crypto/accounts" className="text-xs text-zinc-500 hover:text-zinc-300">{tr('Custody administration →')}</Link></div></header>
+    <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-7">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">{metrics.map(([label, value, note]) => <article key={label} className={card}><p className="text-[10px] uppercase tracking-widest text-zinc-500">{label}</p><p className="mt-2 text-xl font-semibold text-zinc-100 tabular-nums">{value}</p><p className="mt-1 text-[10px] text-zinc-600">{note}</p></article>)}</section>
 
-      <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-8">
-        <WorkspaceKPIs
-          totalValue={classValue}
-          count={classAssets.length}
-          investmentNetWorth={investmentNW}
-          totalNetWorth={totalNW}
-          classValueUsd={classValueUsd}
-        />
+      {data.accounts.length === 0 && data.assets.length === 0 && <section className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-5"><h2 className="text-sm font-semibold text-zinc-100">{tr('Start your Crypto workspace')}</h2><div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4"><div><p className="text-xs font-medium text-zinc-300">{tr('Existing portfolio')}</p><ol className="mt-2 space-y-2 text-xs text-zinc-400 list-decimal list-inside"><li>{tr('Add an exchange or wallet')}</li><li>{tr('Add existing coin')}</li><li>{tr('Enter cost basis if known')}</li></ol></div><div><p className="text-xs font-medium text-zinc-300">{tr('New transactions')}</p><ol className="mt-2 space-y-2 text-xs text-zinc-400 list-decimal list-inside"><li>{tr('Add an exchange or wallet')}</li><li>{tr('Record a Stablecoin balance')}</li><li>{tr('Record a crypto purchase')}</li></ol></div></div></section>}
 
-        <section>
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            {tr("Crypto Holdings")}</p>
-          <HoldingsTable assets={classAssets} totalNetWorth={totalNW} usdVndRate={usdVndRate} />
-        </section>
+      <section className="space-y-3"><div className="flex items-baseline justify-between"><h2 className="text-xs font-semibold tracking-widest uppercase text-zinc-400">{tr('Custody locations')}</h2><span className="text-[10px] text-zinc-600">{tr('Stablecoin cash is counted once as a cash equivalent.')}</span></div>
+        {data.accounts.length === 0 ? <p className={`${card} text-sm text-zinc-600`}>{tr('No crypto custody sources yet.')}</p> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">{data.accounts.map(({ account, cash, marketValue, totalValue, positions }) => <article key={account.id} className={card}>
+          <div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-zinc-100">{account.name}</p><p className="mt-1 text-[10px] uppercase tracking-widest text-zinc-500">{tr(account.custody_type ?? (account.type === 'crypto_exchange' ? 'EXCHANGE' : 'HOT_WALLET'))}{account.institution ? ` · ${account.institution}` : ''}</p></div><p className="text-sm font-semibold tabular-nums text-zinc-100">{number(totalValue, account.currency)}</p></div>
+          <div className="grid grid-cols-3 gap-2 mt-4 text-xs"><div><p className="text-zinc-600">{tr('Stablecoin / Cash')}</p><p className="mt-1 text-zinc-300 tabular-nums">{number(cash, account.currency)}</p></div><div><p className="text-zinc-600">{tr('Crypto market value')}</p><p className="mt-1 text-zinc-300 tabular-nums">{number(marketValue, account.currency)}</p></div><div><p className="text-zinc-600">{tr('Total value')}</p><p className="mt-1 text-zinc-100 tabular-nums">{number(totalValue, account.currency)}</p></div></div>
+          <div className="mt-4 border-t border-[#26262B] pt-3 space-y-2">{positions.length ? positions.map((position) => <div key={position.asset.id} className="flex justify-between text-xs"><span className="text-zinc-400">{position.asset.symbol} · {position.quantity.toLocaleString('vi-VN', { maximumFractionDigits: 8 })}</span><span className="text-zinc-300">{number(position.marketValue, position.asset.currency)}</span></div>) : <p className="text-xs text-zinc-600">{tr('No crypto holdings at this source.')}</p>}</div>
+        </article>)}</div>}
+      </section>
 
-        <ArchivedSection assets={archivedClassAssets} label={tr("Archived Crypto Holdings")} usdVndRate={usdVndRate} />
+      <CryptoWorkspaceClient accounts={accountProps} assets={assetProps} positions={positionProps} history={history} />
+      {correctionRows.length > 0 && <section className="rounded-xl border border-[#26262B] bg-[#131316] p-5 space-y-4"><h2 className="text-xs font-semibold tracking-widest uppercase text-zinc-400">{tr('Correct initial balances')}</h2><p className="text-xs text-zinc-500">{tr('Initial entries can be corrected only before later transactions depend on them.')}</p>{correctionRows.map((row) => <CryptoOpeningCorrection key={row.transactionId} {...row} />)}</section>}
+      {basisRows.length > 0 && <section className="rounded-xl border border-[#26262B] bg-[#131316] p-5 space-y-4"><h2 className="text-xs font-semibold tracking-widest uppercase text-zinc-400">{tr('Supply missing cost basis')}</h2><p className="text-xs text-zinc-500">{tr('This records cost information only; it does not change quantity, cash, or net worth.')}</p>{basisRows.map((row) => <CryptoCostBasisEditor key={`${row.assetId}-${row.custodyAccountId}`} {...row} />)}</section>}
 
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">
-              {tr("Exchanges & Wallets")}</p>
-            <Link
-              href="/crypto/accounts"
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-            >
-              {tr("Manage →")}</Link>
-          </div>
-          <Card>
-            <CardHeader
-              label={tr("Registered Accounts")}
-              action={
-                <Link
-                  href="/crypto/accounts/new"
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                >
-                  {tr("+ Add Exchange or Wallet")}</Link>
-              }
-            />
-            {cryptoAccounts.length === 0 ? (
-              <div className="px-5 py-6 text-sm text-zinc-600">
-                {tr("No exchanges or wallets registered.")}{' '}
-                <Link href="/crypto/accounts/new" className="text-indigo-400 hover:text-indigo-300">
-                  {tr("Add one")}</Link>{' '}
-                {tr("to enable lifecycle tracking for crypto purchases.")}</div>
-            ) : (
-              <div className="divide-y divide-[#1A1A1F]">
-                {cryptoAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between px-5 py-3">
-                    <div>
-                      <p className="text-sm text-zinc-200">{account.name}</p>
-                      {account.institution && (
-                        <p className="text-xs text-zinc-600">{account.institution}</p>
-                      )}
-                      <p className="text-xs text-zinc-700">
-                        {tr(account.type === 'crypto_exchange' ? 'Exchange' : 'Wallet')}
-                      </p>
-                    </div>
-                    <Link
-                      href={`/accounts/${account.id}`}
-                      className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-                    >
-                      {tr("View")}</Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </section>
+      <section className="rounded-xl border border-[#26262B] bg-[#131316] overflow-hidden"><div className="px-5 py-4 border-b border-[#26262B]"><h2 className="text-xs font-semibold tracking-widest uppercase text-zinc-400">{tr('Danh mục Crypto · Vị thế kinh tế')}</h2><p className="mt-1 text-[10px] text-zinc-600">{tr('A coin held across multiple sources remains one economic position.')}</p></div>
+        <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="text-[10px] uppercase tracking-wider text-zinc-600"><tr>{['Coin','Custody source','Quantity','Average cost','Current price','Cost basis','Market value','Gain / Loss','Return','Weight'].map((heading) => <th key={heading} className="px-4 py-3 font-semibold whitespace-nowrap">{tr(heading)}</th>)}</tr></thead><tbody className="divide-y divide-[#1A1A1F]">{data.positions.map((position, index) => { const weight = data.totals.total > 0 ? normalizeToUsd(position.marketValue, position.asset.currency, data.rate) / data.totals.total * 100 : 0; return <tr key={`${position.asset.id}-${position.account?.id ?? 'legacy'}-${index}`}><td className="px-4 py-3"><span className="font-semibold text-zinc-200">{position.asset.symbol ?? position.asset.name}</span><span className="ml-2 text-zinc-600">{position.asset.name}</span></td><td className="px-4 py-3 text-zinc-400">{position.account?.name ?? tr('Unassigned legacy holding')}</td><td className="px-4 py-3 text-zinc-300 tabular-nums">{position.quantity.toLocaleString('vi-VN', { maximumFractionDigits: 8 })}</td><td className="px-4 py-3 text-zinc-400 tabular-nums">{position.costBasisKnown ? number(position.averageCost ?? 0, position.asset.currency) : tr('Unknown cost basis')}</td><td className="px-4 py-3 text-zinc-400 tabular-nums">{number(position.marketPrice, position.asset.currency)}</td><td className="px-4 py-3 text-zinc-400 tabular-nums">{position.costBasisKnown ? number(position.costBasis, position.asset.currency) : tr('Unknown cost basis')}</td><td className="px-4 py-3 text-zinc-200 tabular-nums">{number(position.marketValue, position.asset.currency)}</td><td className={`px-4 py-3 tabular-nums ${position.gainLoss != null && position.gainLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{position.gainLoss == null ? tr('Unknown cost basis') : number(position.gainLoss, position.asset.currency)}</td><td className="px-4 py-3 text-zinc-400">{position.gainLoss != null && position.costBasis ? formatPercent(position.gainLoss / position.costBasis * 100) : '—'}</td><td className="px-4 py-3 text-zinc-400">{formatPercent(weight)}</td></tr>; })}{data.positions.length === 0 && <tr><td colSpan={10} className="px-5 py-10 text-center text-zinc-600">{tr('Add custody, a Stablecoin balance, and record a purchase to begin.')}</td></tr>}</tbody></table></div>
+        <div className="border-t border-[#26262B] p-4 grid grid-cols-1 md:grid-cols-2 gap-3">{data.positionsByAsset.filter((row) => row.quantity > 0).map((row) => <article key={row.asset.id} className="rounded-lg bg-[#0C0C0E] p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold text-zinc-200">{row.asset.symbol ?? row.asset.name} · {row.quantity.toLocaleString('vi-VN', { maximumFractionDigits: 8 })} {row.asset.symbol}</p><p className="mt-1 text-[10px] text-zinc-600">{tr('Global economic position across')} {row.locations.length} {tr('custody locations')}</p></div><p className="text-xs text-zinc-300">{number(row.value, row.asset.currency)}</p></div><div className="mt-3"><CryptoPriceEditor assetId={row.asset.id} symbol={row.asset.symbol ?? row.asset.name} currency={row.asset.currency} price={row.price} /></div></article>)}</div>
+      </section>
 
-        <section>
-          <p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600 mb-3">
-            {tr("Address Book")}</p>
-          <CryptoPortfolioClient />
-        </section>
-
-        <WorkspaceAllocationChart
-          assets={classAssets}
-          usdVndRate={usdVndRate}
-          label={tr("Crypto Allocation")}
-        />
-
-        <SectionPlaceholder
-          label={tr("Transactions")}
-          note="Transaction log — coming in a future sprint."
-        />
-      </main>
-    </div>
-  );
+      <section className="rounded-xl border border-[#26262B] bg-[#131316] overflow-hidden"><div className="px-5 py-4 border-b border-[#26262B]"><h2 className="text-xs font-semibold tracking-widest uppercase text-zinc-400">{tr('Closed positions')}</h2></div><div className="divide-y divide-[#1A1A1F]">{data.closedAssets.map((asset) => <div key={asset.id} className="flex justify-between px-5 py-3 text-xs"><span className="text-zinc-300">{asset.symbol} · {asset.name}</span><span className="text-zinc-600">{tr('Closed')} · {tr('Transaction history retained')}</span></div>)}{data.closedAssets.length === 0 && <p className="px-5 py-5 text-xs text-zinc-600">{tr('No closed crypto positions yet.')}</p>}</div></section>
+    </main>
+  </div>;
 }

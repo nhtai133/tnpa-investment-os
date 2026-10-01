@@ -28,6 +28,7 @@ import { getPortfolioSummary, positionToAsset } from '@/lib/portfolio-aggregatio
 import { getBankingMaturitySummary } from '@/lib/banking-events';
 
 import { WealthSnapshot } from '@/components/dashboard/WealthSnapshot';
+import { PersonalWealthOverview } from '@/components/dashboard/PersonalWealthOverview';
 import { PurposeHealth, type PurposeHealthRow } from '@/components/dashboard/PurposeHealth';
 import { DecisionIntelligence } from '@/components/dashboard/DecisionIntelligence';
 import { WealthScore } from '@/components/dashboard/WealthScore';
@@ -128,17 +129,16 @@ export default async function CommandCenter() {
   const totalNetWorth = portfolio.totalNetWorth;
   const investableNetWorth = portfolio.investmentNetWorth;
 
-  const assetsWithCostBasis = allAssets.filter((a) => a.cost_basis != null);
-  const totalCostBasis = assetsWithCostBasis.reduce(
-    (sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate),
-    0,
+  const assetsWithCostBasis = allAssets.filter((a) => a.cost_basis != null && a.cost_basis_known);
+  const hasUnknownCostBasis = allAssets.some((a) => !a.cost_basis_known && (a.quantity ?? 0) > 0);
+  const marketValueWithKnownBasis = assetsWithCostBasis.reduce(
+    (sum, a) => sum + normalizeToUsd(a.current_value, a.currency, usdVndRate), 0,
   );
-  // Gain/Loss only against assets that have a cost basis
   const costBasisTotal = assetsWithCostBasis.reduce(
     (sum, a) => sum + getNormalizedCostBasisUsd(a, usdVndRate),
     0,
   );
-  const totalGainLoss = costBasisTotal > 0 ? totalCostBasis - costBasisTotal : null;
+  const totalGainLoss = !hasUnknownCostBasis && costBasisTotal > 0 ? marketValueWithKnownBasis - costBasisTotal : null;
   const gainLossPct =
     totalGainLoss != null && costBasisTotal > 0
       ? (totalGainLoss / costBasisTotal) * 100
@@ -267,11 +267,13 @@ export default async function CommandCenter() {
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-5">
 
+        <PersonalWealthOverview portfolio={portfolio} />
+
         {/* 1. Wealth Snapshot */}
         <WealthSnapshot
-          totalNetWorth={totalNetWorth}
-          investableNetWorth={investableNetWorth}
-          totalGainLoss={totalGainLoss}
+          totalNetWorth={totalNetWorth * usdVndRate}
+          investableNetWorth={investableNetWorth * usdVndRate}
+          totalGainLoss={totalGainLoss == null ? null : totalGainLoss * usdVndRate}
           gainLossPct={gainLossPct}
           usdVndRate={usdVndRate}
         />
@@ -288,7 +290,7 @@ export default async function CommandCenter() {
           />
         </CollapsibleSection>
 
-        <SourceContributionPanel rows={portfolio.sourceContributions} />
+        <SourceContributionPanel rows={portfolio.sourceContributions} usdVndRate={usdVndRate} />
 
         <LifecycleDashboard {...lifecycleDashboard} />
 

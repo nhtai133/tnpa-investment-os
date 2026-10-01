@@ -12,6 +12,7 @@ import {
   type BankSavingsDeposit,
 } from '@/db/schema';
 import { normalizeToUsd } from '@/lib/fx';
+import { calculateBankingProjection, projectSavingsDeposit } from '@/lib/banking-projections';
 import { asc, eq } from 'drizzle-orm';
 
 export type BankingData = {
@@ -31,6 +32,9 @@ export type BankingSummary = {
   creditUsed: number;
   availableCredit: number;
   debtDueThisMonth: number;
+  expectedInterest: number;
+  expectedMaturityValue: number;
+  institutionBreakdown: ReturnType<typeof calculateBankingProjection>['rows'];
 };
 
 export function maskAccountNumber(value: string | null): string {
@@ -84,15 +88,28 @@ export async function getBankingData(): Promise<BankingData> {
   };
 }
 
-export function computeBankingSummary(data: BankingData): BankingSummary {
+export function computeBankingSummary(data: BankingData, usdVndRate = 25_500): BankingSummary {
+  const toVnd = (value: number, currency: string) => normalizeToUsd(value, currency, usdVndRate) * usdVndRate;
   const activeAccounts = data.accounts.filter((account) => account.status === 'active');
   const activeDeposits = data.deposits.filter((deposit) => deposit.status === 'active');
   const activeCards = data.creditCards.filter((card) => card.status === 'active');
   const activeFacilities = data.creditFacilities.filter((facility) => facility.status === 'active');
 
-  const checkingBalance = activeAccounts.reduce((sum, account) => sum + account.balance, 0);
+  const independentLegacyAssets = data.legacyAssets.filter((asset) => !asset.cash_source_type);
+  const legacyBalance = independentLegacyAssets.reduce((sum, asset) => sum + toVnd(asset.current_value, asset.currency), 0);
+  const checkingBalance = activeAccounts.reduce((sum, account) => sum + toVnd(account.balance, account.currency), 0) + legacyBalance;
   const savingsBalance = activeDeposits.reduce((sum, deposit) => sum + deposit.principal, 0);
-  const legacyBalance = data.legacyAssets.reduce((sum, asset) => sum + asset.current_value, 0);
+  const projections = calculateBankingProjection({
+    liquidBalances: [
+      ...activeAccounts.map((account) => ({ bankName: account.bank_name, balance: toVnd(account.balance, account.currency) })),
+      ...independentLegacyAssets.map((asset) => ({ bankName: getLegacyAssetBank(asset), balance: toVnd(asset.current_value, asset.currency) })),
+    ],
+    deposits: activeDeposits.map((deposit) => ({
+      bankName: resolveDepositBankName(deposit, data.accounts),
+      principal: deposit.principal,
+      ...projectSavingsDeposit(deposit),
+    })),
+  });
 
   const today = new Date();
   const inThirtyDays = new Date();
@@ -131,6 +148,9 @@ export function computeBankingSummary(data: BankingData): BankingSummary {
     creditUsed,
     availableCredit,
     debtDueThisMonth,
+    expectedInterest: projections.expectedInterest,
+    expectedMaturityValue: projections.expectedMaturityValue,
+    institutionBreakdown: projections.rows,
   };
 }
 

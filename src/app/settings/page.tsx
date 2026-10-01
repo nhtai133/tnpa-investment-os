@@ -1,6 +1,7 @@
 import { tr } from '@/i18n';
 import { getUsdVndRate } from '@/lib/settings';
 import { FxRateForm } from '@/components/settings/FxRateForm';
+import { WealthTrackingStartDateForm } from '@/components/settings/WealthTrackingStartDateForm';
 import { DataManagement } from '@/components/settings/DataManagement';
 import { Card } from '@/components/ui/Card';
 import { db } from '@/db';
@@ -20,6 +21,7 @@ export default async function SettingsPage() {
   const activeAssets = allAssets.filter((a) => !a.is_archived).length;
   const archivedAssets = allAssets.filter((a) => a.is_archived).length;
   const settingsCount = allSettings.length;
+  const trackingStartDate = allSettings.find((setting) => setting.key === 'wealth_tracking_start_date')?.value ?? new Date().toISOString().slice(0, 10);
 
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
@@ -31,6 +33,11 @@ export default async function SettingsPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+
+        <section>
+          <div className="mb-3"><p className="text-[11px] font-semibold tracking-widest uppercase text-zinc-600">{tr('Wealth tracking')}</p></div>
+          <Card className="p-5"><WealthTrackingStartDateForm currentDate={trackingStartDate} /></Card>
+        </section>
 
         {/* Reporting Currency */}
         <section>

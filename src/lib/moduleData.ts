@@ -21,7 +21,7 @@ export async function getModuleData(assetClass: AssetClass) {
   const totalNW = portfolio.totalNetWorth;
 
   const classValueUsd = classAssets.reduce(
-    (s, a) => s + normalizeToUsd(a.current_value, a.currency, usdVndRate),
+    (s, a) => s + normalizeToUsd(a.current_value * (assetClass === 'real_estate' && a.ownership_percentage != null ? a.ownership_percentage / 100 : 1), a.currency, usdVndRate),
     0,
   );
   const classValue = assetClass === 'crypto' ? classValueUsd : classValueUsd * usdVndRate;

@@ -43,8 +43,8 @@ export default async function AccountDetailPage({ params }: { params: { id: stri
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Metric label={tr("Current Balance")} value={formatValue(account.current_balance, account.currency)} />
           <Metric label={tr("Transactions")} value={String(summary.linkedTransactions.length)} />
-          <Metric label={tr("Custody Value")} value={formatValue(summary.custodiedAssets.reduce((sum, row) => sum + row.costBasis, 0), account.currency)} />
-          <Metric label={tr("Realized P&L")} value={formatValue(summary.realizedPnl, account.currency)} />
+          <Metric label={tr("Custody Value")} value={formatValue(summary.custodiedAssets.reduce((sum, row) => sum + (row.asset.quantity && row.asset.quantity > 0 ? row.asset.current_value / row.asset.quantity * row.quantity : 0), 0), account.currency)} />
+          <Metric label={tr("Realized P&L")} value={summary.realizedPnl == null ? tr('Unknown cost basis') : formatValue(summary.realizedPnl, account.currency)} />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -65,7 +65,7 @@ export default async function AccountDetailPage({ params }: { params: { id: stri
                   </Link>
                   <div className="text-right">
                     <p className="text-sm text-zinc-100 tabular-nums">{row.quantity.toLocaleString()} {tr("units")}</p>
-                    <p className="text-xs text-zinc-600 tabular-nums">{formatValue(row.costBasis, row.asset.currency)}</p>
+                    <p className="text-xs text-zinc-600 tabular-nums">{row.costBasisKnown ? formatValue(row.costBasis, row.asset.currency) : tr('Unknown cost basis')}</p>
                   </div>
                 </div>
               ))

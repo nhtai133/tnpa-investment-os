@@ -1,10 +1,10 @@
 import { tr } from '@/i18n';
 import Link from 'next/link';
-import { createGoldAsset } from '@/app/gold/actions';
-import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
-import { GOLD_WORKSPACE_CONFIG } from '@/components/workspace/WorkspaceConfig';
+import { ExistingGoldForm } from '@/components/workspace/ExistingGoldForm';
+import { getAppSetting } from '@/lib/settings';
 
-export default function NewGoldAssetPage() {
+export default async function NewGoldAssetPage() {
+  const openingDate = await getAppSetting('wealth_tracking_start_date') ?? new Date().toISOString().slice(0, 10);
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
@@ -15,15 +15,13 @@ export default function NewGoldAssetPage() {
           >
             {tr("← Gold")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            {tr("Add Gold")}</h1>
+            {tr("Add existing gold")}</h1>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-2xl">
-          <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
-            <WorkspaceAssetForm action={createGoldAsset} config={GOLD_WORKSPACE_CONFIG} />
-          </div>
+          <ExistingGoldForm openingDate={openingDate} />
         </div>
       </main>
     </div>

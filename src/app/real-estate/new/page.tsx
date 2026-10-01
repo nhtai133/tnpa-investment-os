@@ -1,10 +1,10 @@
 import { tr } from '@/i18n';
 import Link from 'next/link';
-import { createRealEstateAsset } from '@/app/real-estate/actions';
-import { WorkspaceAssetForm } from '@/components/workspace/WorkspaceAssetForm';
-import { REAL_ESTATE_WORKSPACE_CONFIG } from '@/components/workspace/WorkspaceConfig';
+import { ExistingLandForm } from '@/components/workspace/ExistingLandForm';
+import { getAppSetting } from '@/lib/settings';
 
-export default function NewRealEstateAssetPage() {
+export default async function NewRealEstateAssetPage() {
+  const openingDate = await getAppSetting('wealth_tracking_start_date') ?? new Date().toISOString().slice(0, 10);
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
@@ -15,15 +15,13 @@ export default function NewRealEstateAssetPage() {
           >
             {tr("← Real Estate")}</Link>
           <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">
-            {tr("Add Property")}</h1>
+            {tr("Add existing property")}</h1>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
         <div className="max-w-2xl">
-          <div className="bg-[#131316] border border-[#26262B] rounded-xl p-6">
-            <WorkspaceAssetForm action={createRealEstateAsset} config={REAL_ESTATE_WORKSPACE_CONFIG} />
-          </div>
+          <ExistingLandForm openingDate={openingDate} />
         </div>
       </main>
     </div>

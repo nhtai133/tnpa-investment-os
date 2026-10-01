@@ -22,6 +22,10 @@ import { CurrencyInput } from '@/components/ui/CurrencyInput';
 const inputClass =
   'w-full bg-[#1C1C21] border border-[#26262B] rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-zinc-500 transition-colors';
 const labelClass = 'block text-[11px] font-semibold tracking-widest uppercase text-zinc-500 mb-1.5';
+const BANK_SUGGESTIONS = ['Vietcombank (VCB)', 'ACB', 'Techcombank (TCB)', 'VietinBank (CTG)', 'TPBank (TPB)'];
+function BankSuggestions() {
+  return <datalist id="bank-institutions">{BANK_SUGGESTIONS.map((bank) => <option key={bank} value={bank} />)}<option value="Ngân hàng khác" /></datalist>;
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -68,7 +72,8 @@ export function BankAccountForm({
     <form action={action} className="space-y-5">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label={tr("Bank")}>
-          <input name="bank_name" required defaultValue={defaultValues?.bank_name} placeholder={tr("Techcombank")} className={inputClass} />
+          <input name="bank_name" list="bank-institutions" required defaultValue={defaultValues?.bank_name} placeholder={tr("Choose a bank or enter another")} className={inputClass} />
+          <BankSuggestions />
         </Field>
         <Field label={tr("Account Name")}>
           <input name="account_name" required defaultValue={defaultValues?.account_name} placeholder={tr("Main checking")} className={inputClass} />
@@ -81,7 +86,7 @@ export function BankAccountForm({
             {BANK_ACCOUNT_TYPES.map((type) => <option key={type} value={type}>{tr(type)}</option>)}
           </select>
         </Field>
-        <Field label={tr("Balance")}>
+        <Field label={tr("Liquid balance at tracking start / current balance")}>
           <CurrencyInput name="balance" currency={currency} required defaultValue={defaultValues?.balance ?? 0} className={inputClass} />
         </Field>
         <Field label={tr("Currency")}>
@@ -108,6 +113,7 @@ export function BankAccountForm({
           </select>
         </Field>
       </div>
+      {!defaultValues && <p className="text-xs text-zinc-600">{tr('Enter the liquid balance only. Savings deposit principal is entered separately and must not remain included in this balance. This opening amount is wealth, not income.')}</p>}
       <Field label={tr("Custom Purpose")}>
         <textarea
           name="custom_purpose"
@@ -147,10 +153,12 @@ export function SavingsDepositForm({
   action,
   accounts,
   defaultValues,
+  trackingStartDate,
 }: {
   action: (formData: FormData) => Promise<void>;
   accounts: BankAccount[];
   defaultValues?: BankSavingsDeposit;
+  trackingStartDate?: string;
 }) {
   return (
     <form action={action} className="space-y-5">
@@ -164,7 +172,8 @@ export function SavingsDepositForm({
           </select>
         </Field>
         <Field label={tr("Bank")}>
-          <input name="bank_name" defaultValue={defaultValues?.bank_name ?? ''} placeholder={tr("Techcombank")} className={inputClass} />
+          <input name="bank_name" list="bank-institutions" required defaultValue={defaultValues?.bank_name ?? ''} placeholder={tr("Choose a bank or enter another")} className={inputClass} />
+          <BankSuggestions />
         </Field>
         <Field label={tr("Deposit Name")}>
           <input name="deposit_name" required defaultValue={defaultValues?.deposit_name} placeholder={tr("6M savings ladder")} className={inputClass} />
@@ -172,20 +181,24 @@ export function SavingsDepositForm({
         <Field label={tr("Principal")}>
           <CurrencyInput name="principal" currency="VND" required defaultValue={defaultValues?.principal ?? 0} className={inputClass} />
         </Field>
-        <Field label={tr("Interest Rate")}>
-          <input type="number" step="0.01" name="interest_rate" defaultValue={defaultValues?.interest_rate ?? 0} className={inputClass} />
+        <Field label={tr("Interest Rate (%/year)")}>
+          <input type="number" min="0" step="0.01" name="interest_rate" required defaultValue={defaultValues?.interest_rate ?? 0} className={inputClass} />
         </Field>
         <Field label={tr("Term Months")}>
-          <input type="number" name="term_months" defaultValue={defaultValues?.term_months ?? 0} className={inputClass} />
+          <input type="number" min="1" name="term_months" required defaultValue={defaultValues?.term_months || ''} className={inputClass} />
         </Field>
         <Field label={tr("Start Date")}>
-          <input type="date" name="start_date" defaultValue={defaultValues?.start_date ?? ''} className={inputClass} />
+          <input type="date" name="start_date" required defaultValue={defaultValues?.start_date ?? trackingStartDate ?? ''} className={inputClass} />
         </Field>
         <Field label={tr("Maturity Date")}>
-          <input type="date" name="maturity_date" defaultValue={defaultValues?.maturity_date ?? ''} className={inputClass} />
+          <input type="date" name="maturity_date" required defaultValue={defaultValues?.maturity_date ?? ''} className={inputClass} />
         </Field>
         <Field label={tr("Payout Type")}>
-          <input name="interest_payout_type" defaultValue={defaultValues?.interest_payout_type ?? ''} placeholder={tr("At maturity, monthly...")} className={inputClass} />
+          <select name="interest_payout_type" defaultValue={defaultValues?.interest_payout_type || 'at_maturity'} className={`${inputClass} appearance-none`}>
+            <option value="at_maturity">{tr('At maturity')}</option>
+            <option value="monthly">{tr('Monthly payout')}</option>
+            <option value="quarterly">{tr('Quarterly payout')}</option>
+          </select>
         </Field>
         <Field label={tr("Status")}>
           <select name="status" defaultValue={defaultValues?.status ?? 'active'} className={`${inputClass} appearance-none`}>
@@ -193,12 +206,15 @@ export function SavingsDepositForm({
           </select>
         </Field>
       </div>
+      <p className="text-xs text-zinc-600">{tr('For an existing deposit, enter its original opening date to estimate the full term correctly. The tracking start date is only a suggested fallback.')}</p>
+      <p className="text-xs text-zinc-600">{tr('Linking identifies the bank relationship. Deposit principal remains a separate balance; keep it out of liquid cash.')}</p>
       <label className="inline-flex items-center gap-2 text-sm text-zinc-300">
         <input type="checkbox" name="auto_renew" defaultChecked={defaultValues?.auto_renew ?? false} className="h-4 w-4 accent-indigo-600" />
         {tr("Auto renew")}</label>
       <Field label={tr("Notes")}>
         <textarea name="notes" rows={4} defaultValue={defaultValues?.notes ?? ''} className={`${inputClass} resize-none`} />
       </Field>
+      <p className="text-xs text-zinc-600">{tr('Expected interest uses simple interest by actual days / 365. No compounding is assumed. Current Net Worth includes principal only.')}</p>
       <Footer label={defaultValues ? 'Update Deposit' : 'Add Deposit'} cancelHref="/banking" />
     </form>
   );

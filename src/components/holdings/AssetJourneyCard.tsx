@@ -18,9 +18,9 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
   const executionAccount = lifecycle.firstExecutionAccount;
   const custodyPositions = lifecycle.currentCustody;
 
-  const totalGainLoss = lifecycle.unrealizedPnl + lifecycle.realizedPnl;
+  const totalGainLoss = lifecycle.unrealizedPnl != null && lifecycle.realizedPnl != null ? lifecycle.unrealizedPnl + lifecycle.realizedPnl : null;
   const gainLossPct =
-    lifecycle.lifetimeCashOut > 0
+    totalGainLoss != null && lifecycle.lifetimeCashOut > 0
       ? (totalGainLoss / lifecycle.lifetimeCashOut) * 100
       : null;
 
@@ -96,9 +96,9 @@ export function AssetJourneyCard({ lifecycle, asset }: Props) {
           {/* Step 5: Gain / Loss */}
           <JourneyStep
             label={tr("Total Return")}
-            value={`${totalGainLoss >= 0 ? '+' : ''}${formatValue(totalGainLoss, asset.currency)}`}
+            value={totalGainLoss == null ? tr("Unknown cost basis") : `${totalGainLoss >= 0 ? '+' : ''}${formatValue(totalGainLoss, asset.currency)}`}
             sub={gainLossPct != null ? formatPercent(gainLossPct) : undefined}
-            accent={totalGainLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}
+            accent={totalGainLoss == null ? 'text-zinc-500' : totalGainLoss >= 0 ? 'text-emerald-400' : 'text-red-400'}
           />
         </div>
       </div>

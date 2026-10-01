@@ -30,9 +30,9 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
 
 export function PositionSummaryCard({ asset, totalNetWorth, usdVndRate }: PositionSummaryCardProps) {
   const weight = totalNetWorth > 0 ? (normalizeToUsd(asset.current_value, asset.currency, usdVndRate) / totalNetWorth) * 100 : 0;
-  const gain = asset.cost_basis != null ? asset.current_value - asset.cost_basis : null;
+  const gain = asset.cost_basis != null && asset.cost_basis_known ? asset.current_value - asset.cost_basis : null;
   const gainPct =
-    asset.cost_basis != null && asset.cost_basis > 0
+    asset.cost_basis != null && asset.cost_basis_known && asset.cost_basis > 0
       ? ((asset.current_value - asset.cost_basis) / asset.cost_basis) * 100
       : null;
 
@@ -73,7 +73,7 @@ export function PositionSummaryCard({ asset, totalNetWorth, usdVndRate }: Positi
                 </p>
               </>
             ) : (
-              <p className="text-2xl font-light text-zinc-700">—</p>
+              <p className="text-sm font-light text-zinc-500">{tr(!asset.cost_basis_known ? "Unknown cost basis" : "—")}</p>
             )}
           </div>
         </div>
@@ -105,10 +105,10 @@ export function PositionSummaryCard({ asset, totalNetWorth, usdVndRate }: Positi
           </div>
           <div>
             <MetaRow label={tr("Cost Basis")}>
-              {asset.cost_basis != null ? (
+              {asset.cost_basis != null && asset.cost_basis_known ? (
                 <span className="text-zinc-300 tabular-nums">{formatCurrency(asset.cost_basis)}</span>
               ) : (
-                <span className="text-zinc-700">—</span>
+                <span className="text-zinc-700">{tr(!asset.cost_basis_known ? "Unknown cost basis" : "—")}</span>
               )}
             </MetaRow>
             <MetaRow label={tr("In Investment NW")}>

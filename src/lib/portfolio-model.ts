@@ -2,6 +2,9 @@ import type { Asset, AssetClass, AssetPurpose, BankAccount, BankSavingsDeposit, 
 import { normalizeToUsd } from './fx';
 export type PortfolioSource =
   | 'registry_cash'
+  | 'bank_registry_cash'
+  | 'broker_cash'
+  | 'crypto_cash'
   | 'legacy_holdings'
   | 'banking_accounts'
   | 'savings_deposits'
@@ -48,11 +51,46 @@ export interface PortfolioSummary {
   sourceContributions: SourceContribution[];
 }
 
+export interface PersonalWealthSummaryVnd {
+  banking: number;
+  stocks: number;
+  crypto: number;
+  gold: number;
+  realEstate: number;
+  totalAssets: number;
+  liabilities: number;
+  netWorth: number;
+}
+
+export function buildPersonalWealthSummaryVnd(summary: PortfolioSummary): PersonalWealthSummaryVnd {
+  const toVnd = (valueUsd: number) => valueUsd * summary.usdVndRate;
+  const result: PersonalWealthSummaryVnd = { banking: 0, stocks: 0, crypto: 0, gold: 0, realEstate: 0, totalAssets: 0, liabilities: 0, netWorth: 0 };
+  for (const position of summary.positions) {
+    if (!position.includeInTotalNetWorth) continue;
+    const value = toVnd(Math.abs(position.valueUsd));
+    if (position.isLiability) result.liabilities += value;
+    else result.totalAssets += value;
+    if (position.isLiability) continue;
+    if (['banking_accounts', 'savings_deposits', 'bank_registry_cash'].includes(position.source)) result.banking += value;
+    else if (position.source === 'broker_cash' || position.assetClass === 'stock') result.stocks += value;
+    else if (position.source === 'crypto_cash' || position.assetClass === 'crypto') result.crypto += value;
+    else if (position.assetClass === 'cash') result.banking += value;
+    else if (position.assetClass === 'gold') result.gold += value;
+    else if (position.assetClass === 'real_estate') result.realEstate += value;
+  }
+  result.netWorth = result.totalAssets - result.liabilities;
+  return result;
+}
+
 function asNumericId(prefix: number, id: number) {
   return prefix * 1_000_000 + id;
 }
 
 function toLegacyPosition(asset: Asset, usdVndRate: number): PortfolioPosition {
+  const attribution = asset.asset_class === 'real_estate' && asset.ownership_percentage != null
+    ? asset.ownership_percentage / 100
+    : 1;
+  const value = asset.current_value * attribution;
   return {
     id: `asset:${asset.id}`,
     numericId: asset.id,
@@ -62,8 +100,8 @@ function toLegacyPosition(asset: Asset, usdVndRate: number): PortfolioPosition {
     market: asset.asset_class,
     purpose: asset.purpose,
     currency: asset.currency,
-    value: asset.current_value,
-    valueUsd: normalizeToUsd(asset.current_value, asset.currency, usdVndRate),
+    value,
+    valueUsd: normalizeToUsd(value, asset.currency, usdVndRate),
     isLiability: false,
     includeInInvestmentNetWorth: asset.include_in_investment_net_worth,
     includeInTotalNetWorth: asset.include_in_total_net_worth,
@@ -89,6 +127,26 @@ export function positionToAsset(position: PortfolioPosition): Asset {
     cash_source_id: null,
     quantity: null,
     cost_basis: null,
+    cost_basis_known: true,
+    opening_date: null,
+    acquisition_date: null,
+    gold_purity: null,
+    gold_form: null,
+    gold_item_count: null,
+    gold_weight: null,
+    gold_weight_unit: null,
+    storage_location: null,
+    ownership_label: null,
+    property_type: null,
+    property_location: null,
+    property_area_sqm: null,
+    property_width_m: null,
+    property_length_m: null,
+    property_legal_status: null,
+    ownership_percentage: null,
+    purchase_price: null,
+    acquisition_costs: null,
+    property_value_per_sqm: null,
     notes: `Portfolio aggregation source: ${position.source}`,
     is_archived: false,
     created_at: now,
@@ -98,6 +156,9 @@ export function positionToAsset(position: PortfolioPosition): Asset {
 
 function sourceLabel(position: PortfolioPosition) {
   if (position.source === 'registry_cash') return 'Registry Cash';
+  if (position.source === 'bank_registry_cash') return 'Bank Account Cash';
+  if (position.source === 'broker_cash') return 'Broker Cash';
+  if (position.source === 'crypto_cash') return 'Crypto Cash Equivalent';
   if (position.source === 'banking_accounts') return 'Banking Accounts';
   if (position.source === 'savings_deposits') return 'Savings Deposits';
   if (position.source === 'credit_cards') return 'Credit Used';
@@ -107,7 +168,7 @@ function sourceLabel(position: PortfolioPosition) {
     crypto: 'Crypto',
     real_estate: 'Real Estate',
     gold: 'Gold',
-    cash: 'Legacy Holdings',
+    cash: 'Bank & Cash',
     funds: 'Funds',
     private_loan: 'Loans',
     other: 'Legacy Holdings',
@@ -117,6 +178,9 @@ function sourceLabel(position: PortfolioPosition) {
 
 function sourceKey(position: PortfolioPosition) {
   if (position.source === 'registry_cash') return 'registry_cash';
+  if (position.source === 'bank_registry_cash') return 'banking_accounts';
+  if (position.source === 'broker_cash') return 'stocks';
+  if (position.source === 'crypto_cash') return 'crypto';
   if (position.source === 'banking_accounts') return 'banking_accounts';
   if (position.source === 'savings_deposits') return 'savings_deposits';
   if (position.source === 'credit_cards' || position.source === 'credit_facilities') return 'credit_used';
@@ -125,7 +189,7 @@ function sourceKey(position: PortfolioPosition) {
     crypto: 'crypto',
     real_estate: 'real_estate',
     gold: 'gold',
-    cash: 'legacy_holdings',
+    cash: 'banking_accounts',
     funds: 'funds',
     private_loan: 'loans',
     other: 'legacy_holdings',
@@ -163,7 +227,7 @@ export function buildPortfolioSummary({ usdVndRate, legacyAssets, accounts, depo
       assetClass: 'cash' as AssetClass, market: 'banking', purpose: 'liquidity_reserve' as AssetPurpose,
       currency: r.currency, value: r.current_balance, valueUsd: normalizeToUsd(r.current_balance, r.currency, usdVndRate),
       isLiability: r.current_balance < 0, includeInInvestmentNetWorth: true, includeInTotalNetWorth: true,
-      source: 'registry_cash' as PortfolioSource,
+      source: (r.type === 'broker_account' ? 'broker_cash' : ['crypto_exchange', 'crypto_wallet'].includes(r.type) ? 'crypto_cash' : r.type === 'bank_account' ? 'bank_registry_cash' : 'registry_cash') as PortfolioSource,
     })),
     ...activeAccounts.map((account) => ({
       id: `bank-account:${account.id}`,

@@ -64,9 +64,9 @@ export interface AssetLifecycleSummary {
   }>;
   lifetimeCashIn: number;
   lifetimeCashOut: number;
-  realizedPnl: number;
-  unrealizedPnl: number;
-  totalReturn: number;
+  realizedPnl: number | null;
+  unrealizedPnl: number | null;
+  totalReturn: number | null;
 }
 
 export interface AccountRegistryMetrics {
@@ -81,10 +81,10 @@ export interface AccountDetailSummary {
   linkedTransactions: Array<typeof transactions.$inferSelect>;
   fundedAssets: Asset[];
   executedAssets: Asset[];
-  custodiedAssets: Array<{ asset: Asset; quantity: number; costBasis: number }>;
+  custodiedAssets: Array<{ asset: Asset; quantity: number; costBasis: number; costBasisKnown: boolean }>;
   transfersIn: Array<typeof transactions.$inferSelect>;
   transfersOut: Array<typeof transactions.$inferSelect>;
-  realizedPnl: number;
+  realizedPnl: number | null;
 }
 
 function requireValue<T>(value: T | null | undefined, message: string): T {
@@ -136,6 +136,7 @@ async function upsertPosition(
   quantityDelta: number,
   costBasisDelta: number,
   now: string,
+  costBasisKnown = true,
 ) {
   const existing = await getPosition(store, assetId, custodyAccountId);
   if (existing) {
@@ -144,6 +145,7 @@ async function upsertPosition(
       .set({
         quantity: existing.quantity + quantityDelta,
         cost_basis: existing.cost_basis + costBasisDelta,
+        cost_basis_known: (existing.quantity <= EPSILON || existing.cost_basis_known) && costBasisKnown,
         updated_at: now,
       })
       .where(eq(assetCustodyPositions.id, existing.id));
@@ -155,6 +157,7 @@ async function upsertPosition(
     custody_account_id: custodyAccountId,
     quantity: quantityDelta,
     cost_basis: costBasisDelta,
+    cost_basis_known: costBasisKnown,
     updated_at: now,
   });
 }
@@ -176,12 +179,15 @@ async function updateAssetTotals(store: Store, assetId: number, quantityDelta: n
   if (!asset) return;
   const nextQuantity = Math.max(0, (asset.quantity ?? 0) + quantityDelta);
   const nextCostBasis = Math.max(0, (asset.cost_basis ?? 0) + costBasisDelta);
+  const positions = await store.select().from(assetCustodyPositions).where(eq(assetCustodyPositions.asset_id, assetId));
+  const costBasisKnown = positions.filter((position) => position.quantity > EPSILON).every((position) => position.cost_basis_known);
   await store
     .update(assets)
     .set({
       current_value: Math.max(0, asset.current_value + quantityDelta * ((asset.quantity ?? 0) > 0 ? asset.current_value / asset.quantity! : initialPrice)),
       quantity: nextQuantity,
       cost_basis: nextCostBasis,
+      cost_basis_known: costBasisKnown,
       is_archived: nextQuantity <= EPSILON,
       updated_at: now,
     })
@@ -218,6 +224,9 @@ function validateLifecycleInput(input: LifecycleTransactionInput, asset: Asset |
     if (input.fromCustodyAccountId === input.toCustodyAccountId) {
       throw new Error('Transfer source and destination must be different.');
     }
+    if (input.transferFee != null && input.transferFee > input.quantity!) {
+      throw new Error('Transfer fee cannot exceed the quantity sent.');
+    }
   }
 }
 
@@ -226,11 +235,12 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
   const now = new Date().toISOString();
   const asset = await getAsset(tx, input.assetId);
   validateLifecycleInput(input, asset);
-  if (input.assetId && (!asset || (asset.is_archived && !(asset.asset_class === 'stock' && ['buy', 'dividend'].includes(input.type))))) throw new Error('An active asset is required.');
+  if (input.assetId && (!asset || (asset.is_archived && !(['stock', 'crypto'].includes(asset.asset_class) && input.type === 'buy')))) throw new Error('An active asset is required.');
   for (const value of [input.amount, input.quantity, input.price, input.fees, input.tax, input.transferFee, input.totalAmount, input.grossProceeds]) {
     if (value != null && (!Number.isFinite(value) || value < 0)) throw new Error('Amounts and quantities must be finite and nonnegative.');
   }
   if (['buy','sell','transfer'].includes(input.type) && !(input.quantity! > 0)) throw new Error('Quantity must be positive.');
+  if (input.type === 'opening_position' || input.type === 'opening_balance' || input.type === 'basis_adjustment') throw new Error('Opening and basis entries must be recorded through the asset initialization workflow.');
   if (!['buy','sell','transfer','deposit','withdraw','fee','dividend','interest','adjustment'].includes(input.type)) throw new Error('Invalid transaction type.');
   normalizeToUsd(input.amount, input.currency);
   if (asset && asset.currency !== input.currency) throw new Error('Transaction currency must match the asset. Cross-currency settlement is not supported.');
@@ -286,7 +296,7 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
     }
     const costRemoved = source.quantity > 0 ? (source.cost_basis / source.quantity) * quantity : 0;
     const proceeds = input.grossProceeds ?? input.amount;
-    realizedPnl = proceeds - fees - tax - costRemoved;
+    realizedPnl = source.cost_basis_known ? proceeds - fees - tax - costRemoved : null;
   }
 
   if (input.enforceAvailableCash && ['buy', 'withdraw', 'fee'].includes(input.type)) {
@@ -363,7 +373,7 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
     const costRemoved = source && source.quantity > 0 ? (source.cost_basis / source.quantity) * quantity : 0;
     const netProceeds = (input.grossProceeds ?? input.amount) - fees - tax;
     await moveCash(tx, input.receiveAccountId!, netProceeds, now);
-    await upsertPosition(tx, input.assetId!, sourceCustodyId, -quantity, -costRemoved, now);
+    await upsertPosition(tx, input.assetId!, sourceCustodyId, -quantity, -costRemoved, now, source.cost_basis_known);
     await updateAssetTotals(tx, input.assetId!, -quantity, -costRemoved, now);
     await tx.insert(ledgerEntries).values([
       {
@@ -386,30 +396,30 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
         description: 'Net sale proceeds received.',
         created_at: now,
       },
-      {
-        transaction_id: transaction.id,
-        account_id: input.receiveAccountId,
-        asset_id: input.assetId,
-        entry_type: 'realized_pnl',
-        amount: realizedPnl,
-        currency: input.currency,
-        description: 'Realized profit or loss.',
-        created_at: now,
-      },
       ...(fees > 0 ? [{ transaction_id: transaction.id, account_id: input.receiveAccountId, asset_id: input.assetId, entry_type: 'fee' as const, amount: fees, currency: input.currency, description: 'Sale fee deducted from proceeds.', created_at: now }] : []),
       ...(tax > 0 ? [{ transaction_id: transaction.id, account_id: input.receiveAccountId, asset_id: input.assetId, entry_type: 'tax' as const, amount: tax, currency: input.currency, description: 'Sale tax withheld from proceeds.', created_at: now }] : []),
     ]);
+    if (realizedPnl != null) await tx.insert(ledgerEntries).values({ transaction_id: transaction.id, account_id: input.receiveAccountId, asset_id: input.assetId, entry_type: 'realized_pnl', amount: realizedPnl, currency: input.currency, description: 'Realized profit or loss.', created_at: now });
   }
 
   if (input.type === 'transfer') {
-    if (transferFee > 0) {
+    const cryptoNetworkFee = asset?.asset_class === 'crypto' ? transferFee : 0;
+    if (transferFee > 0 && !cryptoNetworkFee) {
       await assertActiveAccount(tx, input.fundingAccountId, 'Transfer fee requires a cash funding account.');
       await moveCash(tx, input.fundingAccountId!, -transferFee, now);
     }
     const source = await getPosition(tx, input.assetId!, input.fromCustodyAccountId!);
     const costMoved = source && source.quantity > 0 ? (source.cost_basis / source.quantity) * quantity : 0;
-    await upsertPosition(tx, input.assetId!, input.fromCustodyAccountId!, -quantity, -costMoved, now);
-    await upsertPosition(tx, input.assetId!, input.toCustodyAccountId!, quantity, costMoved, now);
+    const unitCost = source && source.quantity > 0 ? source.cost_basis / source.quantity : 0;
+    const receivedQuantity = quantity - cryptoNetworkFee;
+    const receivedCost = unitCost * receivedQuantity;
+    await upsertPosition(tx, input.assetId!, input.fromCustodyAccountId!, -quantity, -costMoved, now, source?.cost_basis_known ?? true);
+    await upsertPosition(tx, input.assetId!, input.toCustodyAccountId!, receivedQuantity, receivedCost, now, source?.cost_basis_known ?? true);
+    const cryptoFeeCost = unitCost * cryptoNetworkFee;
+    if (cryptoNetworkFee > 0) {
+      const feeCost = cryptoFeeCost;
+      await updateAssetTotals(tx, input.assetId!, -cryptoNetworkFee, -feeCost, now);
+    }
     await tx.insert(ledgerEntries).values([
       {
         transaction_id: transaction.id,
@@ -426,12 +436,15 @@ export async function createLifecycleTransaction(input: LifecycleTransactionInpu
         account_id: input.toCustodyAccountId,
         asset_id: input.assetId,
         entry_type: 'asset_debit',
-        quantity,
         currency: input.currency,
+        quantity: receivedQuantity,
         description: 'Asset transferred into custody.',
         created_at: now,
       },
-      ...(transferFee > 0
+      ...(cryptoNetworkFee > 0
+        ? [{ transaction_id: transaction.id, account_id: input.fromCustodyAccountId, asset_id: input.assetId, entry_type: 'fee' as const, amount: cryptoFeeCost, quantity: cryptoNetworkFee, currency: input.currency, description: 'Network fee paid in crypto, valued at the position carrying cost.', created_at: now }]
+        : []),
+      ...(transferFee > 0 && !cryptoNetworkFee
         ? [{
             transaction_id: transaction.id,
             account_id: input.fundingAccountId,
@@ -483,9 +496,9 @@ export async function getAssetLifecycleSummary(assetId: number): Promise<AssetLi
     (sum, txn) => sum + (txn.gross_proceeds ?? txn.amount) - (txn.fees ?? 0) - (txn.tax ?? 0),
     0,
   );
-  const realizedPnl = sells.reduce((sum, txn) => sum + (txn.realized_pnl ?? 0), 0);
+  const realizedPnl = sells.every((txn) => txn.realized_pnl != null) ? sells.reduce((sum, txn) => sum + (txn.realized_pnl ?? 0), 0) : null;
   const totalPositionCost = positions.reduce((sum, position) => sum + position.cost_basis, 0);
-  const unrealizedPnl = asset ? asset.current_value - totalPositionCost : 0;
+  const unrealizedPnl = asset?.cost_basis_known ? asset.current_value - totalPositionCost : null;
 
   return {
     firstFundingAccount: accountMap.get(buys[buys.length - 1]?.funding_account_id ?? -1) ?? null,
@@ -520,7 +533,7 @@ export async function getAssetLifecycleSummary(assetId: number): Promise<AssetLi
     lifetimeCashOut,
     realizedPnl,
     unrealizedPnl,
-    totalReturn: realizedPnl + unrealizedPnl,
+    totalReturn: realizedPnl != null && unrealizedPnl != null ? realizedPnl + unrealizedPnl : null,
   };
 }
 
@@ -576,7 +589,10 @@ export async function getLifecycleDashboard() {
     .filter((row) => row.account?.type === 'crypto_wallet')
     .reduce((sum, row) => sum + row.costBasis, 0);
   const investedCapital = assetsByCustody.reduce((sum, position) => sum + position.costBasis, 0);
-  const lifetimePnl = allAssets.filter(a => !a.is_archived).reduce((sum, asset) => sum + normalizeToUsd(asset.current_value - (asset.cost_basis ?? 0), asset.currency, rate), 0);
+  const activePnlAssets = allAssets.filter(a => !a.is_archived);
+  const lifetimePnl = activePnlAssets.some((asset) => !asset.cost_basis_known && (asset.quantity ?? 0) > 0)
+    ? null
+    : activePnlAssets.reduce((sum, asset) => sum + normalizeToUsd(asset.current_value - (asset.cost_basis ?? 0), asset.currency, rate), 0);
 
   return {
     cashByAccount,
@@ -666,12 +682,16 @@ export async function getAccountDetailSummary(accountId: number): Promise<Accoun
         asset: assetMap.get(position.asset_id),
         quantity: position.quantity,
         costBasis: position.cost_basis,
+        costBasisKnown: position.cost_basis_known,
       }))
-      .filter((row): row is { asset: Asset; quantity: number; costBasis: number } => Boolean(row.asset && !row.asset.is_archived && !row.asset.cash_source_type)),
+      .filter((row): row is { asset: Asset; quantity: number; costBasis: number; costBasisKnown: boolean } => Boolean(row.asset && !row.asset.is_archived && !row.asset.cash_source_type)),
     transfersIn: txns.filter((transaction) => transaction.to_custody_account_id === accountId),
     transfersOut: txns.filter((transaction) => transaction.from_custody_account_id === accountId),
-    realizedPnl: txns
-      .filter((transaction) => transaction.receive_account_id === accountId || transaction.execution_account_id === accountId)
-      .reduce((sum, transaction) => sum + (transaction.realized_pnl ?? 0), 0),
+    realizedPnl: (() => {
+      const sales = txns.filter((transaction) => transaction.type === 'sell' && (transaction.receive_account_id === accountId || transaction.execution_account_id === accountId));
+      return sales.every((transaction) => transaction.realized_pnl != null)
+        ? sales.reduce((sum, transaction) => sum + (transaction.realized_pnl ?? 0), 0)
+        : null;
+    })(),
   };
 }

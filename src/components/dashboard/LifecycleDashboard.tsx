@@ -24,7 +24,7 @@ interface LifecycleDashboardProps {
   investedCapital: number;
   recentMoneyFlows: Transaction[];
   recentTransfers: Transaction[];
-  lifetimePnl: number;
+  lifetimePnl: number | null;
 }
 
 export function LifecycleDashboard({
@@ -46,7 +46,7 @@ export function LifecycleDashboard({
         <Stat label={tr("Crypto Cold Storage")} value={`${cryptoColdStoragePct.toFixed(1)}%`} />
         <Stat label={tr("Idle Cash")} value={formatValue(idleCash, 'VND')} />
         <Stat label={tr("Invested Capital")} value={formatValue(investedCapital)} />
-        <Stat label={tr("Lifetime P&L")} value={formatValue(lifetimePnl)} />
+        <Stat label={tr("Lifetime P&L")} value={lifetimePnl == null ? tr("Unknown cost basis") : formatValue(lifetimePnl)} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">

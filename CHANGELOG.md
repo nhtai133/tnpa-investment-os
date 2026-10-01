@@ -2,6 +2,13 @@
 
 All meaningful changes to TNPA Investment OS should be recorded here.
 
+## v2.3 — Personal Wealth MVP (release candidate)
+
+- Includes Crypto Workspace, existing wealth and tracking cutover, Banking, Stocks opening wealth, physical Gold, Real Estate / Land, and global Net Worth aggregation.
+- Includes the current loopback-only DEV runtime on port 3100.
+- Manual user acceptance testing: accepted by the owner in Safari.
+- Known non-blocking DEV/browser compatibility issue: Opera currently receives `Local same-origin access only` when accessing the local DEV application. Safari access passes. Investigation is deferred to a future sprint; this release does not weaken the local same-origin security model or include an Opera compatibility fix.
+
 ## v2.1.5 — Local-only foundation
 
 - Added schema-only, idempotent local database initialization at `~/.tnpa-wealth-os/database/wealth.db`; initialization and legacy migration entry points no longer insert demo records.

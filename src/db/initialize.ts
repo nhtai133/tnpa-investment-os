@@ -8,8 +8,30 @@ export async function initializeSchema(client: Client) {
   const statements = baseline.replace(/^--.*$/gm, '').split(';').map(s => s.trim()).filter(Boolean);
   const additions = [
     ['account_registry', 'bank_account_id', 'INTEGER REFERENCES bank_accounts(id)'],
+    ['account_registry', 'custody_type', 'TEXT'],
     ['assets', 'cash_source_type', 'TEXT'],
     ['assets', 'cash_source_id', 'INTEGER'],
+    ['assets', 'cost_basis_known', 'INTEGER NOT NULL DEFAULT 1'],
+    ['assets', 'opening_date', 'TEXT'],
+    ['assets', 'acquisition_date', 'TEXT'],
+    ['assets', 'gold_purity', 'TEXT'],
+    ['assets', 'gold_form', 'TEXT'],
+    ['assets', 'gold_item_count', 'REAL'],
+    ['assets', 'gold_weight', 'REAL'],
+    ['assets', 'gold_weight_unit', 'TEXT'],
+    ['assets', 'storage_location', 'TEXT'],
+    ['assets', 'ownership_label', 'TEXT'],
+    ['assets', 'property_type', 'TEXT'],
+    ['assets', 'property_location', 'TEXT'],
+    ['assets', 'property_area_sqm', 'REAL'],
+    ['assets', 'property_width_m', 'REAL'],
+    ['assets', 'property_length_m', 'REAL'],
+    ['assets', 'property_legal_status', 'TEXT'],
+    ['assets', 'ownership_percentage', 'REAL'],
+    ['assets', 'purchase_price', 'REAL'],
+    ['assets', 'acquisition_costs', 'REAL'],
+    ['assets', 'property_value_per_sqm', 'REAL'],
+    ['asset_custody_positions', 'cost_basis_known', 'INTEGER NOT NULL DEFAULT 1'],
   ];
   const tx = await client.transaction('write');
   try {

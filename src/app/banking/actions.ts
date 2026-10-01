@@ -13,6 +13,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { AssetPurpose, BankAccountStatus, BankAccountType, BankCreditStatus, BankDepositStatus, BankFacilityType } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { getAppSetting } from '@/lib/settings';
 
 function str(formData: FormData, key: string): string | null {
   const value = formData.get(key);
@@ -28,6 +29,15 @@ function num(formData: FormData, key: string): number {
 
 function bool(formData: FormData, key: string): boolean {
   return formData.get(key) === 'on' || formData.get(key) === 'true';
+}
+
+function validateDepositDates(startDate: string, maturityDate: string, termMonths: number) {
+  const parseDate = (value: string) => {
+    const date = new Date(`${value}T00:00:00Z`);
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  };
+  if (!parseDate(startDate) || !parseDate(maturityDate) || maturityDate <= startDate) throw new Error('Enter valid deposit dates with maturity after the start date.');
+  if (!Number.isSafeInteger(termMonths) || termMonths < 1) throw new Error('Deposit term must be at least one whole month.');
 }
 
 function revalidateBanking(bankName?: string | null) {
@@ -159,15 +169,27 @@ export async function createBankSavingsDeposit(formData: FormData) {
   const depositName = str(formData, 'deposit_name');
   if (!depositName) throw new Error('Deposit name is required.');
 
+  const linkedId = bankAccountId ? Number(bankAccountId) : null;
+  if (linkedId !== null && !Number.isSafeInteger(linkedId)) throw new Error('Choose a valid linked bank account.');
+  const linkedAccount = linkedId === null ? null : (await db.select().from(bankAccounts).where(eq(bankAccounts.id, linkedId)).limit(1))[0];
+  if (linkedId !== null && !linkedAccount) throw new Error('The linked bank account was not found.');
+  const principal = num(formData, 'principal');
+  const interestRate = num(formData, 'interest_rate');
+  const termMonths = Math.round(num(formData, 'term_months'));
+  if (principal < 0 || interestRate < 0) throw new Error('Principal and interest rate cannot be negative.');
+  const startDate = str(formData, 'start_date') ?? await getAppSetting('wealth_tracking_start_date') ?? now.slice(0, 10);
+  const maturityDate = str(formData, 'maturity_date') ?? '';
+  validateDepositDates(startDate, maturityDate, termMonths);
+
   await db.insert(bankSavingsDeposits).values({
-    bank_account_id: bankAccountId ? Number(bankAccountId) : null,
-    bank_name: bankName,
+    bank_account_id: linkedId,
+    bank_name: linkedAccount?.bank_name ?? bankName,
     deposit_name: depositName,
-    principal: num(formData, 'principal'),
-    interest_rate: num(formData, 'interest_rate'),
-    term_months: Math.round(num(formData, 'term_months')),
-    start_date: str(formData, 'start_date'),
-    maturity_date: str(formData, 'maturity_date'),
+    principal,
+    interest_rate: interestRate,
+    term_months: termMonths,
+    start_date: startDate,
+    maturity_date: maturityDate,
     interest_payout_type: str(formData, 'interest_payout_type'),
     auto_renew: bool(formData, 'auto_renew'),
     status: (str(formData, 'status') ?? 'active') as BankDepositStatus,
@@ -186,17 +208,29 @@ export async function updateBankSavingsDeposit(id: number, formData: FormData) {
   const depositName = str(formData, 'deposit_name');
   if (!depositName) throw new Error('Deposit name is required.');
 
+  const linkedId = bankAccountId ? Number(bankAccountId) : null;
+  if (linkedId !== null && !Number.isSafeInteger(linkedId)) throw new Error('Choose a valid linked bank account.');
+  const linkedAccount = linkedId === null ? null : (await db.select().from(bankAccounts).where(eq(bankAccounts.id, linkedId)).limit(1))[0];
+  if (linkedId !== null && !linkedAccount) throw new Error('The linked bank account was not found.');
+  const principal = num(formData, 'principal');
+  const interestRate = num(formData, 'interest_rate');
+  const termMonths = Math.round(num(formData, 'term_months'));
+  if (principal < 0 || interestRate < 0) throw new Error('Principal and interest rate cannot be negative.');
+  const startDate = str(formData, 'start_date') ?? await getAppSetting('wealth_tracking_start_date') ?? new Date().toISOString().slice(0, 10);
+  const maturityDate = str(formData, 'maturity_date') ?? '';
+  validateDepositDates(startDate, maturityDate, termMonths);
+
   await db
     .update(bankSavingsDeposits)
     .set({
-      bank_account_id: bankAccountId ? Number(bankAccountId) : null,
-      bank_name: bankName,
+      bank_account_id: linkedId,
+      bank_name: linkedAccount?.bank_name ?? bankName,
       deposit_name: depositName,
-      principal: num(formData, 'principal'),
-      interest_rate: num(formData, 'interest_rate'),
-      term_months: Math.round(num(formData, 'term_months')),
-      start_date: str(formData, 'start_date'),
-      maturity_date: str(formData, 'maturity_date'),
+      principal,
+      interest_rate: interestRate,
+      term_months: termMonths,
+      start_date: startDate,
+      maturity_date: maturityDate,
       interest_payout_type: str(formData, 'interest_payout_type'),
       auto_renew: bool(formData, 'auto_renew'),
       status: (str(formData, 'status') ?? 'active') as BankDepositStatus,

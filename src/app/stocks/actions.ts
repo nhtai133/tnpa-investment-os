@@ -6,7 +6,8 @@ import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { AssetPurpose } from '@/db/schema';
-import { recordStockTransaction, setStockMarketPrice } from '@/lib/stock-workspace';
+import { correctStockOpeningPosition, recordStockOpeningBalance, recordStockOpeningPosition, recordStockTransaction, setStockMarketPrice, supplyStockCostBasis } from '@/lib/stock-workspace';
+import { getAppSetting } from '@/lib/settings';
 
 export type StockActionState = { error?: string; success?: string } | null;
 
@@ -43,9 +44,9 @@ export async function createStockInstrument(formData: FormData): Promise<StockAc
 
 export async function recordStockWorkspaceTransaction(formData: FormData): Promise<StockActionState> {
   try {
-    const type = textValue(formData, 'type') as 'deposit' | 'withdraw' | 'buy' | 'sell' | 'dividend' | 'fee';
+    const type = textValue(formData, 'type') as 'deposit' | 'withdraw' | 'buy' | 'sell' | 'dividend' | 'fee' | 'opening_balance';
     const brokerAccountId = numberValue(formData, 'broker_account_id');
-    const transactionDate = textValue(formData, 'transaction_date') || new Date().toISOString().slice(0, 10);
+    const transactionDate = textValue(formData, 'transaction_date') || (type === 'opening_balance' ? await getAppSetting('wealth_tracking_start_date') : null) || new Date().toISOString().slice(0, 10);
     const currency = textValue(formData, 'currency') || 'VND';
     const assetId = numberValue(formData, 'asset_id') || null;
     const quantity = numberValue(formData, 'quantity') || null;
@@ -53,13 +54,73 @@ export async function recordStockWorkspaceTransaction(formData: FormData): Promi
     const amount = numberValue(formData, 'amount');
     const fees = numberValue(formData, 'fees');
     const tax = numberValue(formData, 'tax');
-    if (!['deposit', 'withdraw', 'buy', 'sell', 'dividend', 'fee'].includes(type)) return { error: 'Unsupported stock transaction type.' };
-    await recordStockTransaction({ type, brokerAccountId, date: transactionDate, currency, assetId, quantity, price, amount, fees, tax });
+    if (type === 'opening_balance') await recordStockOpeningBalance({ brokerAccountId, amount, date: transactionDate });
+    else {
+      if (!['deposit', 'withdraw', 'buy', 'sell', 'dividend', 'fee'].includes(type)) return { error: 'Unsupported stock transaction type.' };
+      await recordStockTransaction({ type, brokerAccountId, date: transactionDate, currency, assetId, quantity, price, amount, fees, tax });
+    }
   } catch (error) {
     return { error: error instanceof Error ? error.message : 'Could not record the transaction.' };
   }
   for (const route of ['/stocks', '/stocks/accounts', '/transactions', '/accounts', '/', '/performance']) revalidatePath(route);
   return { success: 'Transaction recorded and stock balances updated.' };
+}
+
+function openingInput(formData: FormData) {
+  const mode = textValue(formData, 'cost_basis_mode') as 'average' | 'total' | 'unknown';
+  const rawDate = textValue(formData, 'transaction_date');
+  return {
+    brokerAccountId: numberValue(formData, 'broker_account_id'),
+    assetId: numberValue(formData, 'asset_id'),
+    quantity: numberValue(formData, 'quantity'),
+    costBasisMode: mode,
+    costBasisValue: mode === 'unknown' ? undefined : numberValue(formData, 'cost_basis_value'),
+    date: rawDate || new Date().toISOString().slice(0, 10),
+    marketPrice: textValue(formData, 'market_price') ? numberValue(formData, 'market_price') : undefined,
+    notes: textValue(formData, 'notes') || undefined,
+  };
+}
+
+export async function recordStockOpeningPositionAction(formData: FormData): Promise<StockActionState> {
+  try {
+    const input = openingInput(formData);
+    if (!textValue(formData, 'transaction_date')) input.date = await getAppSetting('wealth_tracking_start_date') ?? input.date;
+    await recordStockOpeningPosition(input);
+    if (input.marketPrice != null) await setStockMarketPrice(input.assetId, input.marketPrice);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not add the existing stock position.' };
+  }
+  for (const route of ['/stocks', '/holdings', '/', '/performance', '/stocks/accounts']) revalidatePath(route);
+  return { success: 'Existing stock position added at the tracking start date.' };
+}
+
+export async function correctStockOpeningPositionAction(formData: FormData): Promise<StockActionState> {
+  try {
+    const input = openingInput(formData);
+    input.date = textValue(formData, 'transaction_date') || input.date;
+    await correctStockOpeningPosition({ ...input, transactionId: numberValue(formData, 'transaction_id') });
+    if (input.marketPrice != null) await setStockMarketPrice(input.assetId, input.marketPrice);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not correct the opening position.' };
+  }
+  for (const route of ['/stocks', '/holdings', '/', '/performance']) revalidatePath(route);
+  return { success: 'Opening position corrected safely.' };
+}
+
+export async function supplyStockCostBasisAction(formData: FormData): Promise<StockActionState> {
+  try {
+    await supplyStockCostBasis({
+      brokerAccountId: numberValue(formData, 'broker_account_id'),
+      assetId: numberValue(formData, 'asset_id'),
+      totalCostBasis: numberValue(formData, 'total_cost_basis'),
+      date: textValue(formData, 'transaction_date') || new Date().toISOString().slice(0, 10),
+      notes: textValue(formData, 'notes') || undefined,
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Could not record the cost basis.' };
+  }
+  for (const route of ['/stocks', '/holdings', '/', '/performance']) revalidatePath(route);
+  return { success: 'Cost basis recorded without changing cash or market value.' };
 }
 
 export async function updateStockMarketPrice(formData: FormData): Promise<StockActionState> {

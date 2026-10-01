@@ -16,8 +16,9 @@ interface BucketStat {
   purpose: AssetPurpose;
   value: number;
   costBasis: number;
-  gainLoss: number;
+  gainLoss: number | null;
   returnPct: number | null;
+  costBasisKnown: boolean;
   weight: number;
   count: number;
 }
@@ -43,10 +44,11 @@ export default async function BucketsPage() {
       (sum, a) => sum + getNormalizedCostBasisUsd(a, usdVndRate),
       0,
     );
-    const gainLoss = value - costBasis;
-    const returnPct = costBasis > 0 ? (gainLoss / costBasis) * 100 : null;
+    const costBasisKnown = bucket.filter((asset) => (asset.quantity ?? 0) > 0).every((asset) => asset.cost_basis_known);
+    const gainLoss = costBasisKnown ? value - costBasis : null;
+    const returnPct = costBasisKnown && costBasis > 0 && gainLoss != null ? (gainLoss / costBasis) * 100 : null;
     const weight = totalValue > 0 ? (value / totalValue) * 100 : 0;
-    return { purpose, value, costBasis, gainLoss, returnPct, weight, count: bucket.length };
+    return { purpose, value, costBasis, gainLoss, costBasisKnown, returnPct, weight, count: bucket.length };
   });
 
   const activeBuckets = stats.filter((s) => s.count > 0);
@@ -85,7 +87,7 @@ export default async function BucketsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {activeBuckets.map((s) => {
               const color = PURPOSE_COLORS[s.purpose];
-              const isPositive = s.gainLoss >= 0;
+              const isPositive = s.gainLoss != null && s.gainLoss >= 0;
               return (
                 <Link key={s.purpose} href={`/buckets/${s.purpose}`}>
                   <Card className="p-5 hover:border-zinc-600 transition-colors cursor-pointer h-full">
@@ -114,12 +116,14 @@ export default async function BucketsPage() {
                       <div>
                         <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">{tr("Cost Basis")}</p>
                         <p className="text-xs text-zinc-400 tabular-nums">
-                          {s.costBasis > 0 ? formatCurrency(s.costBasis) : '—'}
+                          {!s.costBasisKnown ? tr('Unknown cost basis') : s.costBasis > 0 ? formatCurrency(s.costBasis) : '—'}
                         </p>
                       </div>
                       <div>
                         <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-0.5">{tr("Gain / Loss")}</p>
-                        {s.costBasis > 0 ? (
+                        {!s.costBasisKnown ? (
+                          <p className="text-xs text-zinc-600">{tr('Unknown cost basis')}</p>
+                        ) : s.costBasis > 0 && s.gainLoss != null ? (
                           <p className={`text-xs tabular-nums font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
                             {formatCurrency(s.gainLoss)}
                             {s.returnPct !== null && (
@@ -184,7 +188,7 @@ export default async function BucketsPage() {
                   <tbody>
                     {activeBuckets.sort((a, b) => b.value - a.value).map((s) => {
                       const color = PURPOSE_COLORS[s.purpose];
-                      const isPositive = s.gainLoss >= 0;
+                      const isPositive = s.gainLoss != null && s.gainLoss >= 0;
                       return (
                         <tr key={s.purpose} className="border-b border-[#1A1A1F] last:border-0 hover:bg-[#1C1C21] transition-colors">
                           <td className="px-5 py-3">
@@ -195,9 +199,9 @@ export default async function BucketsPage() {
                           </td>
                           <td className="px-5 py-3 text-zinc-500 tabular-nums">{s.count}</td>
                           <td className="px-5 py-3 text-zinc-300 tabular-nums font-medium">{formatCurrency(s.value)}</td>
-                          <td className="px-5 py-3 text-zinc-500 tabular-nums">{s.costBasis > 0 ? formatCurrency(s.costBasis) : '—'}</td>
-                          <td className={`px-5 py-3 tabular-nums font-medium ${s.costBasis > 0 ? (isPositive ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
-                            {s.costBasis > 0 ? formatCurrency(s.gainLoss) : '—'}
+                          <td className="px-5 py-3 text-zinc-500 tabular-nums">{!s.costBasisKnown ? tr('Unknown cost basis') : s.costBasis > 0 ? formatCurrency(s.costBasis) : '—'}</td>
+                          <td className={`px-5 py-3 tabular-nums font-medium ${s.costBasisKnown && s.costBasis > 0 ? (isPositive ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
+                            {!s.costBasisKnown ? tr('Unknown cost basis') : s.costBasis > 0 && s.gainLoss != null ? formatCurrency(s.gainLoss) : '—'}
                           </td>
                           <td className={`px-5 py-3 tabular-nums ${s.returnPct !== null ? (isPositive ? 'text-emerald-400' : 'text-red-400') : 'text-zinc-600'}`}>
                             {s.returnPct !== null ? formatPercent(s.returnPct) : '—'}

@@ -18,7 +18,7 @@ if (process.env.DATABASE_URL) {
   try { path = fileURLToPath(new URL(process.env.DATABASE_URL)); } catch { throw new Error('DATABASE_URL must be the canonical local file URL.'); }
   if (resolve(path) !== resolve(dataRoot, 'database', 'wealth.db')) throw new Error(`npm run ${command} cannot use a database outside ${dataRoot}.`);
 }
-if (command === 'dev') args.push('--hostname', '127.0.0.1', '--port', '3002');
+if (command === 'dev') args.push('--hostname', '127.0.0.1', '--port', '3100');
 const env = { ...process.env, TNPA_ENV: environment, TNPA_DATA_ROOT: dataRoot, NEXT_TELEMETRY_DISABLED: '1' };
 if (command === 'dev' && (!existsSync(join(dataRoot, 'database', 'wealth.db')) || statSync(join(dataRoot, 'database', 'wealth.db')).size === 0)) {
   const init = spawn(process.execPath, ['scripts/local-environment.cjs', 'development', './node_modules/.bin/tsx', 'src/db/init-local.ts'], { stdio: 'inherit', env });

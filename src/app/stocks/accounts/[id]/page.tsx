@@ -24,14 +24,14 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
     (row) => row.asset.asset_class === 'stock',
   );
 
-  const unrealizedPnl = stockHoldings.reduce((sum, row) => {
+  const unrealizedPnl = stockHoldings.every((row) => row.costBasisKnown) ? stockHoldings.reduce((sum, row) => {
     const pricePerUnit =
       row.asset.quantity && row.asset.quantity > 0
         ? row.asset.current_value / row.asset.quantity
         : 0;
     const marketValue = pricePerUnit * row.quantity;
     return sum + convertCurrency(marketValue - row.costBasis, row.asset.currency, account.currency, usdVndRate);
-  }, 0);
+  }, 0) : null;
 
   const totalStockValue = stockHoldings.reduce((sum, row) => {
     const pricePerUnit =
@@ -74,13 +74,13 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
           <Metric label={tr("Stock Value")} value={formatValue(totalStockValue, account.currency)} />
           <Metric
             label={tr("Realized P&L")}
-            value={formatValue(summary.realizedPnl, account.currency)}
-            colored={summary.realizedPnl}
+            value={summary.realizedPnl == null ? tr('Unknown cost basis') : formatValue(summary.realizedPnl, account.currency)}
+            colored={summary.realizedPnl ?? undefined}
           />
           <Metric
             label={tr("Unrealized P&L")}
-            value={formatValue(unrealizedPnl, account.currency)}
-            colored={unrealizedPnl}
+            value={unrealizedPnl == null ? tr('Unknown cost basis') : formatValue(unrealizedPnl, account.currency)}
+            colored={unrealizedPnl ?? undefined}
           />
         </div>
 
@@ -116,9 +116,9 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
                         ? row.asset.current_value / row.asset.quantity
                         : 0;
                     const marketValue = pricePerUnit * row.quantity;
-                    const gain = marketValue - row.costBasis;
+                    const gain = row.costBasisKnown ? marketValue - row.costBasis : null;
                     const gainPct =
-                      row.costBasis > 0 ? (gain / row.costBasis) * 100 : null;
+                      row.costBasisKnown && row.costBasis > 0 ? (gain! / row.costBasis) * 100 : null;
 
                     return (
                       <tr key={row.asset.id} className="hover:bg-[#101014] transition-colors">
@@ -142,16 +142,15 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
                           {formatValue(marketValue, row.asset.currency)}
                         </td>
                         <td className="px-5 py-3 text-zinc-500 tabular-nums">
-                          {formatValue(row.costBasis, row.asset.currency)}
+                          {row.costBasisKnown ? formatValue(row.costBasis, row.asset.currency) : tr('Unknown cost basis')}
                         </td>
                         <td className="px-5 py-3">
                           <span
                             className={`text-sm font-medium tabular-nums ${
-                              gain >= 0 ? 'text-emerald-400' : 'text-red-400'
+                              gain == null ? 'text-zinc-500' : gain >= 0 ? 'text-emerald-400' : 'text-red-400'
                             }`}
                           >
-                            {gain >= 0 ? '+' : ''}
-                            {formatValue(gain, row.asset.currency)}
+                            {gain == null ? tr('Unknown cost basis') : `${gain >= 0 ? '+' : ''}${formatValue(gain, row.asset.currency)}`}
                           </span>
                           {gainPct !== null && (
                             <p

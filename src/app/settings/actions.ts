@@ -20,3 +20,17 @@ export async function saveFxRate(prevState: FormState, formData: FormData): Prom
   revalidatePath('/', 'layout');
   return { success: true };
 }
+
+export async function saveWealthTrackingStartDate(prevState: FormState, formData: FormData): Promise<FormState> {
+  const raw = formData.get('wealth_tracking_start_date');
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+    return { error: 'Enter a valid tracking start date.' };
+  }
+  await upsertAppSetting('wealth_tracking_start_date', value);
+  revalidatePath('/', 'layout');
+  revalidatePath('/settings');
+  revalidatePath('/banking');
+  return { success: true };
+}

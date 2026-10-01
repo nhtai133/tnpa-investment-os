@@ -37,9 +37,9 @@ interface Props {
 }
 
 export function CryptoAccountForm({ action, returnUrl }: Props) {
-  const [accountType, setAccountType] = useState<'crypto_exchange' | 'crypto_wallet'>('crypto_exchange');
+  const [accountType, setAccountType] = useState<'EXCHANGE' | 'HOT_WALLET' | 'COLD_WALLET'>('EXCHANGE');
 
-  const isExchange = accountType === 'crypto_exchange';
+  const isExchange = accountType === 'EXCHANGE';
 
   return (
     <form action={action} className="space-y-5">
@@ -47,13 +47,14 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
 
       <Field label={tr("Account Type")}>
         <select
-          name="type"
+          name="custody_type"
           value={accountType}
-          onChange={(e) => setAccountType(e.target.value as 'crypto_exchange' | 'crypto_wallet')}
+          onChange={(e) => setAccountType(e.target.value as 'EXCHANGE' | 'HOT_WALLET' | 'COLD_WALLET')}
           className={`${inputClass} appearance-none cursor-pointer`}
         >
-          <option value="crypto_exchange">{tr("Exchange (Binance, Bybit, OKX…)")}</option>
-          <option value="crypto_wallet">{tr("Wallet (Ledger, Trezor, Metamask…)")}</option>
+          <option value="EXCHANGE">{tr("Exchange (Binance, Bybit, OKX…)")}</option>
+          <option value="HOT_WALLET">{tr("Hot wallet")}</option>
+          <option value="COLD_WALLET">{tr("Cold wallet")}</option>
         </select>
       </Field>
 
@@ -67,17 +68,10 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
       </Field>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label={isExchange ? 'Exchange Platform' : 'Wallet Brand / Chain'}>
+        <Field label={isExchange ? 'Exchange platform' : 'Wallet brand'}>
           <input
             name="institution"
-            placeholder={isExchange ? 'Binance, Bybit, OKX, Coinbase…' : 'Ledger, Trezor, Metamask, Rabby…'}
-            className={inputClass}
-          />
-        </Field>
-        <Field label={isExchange ? 'Account / UID (masked)' : 'Public Address (optional)'}>
-          <input
-            name="account_number_masked"
-            placeholder={isExchange ? '****5678 or UID 12345' : '0x…abcd'}
+            placeholder={isExchange ? 'Binance, Bybit, OKX' : 'Ledger, MetaMask'}
             className={inputClass}
           />
         </Field>
@@ -85,23 +79,11 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label={tr("Currency")}>
-          <select name="currency" defaultValue="USD" className={`${inputClass} appearance-none cursor-pointer`}>
+          <select name="currency" defaultValue="USDT" className={`${inputClass} appearance-none cursor-pointer`}>
             <option value="USD">{tr("USD")}</option>
             <option value="USDT">{tr("USDT")}</option>
             <option value="USDC">{tr("USDC")}</option>
-            <option value="BTC">{tr("BTC")}</option>
-            <option value="ETH">{tr("ETH")}</option>
           </select>
-        </Field>
-        <Field label={tr("Current Balance")}>
-          <input
-            name="current_balance"
-            type="number"
-            inputMode="decimal"
-            step="0.00000001"
-            defaultValue="0"
-            className={inputClass}
-          />
         </Field>
       </div>
 
@@ -109,7 +91,7 @@ export function CryptoAccountForm({ action, returnUrl }: Props) {
         <textarea
           name="notes"
           rows={3}
-          placeholder={isExchange ? 'Margin enabled, API key linked, spot/futures…' : 'Chain, security setup, purpose…'}
+          placeholder={isExchange ? 'Manual tracking notes…' : 'Network, security setup…'}
           className={`${inputClass} resize-none`}
         />
       </Field>

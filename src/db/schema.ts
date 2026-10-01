@@ -45,6 +45,26 @@ export const assets = sqliteTable('assets', {
     .default(true),
   quantity: real('quantity'),
   cost_basis: real('cost_basis'),
+  cost_basis_known: integer('cost_basis_known', { mode: 'boolean' }).notNull().default(true),
+  opening_date: text('opening_date'),
+  acquisition_date: text('acquisition_date'),
+  gold_purity: text('gold_purity'),
+  gold_form: text('gold_form'),
+  gold_item_count: real('gold_item_count'),
+  gold_weight: real('gold_weight'),
+  gold_weight_unit: text('gold_weight_unit'),
+  storage_location: text('storage_location'),
+  ownership_label: text('ownership_label'),
+  property_type: text('property_type'),
+  property_location: text('property_location'),
+  property_area_sqm: real('property_area_sqm'),
+  property_width_m: real('property_width_m'),
+  property_length_m: real('property_length_m'),
+  property_legal_status: text('property_legal_status'),
+  ownership_percentage: real('ownership_percentage'),
+  purchase_price: real('purchase_price'),
+  acquisition_costs: real('acquisition_costs'),
+  property_value_per_sqm: real('property_value_per_sqm'),
   notes: text('notes'),
   is_archived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
   created_at: text('created_at').notNull(),
@@ -261,7 +281,7 @@ export const ACCOUNT_TYPES = [
 export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
 export const TRANSACTION_TYPES = [
-  'buy', 'sell', 'transfer', 'deposit', 'withdraw', 'fee', 'dividend', 'interest', 'adjustment',
+  'buy', 'sell', 'transfer', 'deposit', 'withdraw', 'fee', 'dividend', 'interest', 'adjustment', 'opening_position', 'opening_balance', 'basis_adjustment',
 ] as const;
 export type TransactionType = (typeof TRANSACTION_TYPES)[number];
 
@@ -361,6 +381,7 @@ export const accountRegistry = sqliteTable('account_registry', {
   bank_account_id: integer('bank_account_id').references(() => bankAccounts.id).unique(),
   name: text('name').notNull(),
   type: text('type', { enum: ACCOUNT_TYPES }).notNull(),
+  custody_type: text('custody_type', { enum: ['EXCHANGE', 'HOT_WALLET', 'COLD_WALLET'] }),
   institution: text('institution'),
   account_number_masked: text('account_number_masked'),
   currency: text('currency').notNull().default('USD'),
@@ -404,7 +425,7 @@ export const ledgerEntries = sqliteTable('ledger_entries', {
   account_id: integer('account_id').references(() => accountRegistry.id),
   asset_id: integer('asset_id').references(() => assets.id),
   entry_type: text('entry_type', {
-    enum: ['cash_debit', 'cash_credit', 'asset_debit', 'asset_credit', 'fee', 'tax', 'realized_pnl'],
+    enum: ['cash_debit', 'cash_credit', 'asset_debit', 'asset_credit', 'fee', 'tax', 'realized_pnl', 'basis_adjustment'],
   }).notNull(),
   amount: real('amount'),
   quantity: real('quantity'),
@@ -419,6 +440,7 @@ export const assetCustodyPositions = sqliteTable('asset_custody_positions', {
   custody_account_id: integer('custody_account_id').notNull().references(() => accountRegistry.id),
   quantity: real('quantity').notNull().default(0),
   cost_basis: real('cost_basis').notNull().default(0),
+  cost_basis_known: integer('cost_basis_known', { mode: 'boolean' }).notNull().default(true),
   updated_at: text('updated_at').notNull(),
 });
 

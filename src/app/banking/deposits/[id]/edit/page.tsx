@@ -6,20 +6,22 @@ import { updateBankSavingsDeposit } from '@/app/banking/actions';
 import { SavingsDepositForm } from '@/components/banking/BankingForms';
 import { FormPageShell } from '@/components/banking/FormPageShell';
 import { asc, eq } from 'drizzle-orm';
+import { getAppSetting } from '@/lib/settings';
 
 export const dynamic = 'force-dynamic';
 
 export default async function EditSavingsDepositPage({ params }: { params: { id: string } }) {
   const id = Number(params.id);
   if (!Number.isFinite(id)) notFound();
-  const [deposit, accounts] = await Promise.all([
+  const [deposit, accounts, trackingStartDate] = await Promise.all([
     db.select().from(bankSavingsDeposits).where(eq(bankSavingsDeposits.id, id)).limit(1).then((rows) => rows[0]),
     db.select().from(bankAccounts).orderBy(asc(bankAccounts.bank_name)),
+    getAppSetting('wealth_tracking_start_date'),
   ]);
   if (!deposit) notFound();
   return (
     <FormPageShell title={tr("Edit Savings Deposit")}>
-      <SavingsDepositForm action={updateBankSavingsDeposit.bind(null, deposit.id)} accounts={accounts} defaultValues={deposit} />
+      <SavingsDepositForm action={updateBankSavingsDeposit.bind(null, deposit.id)} accounts={accounts} defaultValues={deposit} trackingStartDate={trackingStartDate ?? undefined} />
     </FormPageShell>
   );
 }

@@ -10,7 +10,7 @@ export function normalizeToUsd(
 ): number {
   if (!Number.isFinite(value) || !Number.isFinite(usdVndRate) || usdVndRate <= 0) throw new Error('Invalid amount or USD/VND rate.');
   if (currency === 'VND') return value / usdVndRate;
-  if (currency === 'USD') return value;
+  if (currency === 'USD' || currency === 'USDT' || currency === 'USDC') return value;
   throw new Error(`Unsupported currency: ${currency}. No conversion rate configured.`);
 }
 
@@ -31,7 +31,7 @@ export function getNormalizedCostBasisUsd(
 
 export function convertCurrency(value: number, from: string, to: string, rate = DEFAULT_USD_VND_RATE) {
   const usd = normalizeToUsd(value, from, rate);
-  if (to === 'USD') return usd;
+  if (to === 'USD' || to === 'USDT' || to === 'USDC') return usd;
   if (to === 'VND') return usd * rate;
   throw new Error(`Unsupported currency: ${to}`);
 }

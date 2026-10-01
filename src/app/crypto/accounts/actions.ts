@@ -10,29 +10,24 @@ function str(formData: FormData, key: string): string | null {
   return val || null;
 }
 
-function num(formData: FormData, key: string): number {
-  const val = formData.get(key) as string;
-  const n = parseFloat(val);
-  return Number.isFinite(n) ? n : 0;
-}
-
 export async function createCryptoAccount(formData: FormData) {
   const name = str(formData, 'name');
   if (!name) throw new Error('Account name is required.');
 
-  const type = str(formData, 'type');
-  if (type !== 'crypto_exchange' && type !== 'crypto_wallet') {
-    throw new Error('Account type must be exchange or wallet.');
-  }
+  const custodyType = str(formData, 'custody_type');
+  if (!['EXCHANGE','HOT_WALLET','COLD_WALLET'].includes(custodyType ?? '')) throw new Error('Choose an exchange, hot wallet, or cold wallet.');
+  const currency = str(formData, 'currency') ?? 'USDT';
+  if (!['USD','USDT','USDC'].includes(currency)) throw new Error('Choose USD, USDT, or USDC as the reporting currency.');
 
   const now = new Date().toISOString();
   await db.insert(accountRegistry).values({
     name,
-    type,
+    type: custodyType === 'EXCHANGE' ? 'crypto_exchange' : 'crypto_wallet',
+    custody_type: custodyType as 'EXCHANGE' | 'HOT_WALLET' | 'COLD_WALLET',
     institution: str(formData, 'institution'),
-    account_number_masked: str(formData, 'account_number_masked'),
-    currency: str(formData, 'currency') ?? 'USD',
-    current_balance: num(formData, 'current_balance'),
+    account_number_masked: null,
+    currency,
+    current_balance: 0,
     status: 'active',
     notes: str(formData, 'notes'),
     created_at: now,
