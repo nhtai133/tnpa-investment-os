@@ -108,7 +108,7 @@ async function assertActiveAccount(store: Store, accountId: number | null, messa
     .limit(1)
     .then((rows) => rows[0] ?? null);
   if (!account) throw new Error(`${message} Account Registry record was not found.`);
-  if (account.status !== 'active') throw new Error(`${account.name} is not active in Account Registry.`);
+  if (account.status !== 'active' || account.archived_at) throw new Error(`${account.name} is not active in Account Registry.`);
   if (account.bank_account_id) {
     const [bank] = await store.select().from(bankAccounts).where(eq(bankAccounts.id, account.bank_account_id));
     if (!bank || bank.status !== 'active') throw new Error('Linked Banking account must be active.');

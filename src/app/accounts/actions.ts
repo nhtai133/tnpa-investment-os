@@ -47,6 +47,14 @@ export async function createAccount(formData: FormData) {
 }
 
 export async function archiveAccount(id: number) {
+  const [account] = await db.select().from(accountRegistry).where(eq(accountRegistry.id, id));
+  if (account?.type === 'broker_account') {
+    const { setBrokerArchived } = await import('@/lib/capital-store');
+    await setBrokerArchived(id, true);
+    for (const path of ['/accounts', '/stocks', '/stocks/accounts', '/']) revalidatePath(path);
+    return;
+  }
+
   const linked = await db
     .select({ id: transactions.id })
     .from(transactions)

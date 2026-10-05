@@ -1,12 +1,14 @@
+import { POLICY_TEMPLATE } from '../lib/capital-allocation';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Client } from '@libsql/client';
 
 // Only additive, reviewed schema changes. Never seed, drop, rename or rewrite records.
-export async function initializeSchema(client: Client) {
+export async function initializeSchema(client: Client, options: { freshPolicy?: boolean } = {}) {
   const baseline = readFileSync(join(process.cwd(), 'src/db/migrations/0001_baseline.sql'), 'utf8');
   const statements = baseline.replace(/^--.*$/gm, '').split(';').map(s => s.trim()).filter(Boolean);
   const additions = [
+    ['account_registry', 'archived_at', 'TEXT'],
     ['account_registry', 'bank_account_id', 'INTEGER REFERENCES bank_accounts(id)'],
     ['account_registry', 'custody_type', 'TEXT'],
     ['assets', 'cash_source_type', 'TEXT'],
@@ -55,6 +57,13 @@ export async function initializeSchema(client: Client) {
       if (!info.rows.some(row => row.name === column)) await tx.execute(`ALTER TABLE "${table}" ADD COLUMN "${column}" ${definition}`);
     }
     await tx.execute('CREATE UNIQUE INDEX IF NOT EXISTS account_registry_bank_link ON account_registry(bank_account_id)');
+    await tx.execute('CREATE UNIQUE INDEX IF NOT EXISTS capital_source_purpose ON capital_allocations(source_type, source_id, purpose_id)');
+    if (before.rows.length === 0 && options.freshPolicy !== false) {
+      const now = new Date().toISOString();
+      for (const [i, [slug, name, target]] of POLICY_TEMPLATE.entries()) {
+        await tx.execute({ sql: 'INSERT INTO capital_purposes(name,slug,description,target_percent,min_percent,max_percent,sort_order,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)', args: [name,slug,'Mẫu chính sách có thể chỉnh sửa; không phải khuyến nghị đầu tư.',target,Math.max(0,target-5),target+5,i,1,now,now] });
+      }
+    }
     const integrity = await tx.execute('PRAGMA integrity_check');
     if (integrity.rows[0]?.integrity_check !== 'ok') throw new Error('Database integrity check failed.');
     const fk = await tx.execute('PRAGMA foreign_key_check');

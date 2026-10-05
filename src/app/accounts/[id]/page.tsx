@@ -40,6 +40,7 @@ export default async function AccountDetailPage({ params }: { params: { id: stri
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
+<Link className="text-indigo-400" href={`/capital-allocation?source=registry:${params.id}#unassigned`}>Phân loại vốn</Link>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Metric label={tr("Current Balance")} value={formatValue(account.current_balance, account.currency)} />
           <Metric label={tr("Transactions")} value={String(summary.linkedTransactions.length)} />

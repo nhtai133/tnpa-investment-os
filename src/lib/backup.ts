@@ -1,3 +1,4 @@
+import { parseSource, validateAssignments, validatePolicy } from './capital-allocation';
 import { createClient } from '@libsql/client/sqlite3';
 import type { Client, Transaction, InValue } from '@libsql/client';
 import { getTableConfig, SQLiteTable } from 'drizzle-orm/sqlite-core';
@@ -9,7 +10,7 @@ import * as schema from '@/db/schema';
 import { initializeSchema } from '@/db/initialize';
 import { PRIVATE_ROOT, assertPrivatePath, ensurePrivateDirectories } from './local-paths';
 
-export const BACKUP_VERSION = 6;
+export const BACKUP_VERSION = 7;
 export const MAX_BACKUP_BYTES = 20 * 1024 * 1024;
 export const TABLE_CONFIGS = (Object.values(schema) as unknown[]).filter((t): t is SQLiteTable => is(t, SQLiteTable)).map(getTableConfig);
 export const TABLE_NAMES = TABLE_CONFIGS.map(t => t.name);
@@ -42,7 +43,7 @@ export function validateBackupShape(input: unknown): asserts input is Backup {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Backup must be an object.');
   const b = input as Backup;
   if (b.app !== 'TNPA Investment OS' || b.backup_version !== BACKUP_VERSION) {
-    throw new Error('A complete v6 backup is required. Legacy v1–v5 backups omit wealth tables; they must be converted/reconciled separately and cannot replace this database.');
+    throw new Error('A complete v7 backup is required. Older backups omit capital classification; restore their SQLite backup with its matching release instead.');
   }
   if (typeof b.exported_at !== 'string' || !Number.isFinite(Date.parse(b.exported_at))) throw new Error('Invalid export timestamp.');
   for (const table of TABLE_CONFIGS) {
@@ -77,6 +78,18 @@ export function validateBackupShape(input: unknown): asserts input is Backup {
       if (a.asset_class !== 'cash' || !source || !(b[source] as Record<string, unknown>[]).some(r => r.id === a.cash_source_id)) throw new Error('Invalid cash source reference.');
     }
   }
+  const purposes = b.capital_purposes as schema.CapitalPurpose[];
+  for (const p of purposes) validatePolicy({ ...p, is_active: Boolean(p.is_active) });
+  const groups = new Map<string, schema.CapitalAllocation[]>();
+  for (const row of b.capital_allocations as schema.CapitalAllocation[]) {
+    const key = `${row.source_type}:${row.source_id}`;
+    const source = parseSource(key);
+    const table = { asset: 'assets', registry: 'account_registry', 'bank-account': 'bank_accounts', 'savings-deposit': 'bank_savings_deposits' }[source.source_type];
+    if (!table || !(b[table] as { id: number }[]).some(x => x.id === source.source_id)) throw new Error('Invalid allocation source.');
+    groups.set(key, [...(groups.get(key) ?? []), row]);
+  }
+  // Archived purposes remain valid historical references in a backup.
+  for (const rows of groups.values()) validateAssignments(rows, purposes.map(p => ({ id: p.id, is_active: true })));
   const settings = b.app_settings as Record<string, unknown>[];
   const fx = settings.find(r => r.key === 'usd_vnd_rate');
   if (fx && (!Number.isFinite(Number(fx.value)) || Number(fx.value) <= 0)) throw new Error('Invalid FX setting.');
@@ -100,7 +113,7 @@ export async function validateBackup(input: unknown): Promise<Backup> {
   const stagingDirectory = mkdtempSync(join(PRIVATE_ROOT, 'snapshots', '.import-validation-'));
   const stage = createClient({ url: 'file:' + join(stagingDirectory, 'validation.db') });
   try {
-    await initializeSchema(stage);
+    await initializeSchema(stage, { freshPolicy: false });
     const tx = await stage.transaction('write');
     try {
       await tx.execute('PRAGMA defer_foreign_keys=ON');

@@ -516,11 +516,11 @@ test('local requests reject foreign origins, forged hosts and mutation without o
   ]) assert.equal(isLocalRequest(new Headers(bad), true, 'development'), false);
 });
 
-test('initializer creates 21 empty tables, repeats without changing data, and never seeds', async () => {
+test('initializer creates 24 tables with policy-only defaults, repeats without changing data, and never seeds', async () => {
   const { client } = await fixture();
   try {
-    assert.equal(TABLE_NAMES.length, 21);
-    for (const table of TABLE_NAMES) assert.equal((await client.execute(`SELECT count(*) n FROM "${table}"`)).rows[0].n, 0);
+    assert.equal(TABLE_NAMES.length, 24);
+    for (const table of TABLE_NAMES) assert.equal((await client.execute(`SELECT count(*) n FROM "${table}"`)).rows[0].n, table === 'capital_purposes' ? 6 : 0);
     await client.execute("INSERT INTO app_settings(key,value,updated_at) VALUES ('fixture','keep','2026-09-28')");
     assert.deepEqual((await initializeSchema(client)).created, []);
     assert.equal((await client.execute('SELECT value FROM app_settings')).rows[0].value, 'keep');

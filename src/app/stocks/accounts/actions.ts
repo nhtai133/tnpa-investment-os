@@ -35,3 +35,13 @@ export async function createBrokerAccount(formData: FormData) {
   revalidatePath('/');
   redirect('/stocks');
 }
+
+export async function toggleBrokerArchive(id: number, archived: boolean) {
+  const { headers } = await import('next/headers');
+  const { isLocalRequest } = await import('@/lib/local-request');
+  const { TNPA_ENV } = await import('@/lib/local-paths');
+  if (!isLocalRequest(new Headers(headers()), true, TNPA_ENV)) throw new Error('Local same-origin access only.');
+  const { setBrokerArchived } = await import('@/lib/capital-store');
+  await setBrokerArchived(id, archived);
+  for (const path of ['/stocks', '/stocks/accounts', `/stocks/accounts/${id}`, '/accounts', '/']) revalidatePath(path);
+}

@@ -379,6 +379,7 @@ export const bankCreditFacilities = sqliteTable('bank_credit_facilities', {
 export const accountRegistry = sqliteTable('account_registry', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   bank_account_id: integer('bank_account_id').references(() => bankAccounts.id).unique(),
+  archived_at: text('archived_at'),
   name: text('name').notNull(),
   type: text('type', { enum: ACCOUNT_TYPES }).notNull(),
   custody_type: text('custody_type', { enum: ['EXCHANGE', 'HOT_WALLET', 'COLD_WALLET'] }),
@@ -480,3 +481,27 @@ export type BankAccount = typeof bankAccounts.$inferSelect;
 export type BankSavingsDeposit = typeof bankSavingsDeposits.$inferSelect;
 export type BankCreditCard = typeof bankCreditCards.$inferSelect;
 export type BankCreditFacility = typeof bankCreditFacilities.$inferSelect;
+
+// Classification metadata never owns economic balances.
+export const capitalPurposes = sqliteTable('capital_purposes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(), slug: text('slug').notNull().unique(),
+  description: text('description').notNull().default(''),
+  target_percent: real('target_percent').notNull(), min_percent: real('min_percent').notNull(), max_percent: real('max_percent').notNull(),
+  sort_order: integer('sort_order').notNull().default(0), is_active: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  created_at: text('created_at').notNull(), updated_at: text('updated_at').notNull(),
+});
+export const capitalAllocations = sqliteTable('capital_allocations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  source_type: text('source_type').notNull(), source_id: integer('source_id').notNull(),
+  purpose_id: integer('purpose_id').notNull().references(() => capitalPurposes.id),
+  allocation_percent: real('allocation_percent').notNull(), note: text('note'),
+  created_at: text('created_at').notNull(), updated_at: text('updated_at').notNull(),
+});
+export const financialGoals = sqliteTable('financial_goals', {
+  id: integer('id').primaryKey({ autoIncrement: true }), name: text('name').notNull(), description: text('description'),
+  target_amount: real('target_amount'), target_date: text('target_date'),
+  is_active: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+});
+export type CapitalPurpose = typeof capitalPurposes.$inferSelect;
+export type CapitalAllocation = typeof capitalAllocations.$inferSelect;

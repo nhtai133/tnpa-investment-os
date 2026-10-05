@@ -21,13 +21,14 @@ const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
 };
 
 export default async function AccountsPage() {
-  const [accounts, metrics] = await Promise.all([
+  const [allAccounts, metrics] = await Promise.all([
     db
       .select()
       .from(accountRegistry)
       .orderBy(asc(accountRegistry.type), asc(accountRegistry.name)),
     getAccountRegistryMetrics(),
   ]);
+  const accounts = allAccounts.filter(a => !a.archived_at);
   const metricsMap = new Map(metrics.map((row) => [row.accountId, row]));
 
   return (

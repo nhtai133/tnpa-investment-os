@@ -1,3 +1,5 @@
+import { toggleBrokerArchive } from './actions';
+import { visibleBrokers } from '@/lib/capital-store';
 import { tr } from '@/i18n';
 import Link from 'next/link';
 import { db } from '@/db';
@@ -8,13 +10,14 @@ import { formatValue } from '@/lib/formatters';
 
 export const dynamic = 'force-dynamic';
 
-export default async function StocksBrokerAccountsPage() {
-  const accounts = await db
+export default async function StocksBrokerAccountsPage({ searchParams }: { searchParams: { archived?: string } }) {
+  const allAccounts = await db
     .select()
     .from(accountRegistry)
     .where(eq(accountRegistry.type, 'broker_account'))
     .orderBy(asc(accountRegistry.name));
 
+  const accounts = visibleBrokers(allAccounts, searchParams.archived === '1');
   return (
     <div className="min-h-screen bg-[#0C0C0E]">
       <header className="border-b border-[#26262B] px-6 py-4 bg-[#0C0C0E]">
@@ -39,7 +42,7 @@ export default async function StocksBrokerAccountsPage() {
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6">
-        <Card>
+        <nav className="flex gap-5 mb-4"><Link href="/stocks/accounts">Đang hoạt động</Link><Link href="/stocks/accounts?archived=1">Đã lưu trữ</Link></nav><Card>
           <CardHeader label={tr("Broker Accounts")} action={`${accounts.length} registered`} />
           {accounts.length === 0 ? (
             <div className="px-6 py-12 text-center">
@@ -89,7 +92,7 @@ export default async function StocksBrokerAccountsPage() {
                         {formatValue(account.current_balance, account.currency)}
                       </td>
                       <td className="px-5 py-3 text-zinc-500 whitespace-nowrap">
-                        {tr(account.status)}
+                        {account.archived_at ? "Đã lưu trữ" : tr(account.status)}<form action={toggleBrokerArchive.bind(null, account.id, !account.archived_at)}><button className="text-indigo-400">{account.archived_at ? "Khôi phục" : "Lưu trữ"}</button></form>
                       </td>
                     </tr>
                   ))}

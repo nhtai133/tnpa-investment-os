@@ -36,7 +36,7 @@ export const NAV_GROUPS: NavGroup[] = [
     links: [
       { label: 'Wealth Calendar', href: '/calendar' },
       { label: 'Performance', href: '/performance#performance' },
-      { label: 'Asset Allocation', href: '/buckets' },
+      { label: 'Asset Allocation', href: '/capital-allocation' },
       { label: 'Wealth History', href: '/performance#wealth-history' },
     ],
   },

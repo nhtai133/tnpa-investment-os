@@ -1,5 +1,5 @@
 import { resolveLocalDatabaseUrl, TNPA_ENV } from './local-paths';
-export const APP_VERSION = 'v2.1.5.1';
+export const APP_VERSION = 'v2.4-capital-allocation-intelligence';
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'TNPA Wealth OS';
 export const APP_ENV = TNPA_ENV;
 export const EFFECTIVE_DB_URL = resolveLocalDatabaseUrl();

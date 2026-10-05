@@ -102,6 +102,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
+<Link className="text-indigo-400" href={`/capital-allocation?source=asset:${params.id}#unassigned`}>Phân loại vốn</Link>
         <PositionSummaryCard usdVndRate={portfolio.usdVndRate} asset={asset} totalNetWorth={totalNW} />
 
         {/* Asset Journey Card — funding → execution → custody → value → gain/loss */}

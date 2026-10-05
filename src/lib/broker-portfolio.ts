@@ -53,7 +53,7 @@ export async function getBrokerPortfolioBreakdown(): Promise<BrokerPortfolioRow[
     cashByAccount.set(entry.account_id, (cashByAccount.get(entry.account_id) ?? 0) + (entry.amount ?? 0));
   }
 
-  return brokers.filter(b => b.status === 'active').map((broker) => {
+  return brokers.filter(b => b.status === 'active' && !b.archived_at).map((broker) => {
     const brokerPositions = positions.filter(
       (p) => p.custody_account_id === broker.id && p.quantity > EPSILON,
     );

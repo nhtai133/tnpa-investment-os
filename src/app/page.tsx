@@ -1,3 +1,5 @@
+import { getCapitalData } from '@/lib/capital-store';
+import { CapitalSummary } from '@/components/capital/CapitalSummary';
 import { tr } from '@/i18n';
 import { db } from '@/db';
 import {
@@ -14,26 +16,18 @@ import {
   REBALANCING_SETTINGS_KEYS,
   DEFAULT_TARGETS,
   computeRebalancing,
-  PURPOSE_REBALANCING_PURPOSES,
-  PURPOSE_REBALANCING_SETTINGS_KEYS,
-  DEFAULT_PURPOSE_TARGETS,
-  computePurposeRebalancing,
   type RebalancingAssetClass,
-  type RebalancingPurpose,
 } from '@/lib/rebalancing';
 import { REBALANCING_COLORS, REBALANCING_LABELS } from '@/lib/rebalancing';
-import { PURPOSE_COLORS, PURPOSE_LABELS, formatValue } from '@/lib/formatters';
-import type { AssetPurpose } from '@/db/schema';
+import { formatValue } from '@/lib/formatters';
 import { getPortfolioSummary, positionToAsset } from '@/lib/portfolio-aggregation';
 import { getBankingMaturitySummary } from '@/lib/banking-events';
 
 import { WealthSnapshot } from '@/components/dashboard/WealthSnapshot';
 import { PersonalWealthOverview } from '@/components/dashboard/PersonalWealthOverview';
-import { PurposeHealth, type PurposeHealthRow } from '@/components/dashboard/PurposeHealth';
 import { DecisionIntelligence } from '@/components/dashboard/DecisionIntelligence';
 import { WealthScore } from '@/components/dashboard/WealthScore';
 import { ReviewQueue } from '@/components/dashboard/ReviewQueue';
-import { RebalancingSignals } from '@/components/dashboard/RebalancingSignals';
 import { PipelineSummary } from '@/components/dashboard/PipelineSummary';
 import { SourceContributionPanel } from '@/components/portfolio/SourceContributionPanel';
 import { BankingAlertsCard, UpcomingBankingEvents } from '@/components/banking/BankingEvents';
@@ -47,14 +41,6 @@ import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 export const dynamic = 'force-dynamic';
 
 // ── Score helpers ────────────────────────────────────────────────────────────
-
-function computeAllocationScore(classDrift: number, purposeDrift: number): number {
-  const worst = Math.max(classDrift, purposeDrift);
-  if (worst < 10) return 25;
-  if (worst < 20) return 18;
-  if (worst < 35) return 10;
-  return 4;
-}
 
 function computeDecisionScore(total: number, open: number): number {
   if (total === 0) return 5;
@@ -112,18 +98,9 @@ export default async function CommandCenter() {
     }
   }
 
-  const purposeTargets = { ...DEFAULT_PURPOSE_TARGETS };
-  for (const p of PURPOSE_REBALANCING_PURPOSES) {
-    const val = settingsMap.get(PURPOSE_REBALANCING_SETTINGS_KEYS[p]);
-    if (val) {
-      const n = parseFloat(val);
-      if (Number.isFinite(n)) purposeTargets[p] = n;
-    }
-  }
-
   // ── Rebalancing ─────────────────────────────────────────────────────────────
   const rebalancing = computeRebalancing(allAssets, classTargets, usdVndRate);
-  const purposeRebalancing = computePurposeRebalancing(allAssets, purposeTargets, usdVndRate);
+  const { allocation: capital } = await getCapitalData(portfolio);
 
   // ── Wealth snapshot ─────────────────────────────────────────────────────────
   const totalNetWorth = portfolio.totalNetWorth;
@@ -144,14 +121,6 @@ export default async function CommandCenter() {
       ? (totalGainLoss / costBasisTotal) * 100
       : null;
 
-  // ── Purpose health rows ─────────────────────────────────────────────────────
-  const purposeHealthRows: PurposeHealthRow[] = purposeRebalancing.rows.map((r) => ({
-    purpose: r.purpose as AssetPurpose,
-    currentPct: r.currentPct,
-    targetPct: r.targetPct,
-    drift: r.differencePct, // positive = underfunded
-  }));
-
   // ── Decision metrics ────────────────────────────────────────────────────────
   const today = new Date().toISOString().split('T')[0];
   const ninetyDaysAgo = new Date();
@@ -169,20 +138,11 @@ export default async function CommandCenter() {
   const overdueWatchlist = activeWatchlist.filter(
     (w) => w.review_date && w.review_date <= today,
   );
-  const underfundedBuckets = purposeRebalancing.rows
-    .filter((r) => r.differencePct > 5)
-    .sort((a, b) => b.differencePct - a.differencePct)
-    .slice(0, 4);
-
   // ── Rebalancing signals ─────────────────────────────────────────────────────
   // Pick the class/purpose row with the largest absolute drift
   const largestClassRow = [...rebalancing.rows].sort(
     (a, b) => Math.abs(b.differencePct) - Math.abs(a.differencePct),
   )[0];
-  const largestPurposeRow = [...purposeRebalancing.rows].sort(
-    (a, b) => Math.abs(b.differencePct) - Math.abs(a.differencePct),
-  )[0];
-
   const classSignal =
     largestClassRow && Math.abs(largestClassRow.differencePct) > 2
       ? {
@@ -195,18 +155,6 @@ export default async function CommandCenter() {
         }
       : null;
 
-  const purposeSignal =
-    largestPurposeRow && Math.abs(largestPurposeRow.differencePct) > 2
-      ? {
-          label: PURPOSE_LABELS[largestPurposeRow.purpose as AssetPurpose],
-          currentPct: largestPurposeRow.currentPct,
-          targetPct: largestPurposeRow.targetPct,
-          differencePct: largestPurposeRow.differencePct,
-          action: largestPurposeRow.action,
-          color: PURPOSE_COLORS[largestPurposeRow.purpose as AssetPurpose] ?? '#9CA3AF',
-        }
-      : null;
-
   // ── Opportunity pipeline ────────────────────────────────────────────────────
   const inbox = allOpps.filter((o) => o.status === 'new').length;
   const researching = allOpps.filter((o) => o.status === 'reviewing').length;
@@ -215,10 +163,7 @@ export default async function CommandCenter() {
   ).length;
 
   // ── Wealth Score ────────────────────────────────────────────────────────────
-  const allocationScore = computeAllocationScore(
-    rebalancing.driftScore,
-    purposeRebalancing.driftScore,
-  );
+  const allocationScore = capital.allocationScore ?? 0;
   const decisionScore = computeDecisionScore(allDecisions.length, openDecisions.length);
   const reviewScore = computeReviewScore(
     allDecisions.length,
@@ -226,9 +171,7 @@ export default async function CommandCenter() {
     overdueWatchlist.length,
   );
   const hasUsdRate = settingsMap.has('usd_vnd_rate');
-  const hasPurposeTargets = PURPOSE_REBALANCING_PURPOSES.some((p) =>
-    settingsMap.has(PURPOSE_REBALANCING_SETTINGS_KEYS[p]),
-  );
+  const hasPurposeTargets = capital.complete;
   const hasClassTargets = REBALANCING_CLASSES.some((c) =>
     settingsMap.has(REBALANCING_SETTINGS_KEYS[c]),
   );
@@ -255,7 +198,7 @@ export default async function CommandCenter() {
             </div>
             <div className="hidden md:flex items-center gap-4">
               <div className="w-px h-6 bg-[#26262B]" />
-              <p className="text-[11px] text-zinc-600">Quản lý gia sản cá nhân · v2.1.5.1</p>
+              <p className="text-[11px] text-zinc-600">Quản lý gia sản cá nhân · v2.4</p>
             </div>
           </div>
           <div className="text-right">
@@ -315,16 +258,17 @@ export default async function CommandCenter() {
         {/* 2 + 7. Purpose Health ← 2/3 | Wealth Score + Decision Intel ← 1/3 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
-            <PurposeHealth rows={purposeHealthRows} />
+            <CapitalSummary data={capital} />
           </div>
           <div className="space-y-4">
-            <WealthScore
+            {capital.allocationScore !== null ? <WealthScore
               score={wealthScore}
               allocationScore={allocationScore}
               decisionScore={decisionScore}
               reviewScore={reviewScore}
               configScore={configScore}
             />
+            : <p className="text-amber-300 p-4 border border-zinc-800 rounded-xl">Điểm gia sản: chưa đủ cấu hình phân bổ vốn. Hoàn chỉnh chính sách và phân loại trước khi chấm điểm.</p>}
             <DecisionIntelligence
               total={allDecisions.length}
               open={openDecisions.length}
@@ -339,18 +283,13 @@ export default async function CommandCenter() {
         <ReviewQueue
           overdueDecisions={overdueDecisions.slice(0, 8)}
           overdueWatchlist={overdueWatchlist}
-          underfundedBuckets={underfundedBuckets}
+          underfundedBuckets={[]}
           totalOpen={openDecisions.length}
         />
 
         {/* 5 + 6. Rebalancing Signals | Opportunity Pipeline */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <RebalancingSignals
-            classSignal={classSignal}
-            purposeSignal={purposeSignal}
-            classDriftScore={rebalancing.driftScore}
-            purposeDriftScore={purposeRebalancing.driftScore}
-          />
+          <Card className="p-5"><p>Phân bổ lớp tài sản và mục đích vốn được theo dõi độc lập.</p>{classSignal && <p className="text-sm text-zinc-400 mt-2">Lớp tài sản: {classSignal.label} · hiện tại {classSignal.currentPct.toFixed(1)}% · mục tiêu {classSignal.targetPct.toFixed(1)}%</p>}<a href="/capital-allocation" className="text-indigo-400">Xem chính sách và chênh lệch vốn →</a></Card>
           <PipelineSummary
             inbox={inbox}
             researching={researching}
@@ -367,7 +306,7 @@ export default async function CommandCenter() {
         </div>
 
         <div className="pb-4 text-center">
-          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v2.1.5.1 · {todayLabel}</p>
+          <p className="text-[10px] text-zinc-800">TNPA Wealth OS · v2.4 · {todayLabel}</p>
         </div>
       </main>
     </div>

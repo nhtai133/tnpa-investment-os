@@ -1,3 +1,11 @@
+## v2.4 — Capital Allocation Intelligence
+
+- Separate capital purposes, percentage assignments and financial-goal metadata from economic valuation.
+- Add Vietnamese policy editor, split/unassigned workflow, independent allocation reporting and band-based scoring.
+- Archive/restore brokerage accounts without changing balances, positions or history.
+- Additive migration and complete v7 backup validation; preserve legacy SQLite rollback assets.
+- Opera compatibility remains unchanged and outside this release.
+
 # Changelog
 
 All meaningful changes to TNPA Investment OS should be recorded here.

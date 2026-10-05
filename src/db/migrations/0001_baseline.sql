@@ -359,3 +359,35 @@ CREATE TABLE IF NOT EXISTS asset_custody_positions (
       cost_basis_known INTEGER NOT NULL DEFAULT 1,
       updated_at TEXT NOT NULL
     );
+
+CREATE TABLE IF NOT EXISTS capital_purposes (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ name TEXT NOT NULL,
+ slug TEXT NOT NULL UNIQUE,
+ description TEXT NOT NULL DEFAULT '',
+ target_percent REAL NOT NULL DEFAULT 0,
+ min_percent REAL NOT NULL DEFAULT 0,
+ max_percent REAL NOT NULL DEFAULT 100,
+ sort_order INTEGER NOT NULL DEFAULT 0,
+ is_active INTEGER NOT NULL DEFAULT 1,
+ created_at TEXT NOT NULL,
+ updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS capital_allocations (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ source_type TEXT NOT NULL,
+ source_id INTEGER NOT NULL,
+ purpose_id INTEGER NOT NULL REFERENCES capital_purposes(id),
+ allocation_percent REAL NOT NULL DEFAULT 0,
+ note TEXT,
+ created_at TEXT NOT NULL,
+ updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS financial_goals (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ name TEXT NOT NULL,
+ description TEXT,
+ target_amount REAL,
+ target_date TEXT,
+ is_active INTEGER NOT NULL DEFAULT 1
+);

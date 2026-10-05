@@ -1,3 +1,4 @@
+import { toggleBrokerArchive } from '../actions';
 import { tr } from '@/i18n';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -69,6 +70,7 @@ export default async function BrokerDetailPage({ params }: { params: { id: strin
       </header>
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-4">
+        <div className="flex gap-5"><Link href={`/capital-allocation?source=registry:${id}#unassigned`} className="text-indigo-400">Phân loại vốn tiền mặt</Link><form action={toggleBrokerArchive.bind(null,id,!account.archived_at)}><button className="text-indigo-400">{account.archived_at ? 'Khôi phục tài khoản' : 'Lưu trữ tài khoản'}</button></form></div><p className="text-xs text-zinc-400">Lưu trữ chỉ ẩn thao tác; tiền và vị thế vẫn tính vào gia sản.</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Metric label={tr("Cash Balance")} value={formatValue(account.current_balance, account.currency)} />
           <Metric label={tr("Stock Value")} value={formatValue(totalStockValue, account.currency)} />

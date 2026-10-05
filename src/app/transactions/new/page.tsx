@@ -50,7 +50,7 @@ export default async function NewTransactionPage({ searchParams }: Props) {
               <TransactionForm
                 action={createTransaction}
                 assets={activeAssets}
-                accounts={accounts}
+                accounts={accounts.filter(account => !account.archived_at)}
                 preselectedAssetId={preselectedAssetId}
               />
             </div>

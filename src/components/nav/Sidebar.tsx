@@ -54,7 +54,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-[#26262B]">
-        <p className="text-[10px] text-zinc-700">v2.1.5.1 · Nội bộ</p>
+        <p className="text-[10px] text-zinc-700">v2.4 · Nội bộ</p>
       </div>
     </aside>
   );

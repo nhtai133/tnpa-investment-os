@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { tr } from '@/i18n';
 import { notFound } from 'next/navigation';
 import { db } from '@/db';
@@ -20,7 +21,7 @@ export default async function EditSavingsDepositPage({ params }: { params: { id:
   ]);
   if (!deposit) notFound();
   return (
-    <FormPageShell title={tr("Edit Savings Deposit")}>
+    <FormPageShell title={tr("Edit Savings Deposit")}><Link className="text-indigo-400" href={`/capital-allocation?source=savings-deposit:${params.id}#unassigned`}>Phân loại vốn</Link>
       <SavingsDepositForm action={updateBankSavingsDeposit.bind(null, deposit.id)} accounts={accounts} defaultValues={deposit} trackingStartDate={trackingStartDate ?? undefined} />
     </FormPageShell>
   );

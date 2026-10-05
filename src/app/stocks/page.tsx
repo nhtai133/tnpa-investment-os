@@ -13,7 +13,8 @@ type SearchParams = { broker?: string; ticker?: string; type?: string; from?: st
 export default async function StocksPage({ searchParams }: { searchParams: SearchParams }) {
   const data = await getStockWorkspaceData();
   const trackingStartDate = await getAppSetting('wealth_tracking_start_date') ?? new Date().toISOString().slice(0, 10);
-  const activeBrokers = data.brokers.filter((row) => row.account.status === 'active');
+  const activeBrokers = data.brokers.filter((row) => row.account.status === 'active' && !row.account.archived_at);
+  const visiblePositions = data.positions.filter(p => !p.broker?.archived_at);
   const activeAssetIds = [...new Set(data.positions.map((row) => row.asset.id))];
   const pricedStocks = activeAssetIds.map((id) => data.assetMap.get(id)!).filter(Boolean);
   const filters = searchParams ?? {};
@@ -47,7 +48,7 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
             <h1 className="text-base font-semibold text-zinc-100 leading-tight mt-0.5">{tr('Stocks')}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Link href="/stocks/accounts/new" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-300 rounded-lg">+ {tr('Add Broker Account')}</Link>
+            <Link href="/stocks/accounts" className="text-indigo-400">Tài khoản & lưu trữ</Link><Link href="/capital-allocation#unassigned" className="text-indigo-400">Phân loại vốn</Link><Link href="/stocks/accounts/new" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-300 rounded-lg">+ {tr('Add Broker Account')}</Link>
             <Link href="#stock-opening" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-300 rounded-lg">+ {tr('Add existing stock')}</Link>
             <Link href="/watchlist" className="px-3 py-2 border border-[#303037] hover:border-zinc-500 text-xs text-zinc-300 rounded-lg">{tr('Watchlist')}</Link>
             <Link href="/research" className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs text-white rounded-lg">{tr('Research Notes')}</Link>
@@ -56,7 +57,7 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
       </header>
 
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-8">
-        <section aria-labelledby="stocks-overview">
+        <section aria-labelledby="stocks-overview"><p className="text-xs text-zinc-400">Tổng giá trị gồm tài khoản đã lưu trữ; danh sách thao tác mặc định chỉ hiện tài khoản đang hoạt động.</p>
           <div className="flex items-center justify-between mb-3">
             <h2 id="stocks-overview" className="text-xs font-semibold tracking-widest uppercase text-zinc-500">{tr('Overview')}</h2>
             <span className="text-[10px] text-zinc-600">{tr('Converted to VND for workspace totals')}</span>
@@ -66,7 +67,7 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
           </div>
         </section>
 
-        {data.positions.length === 0 && (
+        {visiblePositions.length === 0 && (
           <section className="rounded-xl border border-indigo-500/30 bg-[#131316] p-5">
             <h2 className="text-sm font-semibold text-zinc-100">{tr('Start your stock workspace')}</h2>
             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-zinc-400">
@@ -83,9 +84,9 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
             <h2 id="broker-accounts" className="text-xs font-semibold tracking-widest uppercase text-zinc-500">{tr('Broker Accounts')}</h2>
             <Link href="/stocks/accounts/new" className="text-xs text-indigo-400 hover:text-indigo-300">+ {tr('Add Broker Account')}</Link>
           </div>
-          {data.brokers.length === 0 ? <Empty>{tr('Add a broker account to track cash and stock positions here.')}</Empty> : (
+          {activeBrokers.length === 0 ? <Empty>{tr('Add a broker account to track cash and stock positions here.')}</Empty> : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              {data.brokers.map(({ account, cash, stockValue, totalValue, realizedPnl, unrealizedPnl }) => {
+              {activeBrokers.map(({ account, cash, stockValue, totalValue, realizedPnl, unrealizedPnl }) => {
                 return <article key={account.id} className="rounded-xl border border-[#26262B] bg-[#131316] p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -115,30 +116,30 @@ export default async function StocksPage({ searchParams }: { searchParams: Searc
           <StockActionCenter
             accounts={activeBrokers.map(({ account, cash }) => ({ id: account.id, name: account.name, institution: account.institution, currency: account.currency, cash }))}
             stocks={data.assets.map((asset) => ({ id: asset.id, symbol: asset.symbol, name: asset.name, currency: asset.currency, isArchived: asset.is_archived }))}
-            positions={data.positions.flatMap((position) => position.broker ? [{ assetId: position.asset.id, brokerId: position.broker.id, quantity: position.quantity }] : [])}
+            positions={visiblePositions.flatMap((position) => position.broker ? [{ assetId: position.asset.id, brokerId: position.broker.id, quantity: position.quantity }] : [])}
           />
         </section>
 
         <StockOpeningManager
           accounts={activeBrokers.map(({ account }) => ({ id: account.id, name: account.name, institution: account.institution, currency: account.currency }))}
           stocks={data.assets.map((asset) => ({ id: asset.id, symbol: asset.symbol, name: asset.name, currency: asset.currency, isArchived: asset.is_archived }))}
-          positions={data.positions.flatMap((position) => position.broker ? [{ assetId: position.asset.id, brokerId: position.broker.id, symbol: position.asset.symbol ?? position.asset.name, name: position.asset.name, currency: position.asset.currency, quantity: position.quantity, averageCost: position.averageCost, currentPrice: position.currentPrice, marketValue: position.marketValue, costBasis: position.costBasis, costBasisKnown: position.costBasisKnown, openingTransactionId: position.openingTransactionId, openingDate: position.openingDate, canCorrectOpening: position.canCorrectOpening }] : [])}
+          positions={visiblePositions.flatMap((position) => position.broker ? [{ assetId: position.asset.id, brokerId: position.broker.id, symbol: position.asset.symbol ?? position.asset.name, name: position.asset.name, currency: position.asset.currency, quantity: position.quantity, averageCost: position.averageCost, currentPrice: position.currentPrice, marketValue: position.marketValue, costBasis: position.costBasis, costBasisKnown: position.costBasisKnown, openingTransactionId: position.openingTransactionId, openingDate: position.openingDate, canCorrectOpening: position.canCorrectOpening }] : [])}
           trackingStartDate={trackingStartDate}
         />
 
         <section aria-labelledby="open-positions" className="space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h2 id="open-positions" className="text-xs font-semibold tracking-widest uppercase text-zinc-500">{tr('Open stock positions')}</h2>
-            <span className="text-[10px] text-zinc-600">{data.positions.length} {tr('positions')}</span>
+            <span className="text-[10px] text-zinc-600">{visiblePositions.length} {tr('positions')}</span>
           </div>
-          {data.positions.length === 0 ? <Empty>{tr('No open stock positions yet. Create a ticker above, deposit cash, then record a buy.')}</Empty> : (
+          {visiblePositions.length === 0 ? <Empty>{tr('No open stock positions yet. Create a ticker above, deposit cash, then record a buy.')}</Empty> : (
             <div className="overflow-x-auto rounded-xl border border-[#26262B] bg-[#131316]">
               <table className="w-full min-w-[1200px] text-xs">
                 <thead><tr className="border-b border-[#26262B] text-left text-[10px] uppercase tracking-wide text-zinc-600">
                   {['Ticker', 'Company', 'Broker', 'Quantity', 'Average Cost', 'Current Price', 'Cost Basis', 'Market Value', 'Gain / Loss', '%', 'Weight'].map((label) => <th key={label} className="px-3 py-3 whitespace-nowrap">{tr(label)}</th>)}
                 </tr></thead>
                 <tbody className="divide-y divide-[#202024]">
-                  {data.positions.map((row) => <tr key={`${row.asset.id}-${row.broker?.id ?? 'legacy'}`} className="hover:bg-[#18181D]">
+                  {visiblePositions.map((row) => <tr key={`${row.asset.id}-${row.broker?.id ?? 'legacy'}`} className="hover:bg-[#18181D]">
                     <td className="px-3 py-3 font-mono font-semibold text-zinc-200">{row.asset.symbol}</td>
                     <td className="px-3 py-3 text-zinc-300">{row.asset.name}</td>
                     <td className="px-3 py-3">{row.broker ? <Link href={`/stocks/accounts/${row.broker.id}`} className="text-indigo-400">{row.broker.institution ?? row.broker.name}</Link> : <span className="text-zinc-600">{tr('Unassigned')}</span>}</td>

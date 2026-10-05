@@ -99,7 +99,7 @@ export async function recordStockOpeningBalance(input: { brokerAccountId: number
   if (!(input.amount > 0) || !Number.isFinite(input.amount)) throw new Error('Enter an opening cash balance greater than zero.');
   if (!validIsoDate(input.date)) throw new Error('Enter a valid opening balance date.');
   const [account] = await database.select().from(accountRegistry).where(eq(accountRegistry.id, input.brokerAccountId)).limit(1);
-  if (!account || account.type !== 'broker_account' || account.status !== 'active') throw new Error('Select an active broker account.');
+  if (!account || account.type !== 'broker_account' || (account.status !== 'active' || account.archived_at)) throw new Error('Select an active broker account.');
   await database.transaction(async (tx) => {
     const history = await tx.select().from(transactions);
     if (history.some((row) => row.type === 'opening_balance' && transactionUsesBroker(row, account.id))) throw new Error('An opening cash balance is already recorded for this broker.');
@@ -126,7 +126,7 @@ export async function recordStockOpeningPosition(input: StockOpeningPositionInpu
   if (input.marketPrice != null && (!Number.isFinite(input.marketPrice) || input.marketPrice < 0)) throw new Error('Market price must be finite and nonnegative.');
   const [account] = await database.select().from(accountRegistry).where(eq(accountRegistry.id, input.brokerAccountId)).limit(1);
   const [asset] = await database.select().from(assets).where(eq(assets.id, input.assetId)).limit(1);
-  if (!account || account.type !== 'broker_account' || account.status !== 'active') throw new Error('Select an active broker account.');
+  if (!account || account.type !== 'broker_account' || (account.status !== 'active' || account.archived_at)) throw new Error('Select an active broker account.');
   if (!asset || asset.asset_class !== 'stock') throw new Error('Select a stock ticker.');
   if (account.currency !== asset.currency) throw new Error('Broker account and stock currencies must match.');
 
@@ -213,7 +213,7 @@ export async function supplyStockCostBasis(input: { brokerAccountId: number; ass
 
 export async function recordStockTransaction(input: StockTransactionInput, database: Store = db) {
   const [account] = await database.select().from(accountRegistry).where(eq(accountRegistry.id, input.brokerAccountId)).limit(1);
-  if (!account || account.type !== 'broker_account' || account.status !== 'active') throw new Error('Select an active broker account.');
+  if (!account || account.type !== 'broker_account' || (account.status !== 'active' || account.archived_at)) throw new Error('Select an active broker account.');
   if (account.currency !== input.currency) throw new Error('Broker account and transaction currencies must match. Record any currency conversion separately.');
 
   let asset: Asset | null = null;

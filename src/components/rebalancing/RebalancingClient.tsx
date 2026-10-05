@@ -20,13 +20,10 @@ import {
   REBALANCING_CLASSES,
   REBALANCING_LABELS,
   REBALANCING_COLORS,
-  PURPOSE_REBALANCING_PURPOSES,
   type RebalancingAssetClass,
   type RebalancingResult,
-  type PurposeRebalancingResult,
-  type RebalancingPurpose,
 } from '@/lib/rebalancing';
-import { saveTargets, savePurposeTargets } from '@/app/rebalancing/actions';
+import { saveTargets } from '@/app/rebalancing/actions';
 
 // ---------------------------------------------------------------------------
 // Shared sub-components
@@ -126,18 +123,14 @@ function ComparisonBarChart({
 interface Props {
   rebalancing: RebalancingResult;
   targets: Record<RebalancingAssetClass, number>;
-  purposeRebalancing: PurposeRebalancingResult;
-  purposeTargets: Record<RebalancingPurpose, number>;
 }
 
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
-export function RebalancingClient({ rebalancing, targets, purposeRebalancing, purposeTargets }: Props) {
+export function RebalancingClient({ rebalancing, targets }: Props) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'asset-class' | 'purpose'>('asset-class');
-
   // Asset class editor state
   const [editTargets, setEditTargets] = useState<Record<RebalancingAssetClass, string>>(
     Object.fromEntries(
@@ -148,27 +141,11 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
   const [classError, setClassError] = useState<string | null>(null);
   const [classSuccess, setClassSuccess] = useState(false);
 
-  // Purpose editor state
-  const [editPurposeTargets, setEditPurposeTargets] = useState<Record<RebalancingPurpose, string>>(
-    Object.fromEntries(
-      PURPOSE_REBALANCING_PURPOSES.map((p) => [p, purposeTargets[p].toString()]),
-    ) as Record<RebalancingPurpose, string>,
-  );
-  const [purposeSaving, setPurposeSaving] = useState(false);
-  const [purposeError, setPurposeError] = useState<string | null>(null);
-  const [purposeSuccess, setPurposeSuccess] = useState(false);
-
   const classTotal = REBALANCING_CLASSES.reduce(
     (sum, cls) => sum + (parseFloat(editTargets[cls]) || 0),
     0,
   );
   const classValid = Math.abs(classTotal - 100) <= 0.01;
-
-  const purposeTotal = PURPOSE_REBALANCING_PURPOSES.reduce(
-    (sum, p) => sum + (parseFloat(editPurposeTargets[p]) || 0),
-    0,
-  );
-  const purposeValid = Math.abs(purposeTotal - 100) <= 0.01;
 
   async function handleSaveClass() {
     setClassSaving(true);
@@ -182,33 +159,10 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
     else { setClassSuccess(true); router.refresh(); }
   }
 
-  async function handleSavePurpose() {
-    setPurposeSaving(true);
-    setPurposeError(null);
-    setPurposeSuccess(false);
-    const fd = new FormData();
-    for (const p of PURPOSE_REBALANCING_PURPOSES) fd.set(p, editPurposeTargets[p]);
-    const result = await savePurposeTargets(null, fd);
-    setPurposeSaving(false);
-    if (result?.error) setPurposeError(result.error);
-    else { setPurposeSuccess(true); router.refresh(); }
-  }
-
   const { portfolioValue, rows, driftScore, largestOverweight, largestUnderweight } = rebalancing;
-  const { rows: pRows, driftScore: pDrift, largestOverweight: pOver, largestUnderweight: pUnder } = purposeRebalancing;
-
   const classDriftColor =
     driftScore > 25 ? 'text-red-400' : driftScore > 12 ? 'text-amber-400' : 'text-emerald-400';
-  const purposeDriftColor =
-    pDrift > 25 ? 'text-red-400' : pDrift > 12 ? 'text-amber-400' : 'text-emerald-400';
-
   const classChartData = rows.map((r) => ({
-    name: r.label,
-    current: parseFloat(r.currentPct.toFixed(1)),
-    target: r.targetPct,
-  }));
-
-  const purposeChartData = pRows.map((r) => ({
     name: r.label,
     current: parseFloat(r.currentPct.toFixed(1)),
     target: r.targetPct,
@@ -227,32 +181,8 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
 
       <main className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1 border-b border-[#26262B]">
-          {(
-            [
-              { id: 'asset-class', label: 'Asset Class' },
-              { id: 'purpose', label: 'Purpose Buckets' },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                activeTab === tab.id
-                  ? 'text-zinc-100 border-indigo-500'
-                  : 'text-zinc-600 border-transparent hover:text-zinc-400'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ================================================================
-            TAB 1 — Asset Class Rebalancing (unchanged layout)
-        ================================================================ */}
-        {activeTab === 'asset-class' && (
+<Link href="/capital-allocation" className="text-indigo-400">Chính sách mục đích vốn →</Link>
+        {(
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
@@ -398,173 +328,6 @@ export function RebalancingClient({ rebalancing, targets, purposeRebalancing, pu
                 </div>
                 {classError && <p className="text-xs text-red-400 mt-3">{classError}</p>}
                 {classSuccess && <p className="text-xs text-emerald-400 mt-3">{tr("Targets saved — analysis updated.")}</p>}
-              </div>
-            </Card>
-          </>
-        )}
-
-        {/* ================================================================
-            TAB 2 — Purpose Bucket Rebalancing
-        ================================================================ */}
-        {activeTab === 'purpose' && (
-          <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <KpiCard
-                label={tr("Portfolio Value")}
-                value={<p className="text-xl font-bold text-zinc-100 tabular-nums">{formatCurrency(purposeRebalancing.portfolioValue)}</p>}
-                sub="All active assets · USD-normalized"
-              />
-              <KpiCard
-                label={tr("Purpose Drift Score")}
-                value={<p className={`text-xl font-bold tabular-nums ${purposeDriftColor}`}>{pDrift.toFixed(1)}</p>}
-                sub="Sum of |deviations| in %"
-              />
-              <KpiCard
-                label={tr("Largest Overweight")}
-                value={
-                  pOver ? (
-                    <p className="text-sm font-semibold text-red-400">{pOver.label}</p>
-                  ) : (
-                    <p className="text-sm font-medium text-zinc-600">{tr("None")}</p>
-                  )
-                }
-                sub={pOver ? `${pOver.currentPct.toFixed(1)}% vs ${pOver.targetPct}% target` : undefined}
-              />
-              <KpiCard
-                label={tr("Largest Underweight")}
-                value={
-                  pUnder ? (
-                    <p className="text-sm font-semibold text-emerald-400">{pUnder.label}</p>
-                  ) : (
-                    <p className="text-sm font-medium text-zinc-600">{tr("None")}</p>
-                  )
-                }
-                sub={pUnder ? `${pUnder.currentPct.toFixed(1)}% vs ${pUnder.targetPct}% target` : undefined}
-              />
-            </div>
-
-            <ComparisonBarChart data={purposeChartData} />
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Current vs Target */}
-              <Card>
-                <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Current vs Target")}</span>
-                </div>
-                <div>
-                  <div className="px-5 py-2 flex items-center gap-3 border-b border-[#26262B]">
-                    <span className="flex-1 text-[10px] font-semibold tracking-widest uppercase text-zinc-700">{tr("Purpose")}</span>
-                    <div className="flex items-center gap-4">
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">{tr("Current")}</span>
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-12 text-right">{tr("Target")}</span>
-                      <span className="text-[10px] font-semibold tracking-widest uppercase text-zinc-700 w-14 text-right">{tr("Diff")}</span>
-                    </div>
-                  </div>
-                  {pRows.map((row) => {
-                    const isOnTarget = row.action === 'ON TARGET';
-                    const diffColor = isOnTarget ? 'text-zinc-600' : row.differencePct > 0 ? 'text-emerald-400' : 'text-red-400';
-                    const diffLabel = isOnTarget ? '≈ 0%' : `${row.differencePct > 0 ? '+' : ''}${row.differencePct.toFixed(1)}%`;
-                    return (
-                      <div key={row.purpose} className="px-5 py-3 flex items-center gap-3 border-b border-[#1A1A1F] last:border-0">
-                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: row.color }} />
-                        <Link
-                          href={`/buckets/${row.purpose}`}
-                          className="flex-1 text-xs text-zinc-300 hover:text-indigo-400 transition-colors"
-                        >
-                          {row.label}
-                        </Link>
-                        <div className="flex items-center gap-4 tabular-nums">
-                          <span className="text-xs text-zinc-400 w-12 text-right">{row.currentPct.toFixed(1)}%</span>
-                          <span className="text-xs text-zinc-600 w-12 text-right">{row.targetPct.toFixed(1)}%</span>
-                          <span className={`text-xs font-semibold w-14 text-right ${diffColor}`}>{diffLabel}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-
-              {/* Suggested Actions */}
-              <Card>
-                <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                  <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Suggested Actions")}</span>
-                </div>
-                <div>
-                  {pRows.map((row) => {
-                    const isOnTarget = row.action === 'ON TARGET';
-                    const actionColor = isOnTarget ? 'text-zinc-600' : row.action === 'ADD CAPITAL' ? 'text-emerald-400' : 'text-red-400';
-                    const amountLabel = isOnTarget ? null : `${row.action === 'ADD CAPITAL' ? '+' : '-'}${formatCurrency(Math.abs(row.differenceValueUsd), true)}`;
-                    return (
-                      <div key={row.purpose} className="px-5 py-3.5 flex items-center justify-between gap-3 border-b border-[#1A1A1F] last:border-0">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: row.color }} />
-                          <Link
-                            href={`/buckets/${row.purpose}`}
-                            className="text-xs text-zinc-300 hover:text-indigo-400 transition-colors truncate"
-                          >
-                            {row.label}
-                          </Link>
-                        </div>
-                        <div className="flex items-center gap-2.5 flex-shrink-0">
-                          <span className={`text-[10px] font-bold tracking-widest uppercase ${actionColor}`}>{row.action}</span>
-                          {amountLabel && <span className={`text-xs font-semibold tabular-nums ${actionColor}`}>{amountLabel}</span>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div className="px-5 py-3 border-t border-[#26262B]">
-                    <p className="text-[10px] text-zinc-700">
-                      {tr("Purpose rebalancing is a planning tool. It does not execute transactions.")}</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Purpose Target Editor */}
-            <Card>
-              <div className="px-5 pt-5 pb-4 border-b border-[#26262B]">
-                <span className="text-[11px] font-semibold tracking-widest uppercase text-zinc-500">{tr("Purpose Target Allocation")}</span>
-              </div>
-              <div className="p-5">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-5">
-                  {PURPOSE_REBALANCING_PURPOSES.map((p) => {
-                    const row = pRows.find((r) => r.purpose === p);
-                    return (
-                      <div key={p}>
-                        <label className="block mb-1.5">
-                          <span className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-500">
-                            <span className="w-1.5 h-1.5 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: row?.color ?? '#6B7280' }} />
-                            {row?.label ?? p}
-                          </span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number" min="0" max="100" step="0.1"
-                            value={editPurposeTargets[p]}
-                            onChange={(e) => setEditPurposeTargets((prev) => ({ ...prev, [p]: e.target.value }))}
-                            className="w-full pr-7 pl-3 py-2 bg-[#1C1C21] border border-[#26262B] hover:border-zinc-600 focus:border-indigo-500 focus:outline-none rounded-lg text-sm text-zinc-100 tabular-nums transition-colors"
-                          />
-                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-600 pointer-events-none">%</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-bold tabular-nums ${purposeValid ? 'text-emerald-400' : 'text-red-400'}`}>{purposeTotal.toFixed(1)}%</span>
-                    <span className="text-xs text-zinc-600">{purposeValid ? 'Total valid — ready to save' : 'Must equal 100%'}</span>
-                  </div>
-                  <button
-                    onClick={handleSavePurpose}
-                    disabled={purposeSaving || !purposeValid}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-[#1C1C21] disabled:text-zinc-600 disabled:border disabled:border-[#26262B] text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    {purposeSaving ? 'Saving…' : 'Save Targets'}
-                  </button>
-                </div>
-                {purposeError && <p className="text-xs text-red-400 mt-3">{purposeError}</p>}
-                {purposeSuccess && <p className="text-xs text-emerald-400 mt-3">{tr("Purpose targets saved — analysis updated.")}</p>}
               </div>
             </Card>
           </>
